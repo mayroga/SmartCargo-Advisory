@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCargo Advisory - MIA | Avianca Cargo</title>
+    <style>
+        :root {
+            --primary-red: #d32f2f;
+            --dark-bg: #1a1a1a;
+            --light-bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --border-color: #e0e0e0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--light-bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            margin: auto;
+        }
+
+        h2 {
+            color: var(--primary-red);
+            text-align: center;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            margin-bottom: 25px;
+            font-size: 13px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 13px;
+            color: var(--text-main);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary-red);
+            outline: none;
+        }
+
+        .voice-section {
+            background: #fff8f8;
+            border: 1px dashed var(--primary-red);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .btn-voice {
+            background: #e53935;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-voice.recording {
+            background: #b71c1c;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button.action-btn {
+            flex: 2;
+            padding: 12px;
+            background: var(--primary-red);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        button.action-btn:hover {
+            opacity: 0.9;
+        }
+
+        button.btn-clear {
+            flex: 1;
+            padding: 12px;
+            background: #555555;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        button.btn-clear:hover {
+            opacity: 0.9;
+        }
+
+        #resultado-box {
+            margin-top: 25px;
+            background: #fafafa;
+            border: 1px solid var(--border-color);
+            padding: 20px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        #resultado-box h3 {
+            margin-top: 0;
+            color: var(--text-main);
+            border-bottom: 2px solid var(--primary-red);
+            padding-bottom: 8px;
+            font-size: 16px;
+        }
+
+        .result-item {
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .highlight {
+            color: var(--primary-red);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>SmartCargo Advisory - MIA</h2>
+    <div class="subtitle">Asesoría Operativa Integral | Avianca Cargo (Bellies y Freighters)</div>
+    
+    <!-- Botón de Voz (Dictado Continuo de hasta 1 Minuto) -->
+    <div class="voice-section">
+        <label style="margin-bottom: 8px;">¿Prefiere dictar los detalles de su carga por voz?</label>
+        <button type="button" id="voiceBtn" class="btn-voice" onclick="toggleVoiceRecording()">🎙️ Iniciar Dictado por Voz (1 Min)</button>
+        <span id="voiceStatus" style="display:block; font-size:11px; color: var(--text-muted); margin-top: 5px;">Haga clic para hablar (máximo 60 segundos).</span>
+    </div>
+
+    <form id="cargoForm" onsubmit="enviarConsulta(event)">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="actor">Rol Logístico:</label>
+                <select id="actor" required>
+                    <option value="dueño">Dueño de la Mercancía (Shipper)</option>
+                    <option value="forwarder">Forwarder (Agente de Carga)</option>
+                    <option value="camionero">Camionero (Transportista)</option>
+                    <option value="counter">Agente de Counter / Bodega</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="awb_numero">Guía Aérea (AWB - Prefijo 134):</label>
+                <input type="text" id="awb_numero" placeholder="Ej: 134-12345678" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tipo_carga">Categoría de Carga:</label>
+                <select id="tipo_carga" required>
+                    <option value="perecedero">Perecedero / Flores (Perishables)</option>
+                    <option value="dg">Mercancía Peligrosa (DG)</option>
+                    <option value="avi">Animales Vivos (AVI / Mascotas)</option>
+                    <option value="general">Carga General / Seca / Comat</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="peso_kg">Peso Bruto (KG):</label>
+                <input type="number" id="peso_kg" step="0.01" placeholder="0.00" required>
+            </div>
+
+            <div class="form-group">
+                <label for="destino">Destino (Estación):</label>
+                <input type="text" id="destino" placeholder="Ej: BOG, MDE, UIO, PTY" required>
+            </div>
+
+            <div class="form-group">
+                <label for="estado_envoltura">Estado del Empaque / Envoltura:</label>
+                <select id="estado_envoltura" required>
+                    <option value="intacto">Intacto y Seco (Conforme)</option>
+                    <option value="humedo">Húmedo o Dañado en Superficie</option>
+                    <option value="roto">Roto o Perforado</option>
+                </select>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="archivo_pdf">Adjuntar Documento PDF (AWB / DGD / USDA):</label>
+                <input type="file" id="archivo_pdf" accept=".pdf">
+            </div>
+        </div>
+
+        <div class="btn-container">
+            <button type="submit" class="action-btn">Procesar y Resolver</button>
+            <button type="button" class="btn-clear" onclick="limpiarFormulario()">Borrar Datos</button>
+        </div>
+    </form>
+
+    <div id="resultado-box">
+        <h3>Dictamen y Solución Operativa</h3>
+        <div class="result-item"><strong>Estación:</strong> <span id="res-estacion"></span></div>
+        <div class="result-item"><strong>Actor Consultante:</strong> <span id="res-actor"></span></div>
+        <div class="result-item"><strong>Guía Aérea (AWB):</strong> <span id="res-awb"></span></div>
+        <div class="result-item"><strong>Estatus del Negocio:</strong> <span id="res-estatus" class="highlight"></span></div>
+        <div class="result-item"><strong>Solución Directa:</strong> <span id="res-solucion" class="highlight"></span></div>
+        <div class="result-item"><strong>Análisis Documental:</strong> <span id="res-pdf"></span></div>
+    </div>
+</div>
+
+<script>
+let recognition = null;
+let isRecording = false;
+
+function toggleVoiceRecording() {
+    const btn = document.getElementById('voiceBtn');
+    const status = document.getElementById('voiceStatus');
+
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Su navegador no soporta el dictado por voz. Por favor, escriba los datos directamente.');
+        return;
+    }
+
+    if (!isRecording) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.lang = 'es-US';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = function() {
+            isRecording = true;
+            btn.classList.add('recording');
+            btn.innerText = '🔴 Escuchando... (Hable hasta 1 min)';
+            status.innerText = 'Dictado activo. Hable con claridad sobre su carga...';
+        };
+
+        recognition.onresult = function(event) {
+            const speechResult = event.results[0][0].transcript;
+            document.getElementById('awb_numero').value = "134-DICTADO-VOZ";
+            status.innerText = 'Dictado procesado con éxito: "' + speechResult + '"';
+        };
+
+        recognition.onerror = function(event) {
+            status.innerText = 'Error en el reconocimiento de voz. Intente de nuevo.';
+            detenerVozUI(btn);
+        };
+
+        recognition.onend = function() {
+            detenerVozUI(btn);
+        };
+
+        recognition.start();
+
+        // Seguridad automática de 1 minuto (60,000 ms)
+        setTimeout(() => {
+            if (isRecording && recognition) {
+                recognition.stop();
+            }
+        }, 60000);
+
+    } else {
+        if (recognition) {
+            recognition.stop();
+        }
+        detenerVozUI(btn);
+    }
+}
+
+function detenerVozUI(btn) {
+    isRecording = false;
+    btn.classList.remove('recording');
+    btn.innerText = '🎙️ Iniciar Dictado por Voz (1 Min)';
+}
+
+async function enviarConsulta(event) {
+    event.preventDefault();
+    
+    const formData = new FormData();
+    formData.append("actor", document.getElementById('actor').value);
+    formData.append("awb_numero", document.getElementById('awb_numero').value);
+    formData.append("tipo_carga", document.getElementById('tipo_carga').value);
+    formData.append("peso_kg", document.getElementById('peso_kg').value);
+    formData.append("destino", document.getElementById('destino').value);
+    formData.append("estado_envoltura", document.getElementById('estado_envoltura').value);
+    
+    const fileField = document.getElementById('archivo_pdf');
+    if (fileField.files[0]) {
+        formData.append("archivo_pdf", fileField.files[0]);
+    }
+
+    try {
+        const response = await fetch('/api/smartcargo/resolver', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error('Error al procesar la solicitud en el servidor.');
+        }
+
+        const data = await response.json();
+        
+        document.getElementById('res-estacion').innerText = data.estacion;
+        document.getElementById('res-actor').innerText = data.actor;
+        document.getElementById('res-awb').innerText = data.awb;
+        document.getElementById('res-estatus').innerText = data.estatus_general;
+        document.getElementById('res-solucion').innerText = data.solucion_directa;
+        document.getElementById('res-pdf').innerText = data.analisis_documental_pdf;
+        
+        document.getElementById('resultado-box').style.display = 'block';
+    } catch (error) {
+        alert('Ocurrió un error de conexión: ' + error.message);
+    }
+}
+
+function limpiarFormulario() {
+    document.getElementById('cargoForm').reset();
+    document.getElementById('resultado-box').style.display = 'none';
+    document.getElementById('voiceStatus').innerText = 'Haga clic para hablar (máximo 60 segundos).';
+}
+</script>
+
+</body>
+</html>
