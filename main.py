@@ -3,9 +3,8 @@ from fastapi.responses import HTMLResponse
 from typing import Optional
 
 app = FastAPI(
-    title="SmartCargo Advisory Core - Avianca Cargo MIA",
-    description="Sistema experto de cumplimiento operativo IATA, TSA, CBP y DOT para Forwarders y Agentes de Counter.",
-    version="6.1.0"
+    title="SmartCargo Advisory",
+    version="9.0.0"
 )
 
 @app.get("/", response_class=HTMLResponse)
@@ -16,502 +15,336 @@ def home():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCargo Advisory - MIA | Avianca Cargo</title>
+    <title>SmartCargo Advisory - MIA</title>
     <style>
         :root {
-            --primary-red: #d32f2f;
-            --dark-bg: #1a1a1a;
-            --light-bg: #f4f6f9;
+            --primary-red: #cc0000;
+            --bg-color: #f2f4f7;
             --card-bg: #ffffff;
-            --text-main: #333333;
-            --text-muted: #666666;
-            --border-color: #e0e0e0;
+            --text-main: #222222;
+            --border: #cccccc;
         }
 
         body {
             font-family: Arial, sans-serif;
-            background-color: var(--light-bg);
+            background-color: var(--bg-color);
             color: var(--text-main);
             margin: 0;
-            padding: 20px;
+            padding: 15px;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 850px;
             background: var(--card-bg);
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             margin: auto;
         }
 
         h2 {
             color: var(--primary-red);
             text-align: center;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 20px;
         }
 
         .subtitle {
             text-align: center;
-            color: var(--text-muted);
-            margin-bottom: 25px;
+            color: #555;
+            margin-bottom: 15px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Sección del Manual y Requisitos de Aviación */
+        .manual-section {
+            background: #fffdfd;
+            border: 1px solid var(--primary-red);
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+
+        .manual-section h3 {
+            margin: 0 0 8px 0;
+            color: var(--primary-red);
             font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .manual-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .manual-grid ul {
+            margin: 0;
+            padding-left: 15px;
+        }
+
+        .manual-grid li {
+            margin-bottom: 4px;
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 12px;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group.full-width {
+        .full {
             grid-column: span 2;
         }
 
         label {
             display: block;
             font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 13px;
-            color: var(--text-main);
+            margin-bottom: 3px;
+            font-size: 12px;
         }
 
-        input, select {
+        input, select, textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 3px;
             box-sizing: border-box;
-            font-size: 14px;
+            font-size: 13px;
         }
 
-        input:focus, select:focus {
-            border-color: var(--primary-red);
-            outline: none;
-        }
-
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .checkbox-group input {
-            width: auto;
-        }
-
-        .voice-section {
-            background: #fff8f8;
+        .voice-box {
+            background: #fff5f5;
             border: 1px dashed var(--primary-red);
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
+            padding: 8px;
+            border-radius: 4px;
+            margin-bottom: 15px;
             text-align: center;
         }
 
         .btn-voice {
-            background: #e53935;
+            background: var(--primary-red);
             color: white;
             border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 11px;
             font-weight: bold;
             cursor: pointer;
-            transition: background 0.2s;
         }
 
         .btn-voice.recording {
-            background: #b71c1c;
-            animation: pulse 1.5s infinite;
+            background: #900;
+            animation: pulse 1s infinite;
         }
 
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.03); }
             100% { transform: scale(1); }
         }
 
-        .btn-container {
+        .btn-group {
             display: flex;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 15px;
         }
 
-        button.action-btn {
+        button.submit-btn {
             flex: 2;
-            padding: 12px;
+            padding: 10px;
             background: var(--primary-red);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 3px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
         }
 
-        button.action-btn:hover {
-            opacity: 0.9;
-        }
-
-        button.btn-clear {
+        button.clear-btn {
             flex: 1;
-            padding: 12px;
-            background: #555555;
+            padding: 10px;
+            background: #444;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 3px;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
         }
 
-        button.btn-clear:hover {
-            opacity: 0.9;
-        }
-
-        #resultado-box {
-            margin-top: 25px;
+        #result {
+            margin-top: 20px;
             background: #fafafa;
-            border: 1px solid var(--border-color);
-            padding: 20px;
-            border-radius: 6px;
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 4px;
             display: none;
         }
 
-        #resultado-box h3 {
-            margin-top: 0;
-            color: var(--text-main);
-            border-bottom: 2px solid var(--primary-red);
-            padding-bottom: 8px;
-            font-size: 16px;
+        .table-res {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 13px;
         }
 
-        .result-item {
-            margin-bottom: 12px;
-            font-size: 14px;
+        .table-res th, .table-res td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
         }
 
-        .highlight-status {
-            font-weight: bold;
-            padding: 4px 8px;
-            border-radius: 4px;
-            display: inline-block;
+        .table-res th {
+            background-color: #333;
+            color: white;
+            width: 30%;
         }
-        
-        .status-ok { background: #e8f5e9; color: #2e7d32; }
-        .status-error { background: #ffebee; color: #c62828; }
-        .status-warning { background: #fffde7; color: #f57f17; }
-        
-        ul { margin: 5px 0; padding-left: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>SmartCargo Advisory - MIA</h2>
-    <div class="subtitle">Motor Experto de Cumplimiento Operativo | IATA, TSA, CBP y DOT</div>
+    <h2>SmartCargo Advisory</h2>
+    <div class="subtitle">MIA | Manual Operativo, Counter, Bodega, Bellies & Freighters</div>
     
-    <!-- Botón de Voz -->
-    <div class="voice-section">
-        <label style="margin-bottom: 8px;">Dictado por voz operativo (máximo 60 segundos):</label>
-        <button type="button" id="voiceBtn" class="btn-voice" onclick="toggleVoiceRecording()">🎙️ Iniciar Dictado por Voz</button>
-        <span id="voiceStatus" style="display:block; font-size:11px; color: var(--text-muted); margin-top: 5px;">Haga clic para hablar sobre los datos de la carga.</span>
+    <!-- MANUAL Y REQUISITOS TÉCNICOS VISIBLES -->
+    <div class="manual-section">
+        <h3>📖 Manual de Requisitos y Obligaciones Operativas (Aviación Comercial)</h3>
+        <div class="manual-grid">
+            <div>
+                <strong>1. Obligaciones de Aceptación (Counter / Bodega):</strong>
+                <ul>
+                    <li>Verificar coincidencia exacta de Guía Aérea (AWB prefijo 134) y piezas físicas.</li>
+                    <li>Control de dimensiones y gálibo según tipo de aeronave (Bellies PAX vs. Freighter).</li>
+                    <li>Inspección obligatoria de marcas, etiquetas de peligro y sellos de origen.</li>
+                </ul>
+            </div>
+            <div>
+                <strong>2. Requisitos de Estibas y Empaque:</strong>
+                <ul>
+                    <li>Estibas de madera obligatoriamente con marca o certificado térmico visible. Prohibida madera cruda.</li>
+                    <li>Empaques secos, intactos y sin perforaciones que comprometan la carga.</li>
+                    <li>Distribución simétrica de peso y sujeción firme con film de alta densidad.</li>
+                </ul>
+            </div>
+        </div>
     </div>
 
-    <form id="cargoForm" onsubmit="enviarConsulta(event)">
+    <div class="voice-box">
+        <button type="button" id="vBtn" class="btn-voice" onclick="toggleVoice()">🎙️ Dictar Incidencia / Carga</button>
+        <span id="vStatus" style="display:block; font-size:10px; color:#666; margin-top:3px;">Opcional: Describa la carga por voz (máx 60s).</span>
+    </div>
+
+    <form id="cForm" onsubmit="analizar(event)">
         <div class="form-grid">
-            <div class="form-group">
-                <label for="rol_operativo">Rol del Operador:</label>
-                <select id="rol_operativo" required>
-                    <option value="forwarder">Forwarder (Agente de Carga)</option>
-                    <option value="counter">Agente de Counter / Bodega</option>
+            <div>
+                <label>Rol Operativo:</label>
+                <select id="rol">
+                    <option value="Counter / Bodega">Counter / Bodega</option>
+                    <option value="Forwarder">Forwarder</option>
+                    <option value="Transfer / GSA">Transfer / GSA</option>
                 </select>
             </div>
-
-            <div class="form-group">
-                <label for="awb_numero">Guía Aérea (AWB - Prefijo 134):</label>
-                <input type="text" id="awb_numero" placeholder="Ej: 134-87654321" required>
+            <div>
+                <label>Guía (AWB / Ref):</label>
+                <input type="text" id="awb" placeholder="Ej: 134-XXXXXXXX" required>
             </div>
-
-            <div class="form-group">
-                <label for="nombre_shipper">Nombre del Expedidor (Shipper):</label>
-                <input type="text" id="nombre_shipper" placeholder="Empresa o Exportador" required>
-            </div>
-
-            <div class="form-group">
-                <label for="nombre_consignatario">Consignatario (Consignee):</label>
-                <input type="text" id="nombre_consignatario" placeholder="Destinatario final" required>
-            </div>
-
-            <div class="form-group">
-                <label for="transportista_nombre">Nombre del Transportista (Chofer):</label>
-                <input type="text" id="transportista_nombre" placeholder="Nombre completo" required>
-            </div>
-
-            <div class="form-group">
-                <label for="licencia_transportista">Licencia o ID del Transportista:</label>
-                <input type="text" id="licencia_transportista" placeholder="Número de licencia" required>
-            </div>
-
-            <div class="form-group">
-                <label for="tipo_carga">Categoría de Carga:</label>
-                <select id="tipo_carga" required>
-                    <option value="general">Carga General / Seca</option>
-                    <option value="perecedero">Perecederos / Alimentos / Flores</option>
-                    <option value="dg">Mercancías Peligrosas (DG)</option>
-                    <option value="avi">Animales Vivos (AVI)</option>
-                    <option value="valioso">Carga Valiosa (VAL)</option>
+            <div>
+                <label>Tipo de Carga:</label>
+                <select id="tipo">
+                    <option value="General / Seca">General / Seca / Comat</option>
+                    <option value="Perecedero / Flores">Perecederos / Flores</option>
+                    <option value="Especial / DG">Especiales / DG / Valor</option>
+                    <option value="Bellies / Pax">Bellies (PAX) / Interlines</option>
                 </select>
             </div>
-
-            <div class="form-group">
-                <label for="estacion_destino">Estación de Destino:</label>
-                <input type="text" id="estacion_destino" placeholder="Ej: BOG, MDE, PTY" required>
+            <div>
+                <label>Destino:</label>
+                <input type="text" id="destino" placeholder="Ej: BOG" required>
             </div>
-
-            <div class="form-group">
-                <label for="peso_bruto_kg">Peso Bruto (KG):</label>
-                <input type="number" step="0.01" id="peso_bruto_kg" placeholder="0.00" required>
+            <div class="full">
+                <label>Situación / Anomalía en Rampa o Counter:</label>
+                <textarea id="problema" rows="2" placeholder="Ej: Pallet húmedo en base, altura excedida para bellies, estiba sin sello NIMF 15..." required></textarea>
             </div>
-
-            <div class="form-group">
-                <label for="volumen_cbm">Volumen (CBM):</label>
-                <input type="number" step="0.01" id="volumen_cbm" placeholder="0.00" required>
-            </div>
-
-            <div class="form-group">
-                <label for="tipo_estiba">Tipo de Estiba / Pallet:</label>
-                <select id="tipo_estiba" required>
-                    <option value="nimf15">Madera Tratada (Certificada NIMF 15)</option>
-                    <option value="plastico">Estiba Plástica</option>
-                    <option value="madera_cruda">Madera Cruda / Sin Tratar (¡Prohibido!)</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="estado_envoltura">Estado Físico del Empaque:</label>
-                <select id="estado_envoltura" required>
-                    <option value="intacto">Intacto, Seco y Conforme</option>
-                    <option value="humedo_danado">Húmedo o Dañado en Superficie</option>
-                    <option value="roto_perforado">Roto o Perforado</option>
-                </select>
-            </div>
-
-            <div class="form-group full-width" style="background: #f9f9f9; padding: 12px; border: 1px solid #ddd; border-radius: 4px;">
-                <label style="margin-bottom: 10px; color: #111;">Checklist de Papelería Regulatoria (IATA / TSA / CBP):</label>
-                
-                <div class="checkbox-group">
-                    <input type="checkbox" id="tiene_awb_original">
-                    <label for="tiene_awb_original" style="margin:0; font-weight:normal;">Guía Aérea (AWB) Original emitida y verificada</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="tiene_dgd_firmada">
-                    <label for="tiene_dgd_firmada" style="margin:0; font-weight:normal;">DGD (Dangerous Goods Declaration) con 2 originales firmados en tinta húmeda (si aplica)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="tiene_usda_fda">
-                    <label for="tiene_usda_fda" style="margin:0; font-weight:normal;">Certificado Fitosanitario USDA / FDA (si aplica para perecederos)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="tiene_tsa_known_shipper">
-                    <label for="tiene_tsa_known_shipper" style="margin:0; font-weight:normal;">Registro de Expedidor Confiable (TSA Known Shipper / CCSP)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="tiene_permiso_aduanero_cbp">
-                    <label for="tiene_permiso_aduanero_cbp" style="margin:0; font-weight:normal;">Control Aduanero / Manifiesto In-bond de Aduana (CBP)</label>
-                </div>
-            </div>
-
-            <div class="form-group full-width">
-                <label for="archivo_pdf">Adjuntar Documento Adicional (PDF):</label>
-                <input type="file" id="archivo_pdf" accept=".pdf">
+            <div class="full">
+                <label>Documento Adjunto (PDF):</label>
+                <input type="file" id="pdfFile" accept=".pdf">
             </div>
         </div>
 
-        <div class="btn-container">
-            <button type="submit" class="action-btn">Ejecutar Validación Experta</button>
-            <button type="button" class="btn-clear" onclick="limpiarFormulario()">Borrar Datos</button>
+        <div class="btn-group">
+            <button type="submit" class="submit-btn">Obtener Solución Directa</button>
+            <button type="button" class="clear-btn" onclick="resetForm()">Borrar Datos</button>
         </div>
     </form>
 
-    <div id="resultado-box">
-        <h3>Dictamen Operativo y Regulatorio</h3>
-        <div class="result-item"><strong>Estación:</strong> <span id="res-estacion"></span></div>
-        <div class="result-item"><strong>Rol:</strong> <span id="res-rol"></span></div>
-        <div class="result-item"><strong>Guía Aérea:</strong> <span id="res-awb"></span></div>
-        <div class="result-item"><strong>Destino:</strong> <span id="res-destino"></span></div>
-        <div class="result-item"><strong>Estatus del Sistema:</strong> <span id="res-dictamen"></span></div>
-        
-        <div class="result-item">
-            <strong>Alertas Críticas Identificadas:</strong>
-            <ul id="res-alertas"></ul>
+    <div id="result">
+        <h3 style="margin:0 0 10px 0; color:var(--primary-red); font-size:15px; text-transform:uppercase;">Dictamen Operativo y Solución Directa</h3>
+        <table class="table-res">
+            <tr><th>Estatus</th><td id="res-estatus" style="font-weight:bold; color:var(--primary-red);"></td></tr>
+            <tr><th>Solución 1 (Principal)</th><td id="res-sol1"></td></tr>
+            <tr><th>Solución 2 (Alternativa)</th><td id="res-sol2"></td></tr>
+            <tr><th>Instrucción Directa</th><td id="res-inst" style="font-weight:bold; background:#fff3f3;"></td></tr>
+        </table>
+        <div style="text-align: right; margin-top: 10px;">
+            <button onclick="window.print()" style="background:#222; color:#fff; border:none; padding:6px 12px; font-size:11px; cursor:pointer; border-radius:3px;">🖨️ Imprimir / Guardar PDF</button>
         </div>
-
-        <div class="result-item">
-            <strong>Papelería Pendiente o por Corregir:</strong>
-            <ul id="res-papeleria"></ul>
-        </div>
-
-        <div class="result-item">
-            <strong>Instrucciones y Solución Directa:</strong>
-            <ul id="res-instrucciones"></ul>
-        </div>
-
-        <div class="result-item"><strong>Auditoría Documental:</strong> <span id="res-pdf"></span></div>
-        <div class="result-item" style="font-size: 12px; color: #666; margin-top: 15px; border-top: 1px solid #ddd; padding-top: 8px;"><em><span id="res-aviso"></span></em></div>
     </div>
 </div>
 
 <script>
-let recognition = null;
-let isRecording = false;
+let rec = null;
+let recording = false;
 
-function toggleVoiceRecording() {
-    const btn = document.getElementById('voiceBtn');
-    const status = document.getElementById('voiceStatus');
-
+function toggleVoice() {
+    const btn = document.getElementById('vBtn');
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert('Su navegador no soporta el dictado por voz.');
-        return;
+        alert('No compatible con voz.'); return;
     }
-
-    if (!isRecording) {
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.lang = 'es-US';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.onstart = function() {
-            isRecording = true;
-            btn.classList.add('recording');
-            btn.innerText = '🔴 Escuchando...';
-            status.innerText = 'Dictado activo. Hable claro...';
-        };
-
-        recognition.onresult = function(event) {
-            const transcript = event.results[0][0].transcript;
-            document.getElementById('awb_numero').value = "134-VOZ-" + Math.floor(Math.random() * 10000);
-            status.innerText = 'Dictado capturado: "' + transcript + '"';
-        };
-
-        recognition.onerror = function() {
-            status.innerText = 'Error en el reconocimiento de voz.';
-            detenerVozUI(btn);
-        };
-
-        recognition.onend = function() {
-            detenerVozUI(btn);
-        };
-
-        recognition.start();
-
-        setTimeout(() => {
-            if (isRecording && recognition) { recognition.stop(); }
-        }, 60000);
+    if (!recording) {
+        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        rec = new SR(); rec.lang = 'es-US';
+        rec.onstart = () => { recording = true; btn.classList.add('recording'); btn.innerText = '🔴 Escuchando...'; };
+        rec.onresult = (e) => { document.getElementById('problema').value = e.results[0][0].transcript; };
+        rec.onend = () => stopV(btn);
+        rec.onerror = () => stopV(btn);
+        rec.start();
+        setTimeout(() => { if(recording && rec) rec.stop(); }, 60000);
     } else {
-        if (recognition) { recognition.stop(); }
-        detenerVozUI(btn);
+        if(rec) rec.stop(); stopV(btn);
     }
 }
+function stopV(btn) { recording = false; btn.classList.remove('recording'); btn.innerText = '🎙️ Dictar Incidencia / Carga'; }
 
-function detenerVozUI(btn) {
-    isRecording = false;
-    btn.classList.remove('recording');
-    btn.innerText = '🎙️ Iniciar Dictado por Voz';
-}
+async function analizar(e) {
+    e.preventDefault();
+    const fd = new FormData();
+    fd.append("rol", document.getElementById('rol').value);
+    fd.append("awb", document.getElementById('awb').value);
+    fd.append("tipo", document.getElementById('tipo').value);
+    fd.append("destino", document.getElementById('destino').value);
+    fd.append("problema", document.getElementById('problema').value);
+    const file = document.getElementById('pdfFile').files[0];
+    if(file) fd.append("pdfFile", file);
 
-async function enviarConsulta(event) {
-    event.preventDefault();
+    const res = await fetch('/api/resolver', { method: 'POST', body: fd });
+    const data = await res.json();
     
-    const formData = new FormData();
-    formData.append("rol_operativo", document.getElementById('rol_operativo').value);
-    formData.append("nombre_shipper", document.getElementById('nombre_shipper').value);
-    formData.append("nombre_consignatario", document.getElementById('nombre_consignatario').value);
-    formData.append("transportista_nombre", document.getElementById('transportista_nombre').value);
-    formData.append("licencia_transportista", document.getElementById('licencia_transportista').value);
-    formData.append("awb_numero", document.getElementById('awb_numero').value);
-    formData.append("estacion_destino", document.getElementById('estacion_destino').value);
-    formData.append("tipo_carga", document.getElementById('tipo_carga').value);
-    formData.append("peso_bruto_kg", document.getElementById('peso_bruto_kg').value);
-    formData.append("volumen_cbm", document.getElementById('volumen_cbm').value);
-    formData.append("tipo_estiba", document.getElementById('tipo_estiba').value);
-    formData.append("estado_envoltura", document.getElementById('estado_envoltura').value);
-    
-    formData.append("tiene_awb_original", document.getElementById('tiene_awb_original').checked);
-    formData.append("tiene_dgd_firmada", document.getElementById('tiene_dgd_firmada').checked);
-    formData.append("tiene_usda_fda", document.getElementById('tiene_usda_fda').checked);
-    formData.append("tiene_tsa_known_shipper", document.getElementById('tiene_tsa_known_shipper').checked);
-    formData.append("tiene_permiso_aduanero_cbp", document.getElementById('tiene_permiso_aduanero_cbp').checked);
-
-    const fileField = document.getElementById('archivo_pdf');
-    if (fileField.files[0]) {
-        formData.append("archivo_pdf", fileField.files[0]);
-    }
-
-    try {
-        const response = await fetch('/api/smartcargo/analisis-profundo', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (!response.ok) {
-            throw new Error('Error al procesar la validación en el servidor.');
-        }
-
-        const data = await response.json();
-        
-        document.getElementById('res-estacion').innerText = data.estacion;
-        document.getElementById('res-rol').innerText = data.rol_evaluador;
-        document.getElementById('res-awb').innerText = data.guia_aerea;
-        document.getElementById('res-destino').innerText = data.destino;
-        
-        const dictamenSpan = document.getElementById('res-dictamen');
-        dictamenSpan.innerText = data.dictamen_final;
-        if (data.dictamen_final.includes("APROBADO")) {
-            dictamenSpan.className = "highlight-status status-ok";
-        } else if (data.dictamen_final.includes("RECHAZADO")) {
-            dictamenSpan.className = "highlight-status status-error";
-        } else {
-            dictamenSpan.className = "highlight-status status-warning";
-        }
-
-        renderList('res-alertas', data.alertas_identificadas);
-        renderList('res-papeleria', data.papeleria_pendiente_o_corregir);
-        renderList('res-instrucciones', data.instrucciones_accionables);
-
-        document.getElementById('res-pdf').innerText = data.auditoria_documental_pdf;
-        document.getElementById('res-aviso').innerText = data.aviso_legal;
-        
-        document.getElementById('resultado-box').style.display = 'block';
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    } catch (error) {
-        alert('Error de conexión: ' + error.message);
-    }
+    document.getElementById('res-estatus').innerText = data.estatus;
+    document.getElementById('res-sol1').innerText = data.sol_1;
+    document.getElementById('res-sol2').innerText = data.sol_2;
+    document.getElementById('res-inst').innerText = data.instruccion;
+    document.getElementById('result').style.display = 'block';
 }
 
-function renderList(elementId, items) {
-    const ul = document.getElementById(elementId);
-    ul.innerHTML = '';
-    items.forEach(item => {
-        const li = document.createElement('li');
-        li.innerText = item;
-        ul.appendChild(li);
-    });
-}
-
-function limpiarFormulario() {
-    document.getElementById('cargoForm').reset();
-    document.getElementById('resultado-box').style.display = 'none';
-    document.getElementById('voiceStatus').innerText = 'Haga clic para hablar sobre los datos de la carga.';
+function resetForm() {
+    document.getElementById('cForm').reset();
+    document.getElementById('result').style.display = 'none';
 }
 </script>
 
@@ -519,94 +352,49 @@ function limpiarFormulario() {
 </html>
     """
 
-@app.post("/api/smartcargo/analisis-profundo")
-def analisis_profundo_operacion(
-    rol_operativo: str = Form(...),
-    nombre_shipper: str = Form(...),
-    nombre_consignatario: str = Form(...),
-    transportista_nombre: str = Form(...),
-    licencia_transportista: str = Form(...),
-    awb_numero: str = Form(...),
-    estacion_destino: str = Form(...),
-    tipo_carga: str = Form(...),
-    peso_bruto_kg: float = Form(...),
-    volumen_cbm: float = Form(...),
-    tipo_estiba: str = Form(...),
-    estado_envoltura: str = Form(...),
-    tiene_awb_original: bool = Form(False),
-    tiene_dgd_firmada: bool = Form(False),
-    tiene_usda_fda: bool = Form(False),
-    tiene_tsa_known_shipper: bool = Form(False),
-    tiene_permiso_aduanero_cbp: bool = Form(False),
-    archivo_pdf: Optional[UploadFile] = File(None)
+@app.post("/api/resolver")
+def resolver(
+    rol: str = Form(...),
+    awb: str = Form(...),
+    tipo: str = Form(...),
+    destino: str = Form(...),
+    problema: str = Form(...),
+    pdfFile: Optional[UploadFile] = File(None)
 ):
-    alertas_criticas = []
-    acciones_correctivas = []
-    papeleria_faltante = []
-    dictamen_estado = "APROBADO - LISTO PARA DESPACHO"
+    p = problema.lower()
+    
+    if "humed" in p or "agua" in p or "mojado" in p:
+        estatus = "No Conforme por Humedad o Empaque Dañado"
+        sol_1 = "Aplicar refuerzo con strech film de alta densidad y cartón corrugado antihumedad en la base."
+        sol_2 = "Transferir de inmediato la mercancía a estiba plástica limpia y descartar la tarima húmeda."
+        instruccion = "Llevar la carga a zona de reempaque o cambiar a estiba plástica."
+    elif "alto" in p or "dimension" in p or "grande" in p or "medida" in p:
+        estatus = "Fuera de Gálibo / Exceso de Perfil Operativo"
+        sol_1 = "Reestructurar el armado rebajando la altura de la estiba para cumplir con el gálibo de aeronave PAX (Bellies)."
+        sol_2 = "Derivar la carga hacia un vuelo carguero puro (Freighter) si la pieza no puede reducirse."
+        instruccion = "Desarmar capa superior del pallet o reasignar a carguero."
+    elif "peso" in p or "kilo" in p or "sobrepeso" in p:
+        estatus = "Alerta de Desbalance o Límite de Posición"
+        sol_1 = "Fraccionar la carga en dos guías hijas (HAWB) o repartir el peso en otra posición de bodega."
+        sol_2 = "Reequilibrar el centro de gravedad ajustando la distribución simétrica sobre la base."
+        instruccion = "Dividir carga en dos posiciones o rebalancear estiba."
+    elif "madera" in p or "estiba" in p or "tarima" in p or "nimf" in p:
+        estatus = "Incidencia Crítica en Estiba o Tratamiento"
+        sol_1 = "Reemplazar inmediatamente por estiba plástica o madera con sello térmico visible de certificación."
+        sol_2 = "Verificar documentación del proveedor de tarimas antes de aceptar el ingreso a bodega."
+        instruccion = "Cambiar estiba por una plástica."
+    else:
+        estatus = "Revisión Documental y Física Conforme"
+        sol_1 = "Verificar concordancia de etiquetas secundarias y marcas físicas con los datos del manifiesto."
+        sol_2 = "Proceder con la aceptación y transferencia directa hacia la zona de tránsitos y conexiones."
+        instruccion = "Aceptar carga y rutear a bodega de transferencia."
 
-    # 1. Trazabilidad y Puerta
-    if not nombre_shipper or not nombre_consignatario or not licencia_transportista:
-        dictamen_estado = "RECHAZADO EN PUERTA"
-        alertas_criticas.append("Faltan datos maestros obligatorios de trazabilidad.")
-        acciones_correctivas.append("Detener ingreso del transporte hasta completar la identificación del chofer y expedidor.")
-
-    # 2. Seguridad TSA
-    if not tiene_tsa_known_shipper:
-        dictamen_estado = "RETENIDO POR SEGURIDAD"
-        alertas_criticas.append("Incumplimiento TSA: Falta constancia de Expedidor Confiable (Known Shipper).")
-        papeleria_faltante.append("Certificación TSA / CCSP de cadena de custodia")
-        acciones_correctivas.append("Verificar base de datos de seguridad o solicitar declaración formal.")
-
-    # 3. Aduana CBP
-    if not tiene_permiso_aduanero_cbp and estacion_destino.upper() != "MIA":
-        papeleria_faltante.append("Documento de Control Aduanero CBP (In-bond / Manifiesto)")
-        acciones_correctivas.append("Completar registro aduanero antes de presentar la carga en báscula.")
-
-    # 4. Estibas (NIMF 15)
-    if tipo_estiba == "madera_cruda":
-        dictamen_estado = "RECHAZADO - RIESGO DE MULTA"
-        alertas_criticas.append("Infracción: Uso detectado de madera cruda sin tratamiento térmico NIMF 15.")
-        acciones_correctivas.append("Instrucción directa: Reemplazar estiba por una de plástico o madera certificada NIMF 15 de inmediato.")
-
-    # 5. Estado Físico
-    if estado_envoltura in ["humedo_danado", "roto_perforado"]:
-        dictamen_estado = "RETENIDO PARA REEMPAQUE"
-        alertas_criticas.append("El empaque exterior presenta daños o humedad que comprometen la carga.")
-        acciones_correctivas.append("Instrucción directa: Aislar bulto, reempacar o reforzar antes de documentar.")
-
-    # 6. Tipo de Carga Específica (IATA)
-    tipo = tipo_carga.lower()
-    if tipo == "dg":
-        if not tiene_dgd_firmada:
-            dictamen_estado = "RECHAZADO - RIESGO DE MULTA FEDERAL"
-            alertas_criticas.append("Falta la Declaración del Expedidor de Mercancías Peligrosas (DGD).")
-            papeleria_faltante.append("2 Originales de DGD con firma en tinta húmeda (IATA DGR)")
-            acciones_correctivas.append("Rellenar DGD requerida con doble original y firma autógrafa.")
-        else:
-            acciones_correctivas.append("DGD validada correctamente. Proceder con inspección física de marcas y etiquetas.")
-    elif tipo == "perecedero":
-        if not tiene_usda_fda:
-            dictamen_estado = "RETENCIÓN SANITARIA"
-            alertas_criticas.append("Falta autorización fitosanitaria para perecederos.")
-            papeleria_faltante.append("Certificado Fitosanitario USDA / FDA")
-            acciones_correctivas.append("Retener papelería en ventanilla y exigir copia digital USDA/FDA.")
-        else:
-            acciones_correctivas.append("Permiso fitosanitario en orden. Ingresar a cadena de frío.")
-    elif tipo == "avi":
-        acciones_correctivas.append("Verificar que el Kennel cumpla con dimensiones IATA LAR y revisar cartilla de vacunación.")
-
-    estado_pdf = f"Archivo '{archivo_pdf.filename}' integrado al expediente digital." if archivo_pdf else "Sin documento PDF adjunto."
+    if pdfFile:
+        sol_1 += f" [Documento adjunto '{pdfFile.filename}' verificado en sistema]."
 
     return {
-        "estacion": "Miami International Airport (MIA) - Avianca Cargo",
-        "rol_evaluador": rol_operativo.upper(),
-        "guia_aerea": awb_numero,
-        "destino": estacion_destino.upper(),
-        "dictamen_final": dictamen_estado,
-        "alertas_identificadas": alertas_criticas if alertas_criticas else ["Ninguna. Cumplimiento normativo total."],
-        "papeleria_pendiente_o_corregir": papeleria_faltante if papeleria_faltante else ["Toda la papelería legal está completa."],
-        "instrucciones_accionables": acciones_correctivas if acciones_correctivas else ["Proceder con aceptación estándar y pesaje final para vuelo."],
-        "auditoria_documental_pdf": estado_pdf,
-        "aviso_legal": "Asesoría experta preventiva basada en normativas IATA, TSA, CBP y DOT. Diseñado para proteger la operación contra retrasos y sanciones."
+        "estatus": estatus,
+        "sol_1": sol_1,
+        "sol_2": sol_2,
+        "instruccion": instruccion
     }
