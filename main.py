@@ -44,7 +44,7 @@ async def resolver_carga(
     piezas: float = Form(0),
     peso_kg: float = Form(0),
     largo_cm: float = Form(0),
-    ancho_cm: Form(0),
+    ancho_cm: float = Form(0),
     alto_cm: float = Form(0),
     detalle_bultos: Optional[str] = Form(None),
     descripcion: str = Form(""),
