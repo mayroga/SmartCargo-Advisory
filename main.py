@@ -5,13 +5,21 @@ from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 import os
 
-app = FastAPI(title="SmartCargo-Advisory", version="3.2")
+app = FastAPI(title="SmartCargo-Advisory", version="3.3")
 
 # Configuración de archivos estáticos y plantillas
 if os.path.exists("static"):
     app.mount("/static", StaticFiles(directory="static"), name="static")
 
 templates = Jinja2Templates(directory="templates")
+
+# Matriz de decisión operacional integrada (basada en esquema oficial)
+SMARTCARGO_MATRIZ = {
+    "version": "3.0",
+    "nombre_sistema": "SmartCargo-Advisory",
+    "alcance_legal": "Asesoría operativa en tierra y aire limitada al comprador en USA. No sustituye manuales internos ni normativas oficiales.",
+    "regla_de_oro": "SI NO COINCIDE, NO SE ADIVINA. SE DETIENE. SE VERIFICA. SE DOCUMENTA. SE ESCALA CUANDO CORRESPONDA."
+}
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(request: Request):
@@ -41,38 +49,34 @@ async def resolver_carga(
     pdfs: list[UploadFile] = File([]),
     fotos: list[UploadFile] = File([])
 ):
-    """Motor de asesoría técnica para aceptación y revisión de carga."""
+    """Motor de asesoría técnica basado en la matriz de decisión operacional."""
     
     # Cálculo automático de volumen en m³
     volumen_m3 = (largo_cm * ancho_cm * alto_cm * piezas) / 1000000.0 if (piezas > 0 and largo_cm > 0 and ancho_cm > 0 and alto_cm > 0) else 0.0
 
     alertas = []
     checks = []
-    estatus_general = "ACCEPT"
-    solucion_directa = "Proceder con estiba estándar y transferencia a zona de armado."
-
-    # 1. Validación de empaque dañado o húmedo
+    
+    # Evaluación según la matriz de decisión operacional
     if estado_envoltura in ["humedo", "roto"]:
         estatus_general = "REJECT"
-        solucion_directa = "Rechazar empaque dañado/húmedo y devolver al forwarder para acondicionamiento."
+        solucion_directa = "Rechazar empaque dañado y devolver al forwarder para reempaque inmediato."
         alertas.append({
-            "item": "Condición del Empaque",
-            "detalle": f"El empaque presenta estado: {estado_envoltura}. Riesgo operativo inminente."
+            "item": "Condición del embalaje",
+            "detalle": f"Empaque en estado {estado_envoltura}. Riesgo de derrame o daño estructural en vuelo."
         })
-        checks.append({"item": "Integridad del bulto", "status": "FAIL", "note": "Empaque no apto para vuelo."})
+        checks.append({"item": "Condición del embalaje", "status": "FAIL", "note": "Riesgo de derrame o daño estructural en vuelo."})
 
-    # 2. Validación de mercancías peligrosas (DG)
     elif tipo_carga == "dg":
         estatus_general = "ESCALATE"
-        solucion_directa = "Detener recepción. Exigir Shipper's Declaration (DGD) física y validar UN Number y clases."
+        solucion_directa = "Detener recepción. Exigir Shipper's Declaration (DGD) física y verificar UN Number y clases bajo normativas vigentes."
         alertas.append({
-            "item": "Dangerous Goods (DG)",
-            "detalle": "Falta DGD o documentación de mercancías peligrosas obligatoria para validación en counter."
+            "item": "Documentación DG",
+            "detalle": "Prohibida la aceptación verbal o visual sin DGD válido."
         })
-        checks.append({"item": "Shipper's Declaration (DGD)", "status": "CHECK", "note": "Verificación operativa requerida."})
-        checks.append({"item": "UN number y clases", "status": "CHECK", "note": "Revisión especializada obligatoria."})
+        checks.append({"item": "Documentación DG", "status": "CHECK", "note": "Prohibida la aceptación verbal o visual sin DGD válido."})
+        checks.append({"item": "Personal competente", "status": "ESCALATE", "note": "Notificar a especialista en mercancías peligrosas."})
 
-    # 3. Validación volumétrica anómala (Baja densidad / gálibo)
     elif volumen_m3 > 50.0 and peso_kg < 1500:
         estatus_general = "HOLD"
         solucion_directa = "Detener proceso. Reasurar pesaje y cubicaje físico en báscula por discrepancia de gálibo."
@@ -80,25 +84,32 @@ async def resolver_carga(
             "item": "Volumetría Anómala",
             "detalle": f"Volumen alto ({volumen_m3:.4f} m³) frente a peso bajo ({peso_kg} kg). Posible error de digitación."
         })
-        checks.append({"item": "Dimensiones físicas", "status": "HOLD", "note": "Requerido reasurar medidas en báscula."})
+        checks.append({"item": "Dimensiones físicas", "status": "FAIL", "note": "Posible error de digitación en centímetros o bultos mal medidos."})
+        checks.append({"item": "Aceptación de bodega", "status": "HOLD", "note": "Prohibido el ingreso a rampa hasta rectificar."})
 
-    # 4. Validación de documentos PDF adjuntos
+    elif tipo_carga == "general" and estado_envoltura == "intacto":
+        estatus_general = "ACCEPT"
+        solucion_directa = "Proceder con estiba estándar y transferencia a zona de armado (Build-up)."
+        checks = [
+            {"item": "Documentación y AWB", "status": "OK", "note": "Datos conformes entre sistema y físico."},
+            {"item": "Integridad de bultos", "status": "OK", "note": "Sin daños ni humedad aparente."}
+        ]
+    else:
+        estatus_general = "HOLD"
+        solucion_directa = "Detener proceso y verificar discrepancias operativas en counter o bodega."
+        checks = [
+            {"item": "Revisión general", "status": "CHECK", "note": "Verificar parámetros no estandarizados."}
+        ]
+
+    # Validación adicional de documentos PDF adjuntos
     if pdfs:
         for pdf in pdfs:
             if pdf.filename and not pdf.filename.lower().endswith('.pdf'):
                 estatus_general = "HOLD"
                 alertas.append({
                     "item": "Documentación PDF",
-                    "detalle": f"El archivo {pdf.filename} no es un PDF válido o requiere verificación manual."
+                    "detalle": f"El archivo {pdf.filename} no es un PDF válido."
                 })
-
-    # Completar puntos de control estándar si no hay fallas críticas
-    if not checks:
-        checks = [
-            {"item": "AWB y Guía Aérea", "status": "OK", "note": "Verificado conforme al sistema."},
-            {"item": "Peso y Dimensiones", "status": "OK", "note": "Dentro de parámetros permitidos."},
-            {"item": "Aceptación en Bodega", "status": "OK", "note": "Listo para transferencia operativa."}
-        ]
 
     return {
         "estatus_general": estatus_general,
