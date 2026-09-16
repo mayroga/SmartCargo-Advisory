@@ -5,3 +5,4 @@ pydantic-core
 python-multipart
 requests
 pypdf
+jinja2
