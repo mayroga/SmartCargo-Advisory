@@ -5,20 +5,23 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
 
+# 1. Primero se instancia la aplicación FastAPI
 app = FastAPI(title="SmartCargo Advisory")
 
-# Montar archivos estáticos si existe la carpeta static
+# 2. Se configuran las plantillas de Jinja2 apuntando a la carpeta "templates"
+templates = Jinja2Templates(directory="templates")
+
+# 3. Montar archivos estáticos si existe la carpeta static
 if os.path.exists("static"):
     app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# 4. Única ruta raíz limpia usando Jinja2Templates para renderizar index.html
 @app.get("/", response_class=HTMLResponse)
-async def read_index():
-    index_path = os.path.join("templates", "index.html")
-    if os.path.exists(index_path):
-        with open(index_path, "r", encoding="utf-8") as f:
-            return f.read()
-    return "<h3>Plantilla index.html no encontrada en la carpeta templates.</h3>"
+def read_root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/api/smartcargo/resolver")
 async def resolver_carga(
@@ -127,7 +130,7 @@ async def resolver_carga(
             solucion_directa = "Rechazar pallet estándar en A320. Cambiar a contenedor bajo (AKH/LD3-45) o desarmar para carga a granel (Bulk)."
             alertas.append({
                 "item": "Incompatibilidad de Aeronave",
-                "detalle": "Los narrowbody A320/A321 no admiten pallets de cubierta principal ni contenedores altos."
+                "detalle": "Los narrowbody A320/A321 não admiten pallets de cubierta principal ni contenedores altos."
             })
 
         if peso_kg > 1588 and tipo_uld == "ake":
