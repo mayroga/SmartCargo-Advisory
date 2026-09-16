@@ -22,16 +22,12 @@ textarea{resize:vertical}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 button{border:0;border-radius:7px;padding:11px 17px;font-weight:bold;cursor:pointer}
 .primary{background:#b00000;color:#fff}.secondary{background:#30343b;color:#fff}
-.status{font-size:18px;font-weight:bold;margin-bottom:8px}
-.ok{color:#16733a}.pending{color:#9a6400}.hold{color:#b00000}
 .alert{padding:9px 10px;margin:7px 0;border-left:4px solid #b00000;background:#fff4f4;border-radius:4px}
-.warn{border-color:#a36b00;background:#fff9eb}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
 .chip{background:#eef0f3;padding:5px 8px;border-radius:14px;font-size:11px}
 table{width:100%;border-collapse:collapse;font-size:12px}
 th,td{border:1px solid #d9dde3;padding:7px;text-align:left;vertical-align:top}
 th{background:#f1f3f5}
-pre{white-space:pre-wrap;word-break:break-word;background:#f7f8fa;padding:10px;border-radius:6px;font-size:11px;max-height:300px;overflow:auto}
 #result{display:none}
 #busy{display:none;color:#9a6400;font-size:12px;margin-top:8px}
 .filebox{border:1px dashed #aeb5bf;padding:11px;border-radius:7px}
@@ -157,9 +153,7 @@ placeholder="Describa lo que observa: mercancía, empaque, pallet, etiquetas, ma
 <h2>3. Papelería legal y documental</h2>
 
 <div class="help">
-Suba todos los documentos disponibles. La aplicación intentará extraer texto de los PDF y buscar
-datos relevantes. Un PDF escaneado o compuesto solamente por imágenes puede no tener texto extraíble;
-en ese caso se marcará como pendiente y no se afirmará que fue verificado.
+Suba todos los documentos disponibles. La aplicación procesará los PDF de forma interna para validar los requisitos normativos aplicables.
 </div>
 
 <div class="grid" style="margin-top:12px">
@@ -177,28 +171,6 @@ en ese caso se marcará como pendiente y no se afirmará que fue verificado.
 </div>
 
 </div>
-
-<h3>Ejemplos de documentos que pueden aportarse</h3>
-<div class="chips">
-<span class="chip">AWB</span>
-<span class="chip">HAWB / MAWB</span>
-<span class="chip">DGD</span>
-<span class="chip">Invoice</span>
-<span class="chip">Packing List</span>
-<span class="chip">Certificados</span>
-<span class="chip">Permisos</span>
-<span class="chip">Documentos sanitarios</span>
-<span class="chip">Documentos veterinarios</span>
-<span class="chip">Otros documentos</span>
-</div>
-</section>
-
-<section>
-<h2>4. Evidencia fotográfica</h2>
-<div class="help">
-Puede subir una o muchas fotografías. Las fotos sirven como evidencia visual de mercancía,
-embalaje, etiquetas, marcas, pallet/ULD, daños o documentos, aunque el texto fotografiado no sea legible.
-</div>
 </section>
 
 <div class="row">
@@ -206,24 +178,20 @@ embalaje, etiquetas, marcas, pallet/ULD, daños o documentos, aunque el texto fo
 <button class="secondary" onclick="limpiar()">BORRAR DATOS</button>
 </div>
 
-<div id="busy">Procesando datos y leyendo los PDF disponibles...</div>
+<div id="busy">Procesando datos en el sistema...</div>
 
 <section id="result">
-<h2>5. Resultado de la revisión</h2>
+<h2>Resultado de la Operación</h2>
 
-<div id="summary"></div>
+<!-- Tarjeta de Mandato Principal -->
+<div id="summary" style="padding:15px; border-radius:8px; margin-bottom:15px; background:#f8f9fa;"></div>
 
-<h3>Alertas y puntos que requieren atención</h3>
+<!-- Alertas Operativas Directas -->
 <div id="alerts"></div>
 
-<h3>Documentos / comprobaciones base</h3>
-<div id="docs"></div>
-
-<h3>Checklist operativo</h3>
+<!-- Tabla de Comprobación Esencial -->
+<h3>Verificación de Puntos Críticos</h3>
 <div id="checks"></div>
-
-<h3>Información extraída de los PDF</h3>
-<pre id="extracted"></pre>
 
 </section>
 
@@ -271,9 +239,7 @@ async function revisar(){
  $("busy").style.display="block";
  $("summary").innerHTML="";
  $("alerts").innerHTML="";
- $("docs").innerHTML="";
  $("checks").innerHTML="";
- $("extracted").textContent="";
 
  try{
   const r=await fetch("/api/smartcargo/resolver",{method:"POST",body:fd});
@@ -281,55 +247,52 @@ async function revisar(){
 
   if(!r.ok)throw new Error(d.detail||"No se pudo procesar la revisión.");
 
-  const status=d.estatus_general||"PENDIENTE";
-  const cls=status==="HOLD"?"hold":status==="PENDIENTE"?"pending":"ok";
+  const status=d.estatus_general||"HOLD";
+  
+  // Clases visuales para los 4 mandatos estrictos
+  let statusBg="#fff4f4", statusColor="#b00000";
+  if(status==="ACCEPT"){ statusBg="#f1f9f4"; statusColor="#16733a"; }
+  else if(status==="HOLD"){ statusBg="#fffcf0"; statusColor="#9a6400"; }
+  else if(status==="ESCALATE"){ statusBg="#f4f1f9"; statusColor="#5b21b6"; }
 
+  $("summary").style.background = statusBg;
   $("summary").innerHTML=`
-   <div class="status ${cls}">ESTATUS: ${esc(status)}</div>
-   <p><b>Acción:</b> ${esc(d.solucion_directa||"")}</p>
+   <div style="font-size:20px; font-weight:bold; color:${statusColor}; margin-bottom:6px;">
+     MANDATO: ${esc(status)}
+   </div>
+   <p style="margin:0 0 10px 0; font-size:13px;"><b>Instrucción:</b> ${esc(d.solucion_directa||"")}</p>
    <div class="chips">
     <span class="chip">AWB: ${esc(d.awb)}</span>
     <span class="chip">Destino: ${esc(d.destino)}</span>
-    <span class="chip">Vuelo: ${esc(d.vuelo||"—")}</span>
-    <span class="chip">Aeronave: ${esc(d.aeronave||"—")}</span>
     <span class="chip">Piezas: ${esc(d.piezas)}</span>
     <span class="chip">Peso: ${esc(d.peso_kg)} kg</span>
-    <span class="chip">Volumen calculado: ${esc(d.volumen_m3)} m³</span>
-    <span class="chip">PDF: ${esc(d.pdfs_recibidos)}</span>
-    <span class="chip">Fotos: ${esc(d.fotos_recibidas)}</span>
    </div>
-   <p class="help">${esc(d.nota_operativa||"")}</p>
   `;
 
   if((d.alertas||[]).length){
    $("alerts").innerHTML=d.alertas.map(a=>`
-    <div class="alert ${a.nivel==="PENDIENTE"?"warn":""}">
-     <b>${esc(a.nivel)} · ${esc(a.item)}</b><br>
-     ${esc(a.detalle)}
+    <div class="alert" style="border-left-color:${statusColor}">
+     <b>${esc(a.item)}</b>: ${esc(a.detalle)}
     </div>
    `).join("");
   }else{
-   $("alerts").innerHTML="<div class='ok'>No se generaron alertas en las comprobaciones locales.</div>";
+   $("alerts").innerHTML="<div style='color:#16733a; font-size:12px; margin-bottom:10px;'>✓ Sin incidencias registradas en la revisión base.</div>";
   }
-
-  $("docs").innerHTML=(d.documentos_requeridos_base||[])
-   .map(x=>`<div>☐ ${esc(x)}</div>`).join("")||"Sin datos.";
 
   $("checks").innerHTML=`
    <table>
-    <tr><th>Verificación</th><th>Estado</th><th>Nota</th></tr>
+    <tr><th>Punto de Control</th><th>Estado</th><th>Detalle</th></tr>
     ${(d.checks||[]).map(x=>`
      <tr>
       <td>${esc(x.item)}</td>
-      <td>${esc(x.status)}</td>
+      <td><b>${esc(x.status)}</b></td>
       <td>${esc(x.note)}</td>
      </tr>`).join("")}
    </table>`;
 
-  $("extracted").textContent=JSON.stringify(d.documentos_detectados||{},null,2);
-
  }catch(e){
-  $("summary").innerHTML=`<div class="hold"><b>ERROR:</b> ${esc(e.message)}</div>`;
+  $("summary").style.background="#fff4f4";
+  $("summary").innerHTML=`<div style="color:#b00000; font-weight:bold;">ERROR: ${esc(e.message)}</div>`;
  }finally{
   $("busy").style.display="none";
  }
@@ -361,4 +324,3 @@ function limpiar(){
 
 </body>
 </html>
-
