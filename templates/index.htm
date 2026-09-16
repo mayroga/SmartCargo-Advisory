@@ -290,12 +290,25 @@ async function revisar(){
      </tr>`).join("")}
    </table>`;
 
- }catch(e){
-  $("summary").style.background="#fff4f4";
-  $("summary").innerHTML=`<div style="color:#b00000; font-weight:bold;">ERROR: ${esc(e.message)}</div>`;
- }finally{
-  $("busy").style.display="none";
- }
+}catch(e){
+   let errorMsg = e.message;
+   try {
+    const errObj = JSON.parse(e.message);
+    if(errObj.detail) errorMsg = errObj.detail;
+   } catch(err) {}
+
+   $("summary").style.background="#fff4f4";
+   $("summary").innerHTML=`
+    <div style="font-size:18px; font-weight:bold; color:#b00000; margin-bottom:6px;">
+      MANDATO: REJECT / HOLD
+    </div>
+    <p style="margin:0; font-size:13px; color:#b00000;"><b>Atención Operativa:</b> ${esc(errorMsg)}</p>
+   `;
+   $("alerts").innerHTML="";
+   $("checks").innerHTML="";
+  }finally{
+   $("busy").style.display="none";
+  }
 }
 
 function esc(v){
