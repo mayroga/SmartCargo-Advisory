@@ -7,7 +7,7 @@ import json, re, io, os, hashlib
 from pypdf import PdfReader
 
 APP = "SmartCargo Advisory"
-VERSION = "10.2.0"
+VERSION = "10.3.0"
 BASE = Path(__file__).parent
 DATA = BASE / "data"
 TEMPLATE = BASE / "templates" / "index.htm"
@@ -123,7 +123,7 @@ async def resolver(
     all_text = "\n".join(p.get("text","") for p in pdf_data)
     extracted = extract_fields(all_text)
 
-    # Evaluación de condiciones físicas y de empaque (Asignando niveles REJECT, ESCALATE o HOLD)
+    # Evaluación de condiciones físicas y de empaque
     if estado_envoltura in ("humedo", "roto"):
         alerts.append(("Empaque", "Condición no conforme detectada en envoltura.", "HOLD"))
 
