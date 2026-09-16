@@ -1,113 +1,166 @@
 import os
-from fastapi import FastAPI, File, Form, UploadFile, HTTPException
-from fastapi.responses import HTMLResponse
+import json
+from fastapi import FastAPI, Form, File, UploadFile, HTTPException
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from starlette.requests import Request
+from pydantic import BaseModel
+from typing import List, Optional
 
-app = FastAPI(title="SmartCargo-Advisory", version="3.3")
+app = FastAPI(title="AL CIELO — SmartCargo Advisory")
 
-# Configuración de rutas absolutas para asegurar compatibilidad en Render
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
-if os.path.exists(os.path.join(BASE_DIR, "static")):
-    app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
-
-# Carga de plantillas apuntando estrictamente a templates/index.htm
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+# Montar archivos estáticos si existe la carpeta static
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
-async def read_index(request: Request):
-    """Renderiza la interfaz principal buscando index.htm en la carpeta templates."""
-    return templates.TemplateResponse(
-        request, 
-        "index.htm", 
-        {"request": request}
-    )
+async def read_index():
+    index_path = os.path.join("templates", "index.html")
+    if os.path.exists(index_path):
+        with open(index_path, "r", encoding="utf-8") as f:
+            return f.read()
+    return "<h3>Plantilla index.html no encontrada en la carpeta templates.</h3>"
 
 @app.post("/api/smartcargo/resolver")
 async def resolver_carga(
     actor: str = Form("counter"),
-    awb_numero: str = Form("N/D"),
+    awb_numero: str = Form(""),
     origen: str = Form("MIA"),
     destino: str = Form("BOG"),
-    vuelo: str = Form("N/D"),
-    aeronave: str = Form("N/D"),
-    tipo_carga: str = Form("general"),
-    peso_kg: float = Form(0.0),
-    estado_envoltura: str = Form("metal_crate"),
+    vuelo: str = Form(""),
+    aeronave: str = Form("a320"),
+    posicion_carga: str = Form("belly"),
+    tipo_uld: str = Form("ake"),
+    categoria_mercancia: str = Form("general"),
+    doc_awb_tipo: str = Form("original"),
+    doc_permisos: str = Form("completos"),
+    doc_pagos: str = Form("verificado"),
+    modo_medicion: str = Form("general"),
+    piezas: float = Form(0),
+    peso_kg: float = Form(0),
+    largo_cm: float = Form(0),
+    ancho_cm: float = Form(0),
+    alto_cm: float = Form(0),
+    detalle_bultos: Optional[str] = Form(None),
     descripcion: str = Form(""),
-    piezas: int = Form(0),
-    largo_cm: float = Form(0.0),
-    ancho_cm: float = Form(0.0),
-    alto_cm: float = Form(0.0),
-    pdfs: list[UploadFile] = File([]),
-    fotos: list[UploadFile] = File([])
+    pdfs: List[UploadFile] = File([]),
+    fotos: List[UploadFile] = File([])
 ):
-    """Motor de asesoría técnica con filtro estricto de aceptación."""
     try:
-        volumen_m3 = (largo_cm * ancho_cm * alto_cm * piezas) / 1000000.0 if (piezas > 0 and largo_cm > 0 and ancho_cm > 0 and alto_cm > 0) else 0.0
-
+        # Validaciones operativas internas
         alertas = []
         checks = []
-
-        # 1. FILTRO OBLIGATORIO: Si falta AWB o datos físicos elementales, se detiene de inmediato.
-        if not awb_numero or awb_numero.strip() in ["", "N/D", "134-12345678"] and (piezas <= 0 or peso_kg <= 0):
-            estatus_general = "HOLD"
-            solucion_directa = "Detener proceso. Indicar número de AWB válido y datos físicos de peso y piezas."
+        
+        # 1. Validación de Papelería y Documentación Interna
+        if doc_awb_tipo == "copia":
             alertas.append({
-                "item": "Filtro de Identificación Inicial",
-                "detalle": "Prohibido procesar sin identificar la operación, guía aérea (AWB) y desglose físico."
+                "item": "Control de Documentación (AWB)",
+                "detalle": "Se está utilizando una copia o archivo operativo. Verificar que el original (Shipper Copy) esté respaldado en el pouch de la aerolínea."
             })
-            checks.append({"item": "Identificación de Carga", "status": "FAIL", "note": "Falta AWB, piezas o peso bruto."})
-            
-            return {
-                "estatus_general": estatus_general,
-                "solucion_directa": solucion_directa,
-                "awb": awb_numero or "N/D",
-                "destino": destino or "N/D",
-                "piezas": piezas,
-                "peso_kg": peso_kg,
-                "volumen_m3": round(volumen_m3, 4),
-                "alertas": alertas,
-                "checks": checks
-            }
+            checks.append({
+                "item": "Air Waybill (AWB)",
+                "status": "REVISIÓN",
+                "note": "Asegurar copia física fuera del sobre y original dentro del pouch para aduana."
+            })
+        else:
+            checks.append({
+                "item": "Air Waybill (AWB)",
+                "status": "OK",
+                "note": "Documentación original validada correctamente para despacho."
+            })
 
-        # 2. Flujo normal de evaluación cuando sí hay datos...
+        if doc_permisos == "pendientes":
+            alertas.append({
+                "item": "Retención Aduanal / OGA",
+                "detalle": "Permisos gubernamentales pendientes (FDA/USDA/CITES). La carga no puede liberarse para vuelo hasta autorización."
+            })
+            checks.append({
+                "item": "Permisos Gubernamentales",
+                "status": "HOLD",
+                "note": "Retener en bodega hasta recepción de certificado oficial impreso o digital."
+            })
+        else:
+            checks.append({
+                "item": "Permisos Gubernamentales",
+                "status": "OK",
+                "note": "Cumplimiento normativo aduanal verificado."
+            })
+
+        if doc_pagos == "pendiente":
+            alertas.append({
+                "item": "Control Financiero",
+                "detalle": "Falta confirmación de pago o cheque para liberar la guía aérea."
+            })
+            checks.append({
+                "item": "Finanzas / Vouchers",
+                "status": "HOLD",
+                "note": "Solicitar comprobante de pago o autorización de crédito antes de aceptar en rampa."
+            })
+        else:
+            checks.append({
+                "item": "Finanzas / Vouchers",
+                "status": "OK",
+                "note": "Verificación financiera y pagos conformes."
+            })
+
+        # 2. Cálculo y validación de volumen y peso
+        volumen_m3 = 0.0
+        if modo_medicion == "detalle" and detalle_bultos:
+            try:
+                items_lista = json.loads(detalle_bultos)
+                checks.append({
+                    "item": "Desglose por Artículo",
+                    "status": "OK",
+                    "note": f"Se registraron {len(items_lista)} grupos de artículos detallados en recepción."
+                })
+            except:
+                pass
+        
+        if largo_cm > 0 and ancho_cm > 0 and alto_cm > 0 and piezas > 0:
+            volumen_m3 = (largo_cm * ancho_cm * alto_cm * piezas) / 1000000.0
+        
+        # 3. Validación de restricciones de Aeronave y Contorno ULD
         estatus_general = "ACCEPT"
-        solucion_directa = "Proceder con estiba estándar y transferencia a zona de armado (Build-up)."
+        solucion_directa = "Carga conforme. Proceder a etiquetado, estiba en posición asignada y despacho a rampa."
 
-        if tipo_carga == "dg":
-            estatus_general = "ESCALATE"
-            solucion_directa = "Detener recepción. Exigir Shipper's Declaration (DGD) física y verificar UN Number."
-            alertas.append({"item": "Documentación DG", "detalle": "Prohibida la aceptación sin DGD válido."})
-            checks.append({"item": "Documentación DG", "status": "CHECK", "note": "Requerido DGD físico."})
-        elif estado_envoltura in ["skid", "bundle"]:
+        if aeronave == "a320" and tipo_uld in ["pmc", "pag"]:
             estatus_general = "HOLD"
-            solucion_directa = "Verificar puntos de izaje y sujeción de bases antes de aceptar."
-            checks.append({"item": "Sujeción de base", "status": "CHECK", "note": "Revisar puntos de anclaje."})
-        elif estado_envoltura == "drum":
-            estatus_general = "CHECK"
-            solucion_directa = "Verificar sellos de seguridad y ausencia de fugas."
-            checks.append({"item": "Inspección de tambores", "status": "CHECK", "note": "Revisar condición estanca."})
+            solucion_directa = "Rechazar pallet estándar en A320. Cambiar a contenedor bajo (AKH/LD3-45) o desarmar para carga a granel (Bulk)."
+            alertas.append({
+                "item": "Incompatibilidad de Aeronave",
+                "detalle": "Los narrowbody A320/A321 no admiten pallets de cubierta principal ni contenedores altos."
+            })
 
-        if not alertas and estatus_general == "ACCEPT":
-            checks = [
-                {"item": "Documentación y AWB", "status": "OK", "note": "Datos conformes entre sistema y físico."},
-                {"item": "Integridad de bultos", "status": "OK", "note": "Sin daños ni humedad aparente."}
-            ]
+        if peso_kg > 1588 and tipo_uld == "ake":
+            estatus_general = "HOLD"
+            solucion_directa = "Exceso de peso para ULD AKE/LD3 (Límite 1,588 kg). Redistribuir la mercancía en dos contenedores o cambiar a pallet."
+            alertas.append({
+                "item": "Límite de Peso ULD",
+                "detalle": "El peso bruto supera el máximo estructural permitido para contenedor AKE."
+            })
 
-        return {
+        if len(alertas) > 0 and estatus_general == "ACCEPT":
+            estatus_general = "HOLD"
+            solucion_directa = "Resolver las observaciones documentales o financieras antes de la aceptación final en bodega."
+
+        return JSONResponse({
             "estatus_general": estatus_general,
             "solucion_directa": solucion_directa,
-            "awb": awb_numero,
-            "destino": destino or "N/D",
+            "awb": awb_numero or "N/D",
+            "destino": destino.upper(),
             "piezas": piezas,
             "peso_kg": peso_kg,
             "volumen_m3": round(volumen_m3, 4),
+            "aeronave": aeronave.upper(),
+            "posicion_carga": posicion_carga.upper(),
+            "tipo_uld": tipo_uld.upper(),
+            "categoria_mercancia": categoria_mercancia.upper(),
             "alertas": alertas,
             "checks": checks
-        }
-        
+        })
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error en servidor: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
