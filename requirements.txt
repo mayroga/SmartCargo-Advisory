@@ -6,3 +6,4 @@ python-multipart
 requests
 pypdf
 jinja2
+starlette
