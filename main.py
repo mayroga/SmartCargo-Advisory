@@ -6,7 +6,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional
 
-app = FastAPI(title="AL CIELO — SmartCargo Advisory")
+app = FastAPI(title="SmartCargo Advisory")
 
 # Montar archivos estáticos si existe la carpeta static
 if os.path.exists("static"):
