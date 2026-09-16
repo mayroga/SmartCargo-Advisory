@@ -3,148 +3,221 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SmartCargo-Advisory — MIA</title>
+<title>AL CIELO — SmartCargo Advisory</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f2f4f7;color:#17202a;font:14px Arial,sans-serif}
-main{max-width:1050px;margin:18px auto;padding:18px;background:#fff;border-radius:12px;box-shadow:0 3px 18px #0002}
-h1{margin:0;text-align:center;color:#b00000;font-size:25px}
-.sub{text-align:center;color:#667085;font-size:12px;margin:5px 0 18px}
-section{border:1px solid #d9dde3;border-radius:9px;padding:15px;margin:12px 0}
-h2{margin:0 0 12px;color:#b00000;font-size:16px}
-h3{margin:14px 0 7px;font-size:13px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+body{margin:0;background:#f2f4f7;color:#17202a;font:13px Arial,sans-serif}
+main{max-width:1150px;margin:15px auto;padding:15px;background:#fff;border-radius:10px;box-shadow:0 3px 15px #0002}
+h1{margin:0;text-align:center;color:#b00000;font-size:22px}
+.sub{text-align:center;color:#667085;font-size:11px;margin:4px 0 15px}
+section{border:1px solid #d9dde3;border-radius:8px;padding:12px;margin:10px 0}
+h2{margin:0 0 10px;color:#b00000;font-size:15px}
+h3{margin:10px 0 5px;font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .full{grid-column:1/-1}
-label{display:block;font-size:12px;font-weight:bold;margin-bottom:5px}
-input,select,textarea{width:100%;padding:9px;border:1px solid #b9c0c9;border-radius:6px;background:#fff;font:inherit}
+label{display:block;font-size:11px;font-weight:bold;margin-bottom:3px;color:#333}
+input,select,textarea{width:100%;padding:7px;border:1px solid #b9c0c9;border-radius:5px;background:#fff;font:inherit;font-size:12px}
 textarea{resize:vertical}
-.help{font-size:11px;color:#667085;line-height:1.45}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-button{border:0;border-radius:7px;padding:11px 17px;font-weight:bold;cursor:pointer}
+.help{font-size:11px;color:#667085;line-height:1.4}
+.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+button{border:0;border-radius:6px;padding:10px 15px;font-weight:bold;cursor:pointer;font-size:12px}
 .primary{background:#b00000;color:#fff}.secondary{background:#30343b;color:#fff}
-.alert{padding:9px 10px;margin:7px 0;border-left:4px solid #b00000;background:#fff4f4;border-radius:4px}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
-.chip{background:#eef0f3;padding:5px 8px;border-radius:14px;font-size:11px}
-table{width:100%;border-collapse:collapse;font-size:12px}
-th,td{border:1px solid #d9dde3;padding:7px;text-align:left;vertical-align:top}
+.alert{padding:8px;margin:5px 0;border-left:4px solid #b00000;background:#fff4f4;border-radius:4px;font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
+.chip{background:#eef0f3;padding:4px 7px;border-radius:12px;font-size:10px}
+table{width:100%;border-collapse:collapse;font-size:11px}
+th,td{border:1px solid #d9dde3;padding:6px;text-align:left;vertical-align:top}
 th{background:#f1f3f5}
 #result{display:none}
-#busy{display:none;color:#9a6400;font-size:12px;margin-top:8px}
-.filebox{border:1px dashed #aeb5bf;padding:11px;border-radius:7px}
-.count{font-size:11px;color:#667085;margin-top:4px}
-.thumb-container{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.thumb{width:60px;height:60px;object-fit:cover;border-radius:4px;border:1px solid #b9c0c9;cursor:pointer;transition:transform 0.2s}
-.thumb:hover{transform:scale(1.05)}
+#busy{display:none;color:#9a6400;font-size:12px;margin-top:8px;font-weight:bold}
+.filebox{border:1px dashed #aeb5bf;padding:8px;border-radius:6px;background:#fafbfc}
+.count{font-size:10px;color:#667085;margin-top:3px}
+.thumb-container{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.thumb{width:50px;height:50px;object-fit:cover;border-radius:4px;border:1px solid #b9c0c9;cursor:pointer}
 #modalImg{display:none;position:fixed;z-index:9999;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);align-items:center;justify-content:center}
-#modalImg img{max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 20px #000}
-@media(max-width:700px){main{margin:0;border-radius:0}.grid{grid-template-columns:1fr}.full{grid-column:auto}}
+#modalImg img{max-width:90%;max-height:90%;border-radius:8px}
+@media(max-width:800px){.grid{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
 </style>
 </head>
 
 <body>
 <main>
 
-<h1>SmartCargo-Advisory — MIA</h1>
+<h1>AL CIELO — SmartCargo Advisory</h1>
 <div class="sub">
-Asesoría especializada en normativa IATA, DOT, CBP y operaciones de carga aérea
+Asesoría Técnica Especializada: Avianca Cargo, Bellies (PAX), GSA, Interlines, Transfer, COMAT (IATA / DOT / CBP / TSA)
 </div>
 
+<!-- 1. IDENTIFICACIÓN DE LA OPERACIÓN Y EQUIPO -->
 <section>
-<h2>1. Identificación de la Operación</h2>
+<h2>1. Operación, Ruta y Aeronave (Bellies / Bodega)</h2>
 <div class="grid">
 <div>
-<label>Rol operativo</label>
+<label>Rol Operativo</label>
 <select id="actor">
-<option value="counter">Counter / Bodega</option>
+<option value="counter">Counter / Bodega AGI</option>
 <option value="forwarder">Forwarder</option>
 <option value="camionero">Transportista</option>
-<option value="dueño">Shipper / Dueño de la carga</option>
-<option value="transfer">Transfer / GSA</option>
+<option value="dueño">Shipper / Dueño</option>
+<option value="transfer">Transfer / GSA / Interline</option>
+<option value="comat">COMAT (Carga de Aerolínea)</option>
 </select>
 </div>
 <div>
-<label>AWB o Referencia</label>
+<label>AWB o Referencia / COMAT ID</label>
 <input id="awb" placeholder="134-12345678" autocomplete="off">
 </div>
 <div>
-<label>Origen</label>
-<input id="origen" placeholder="MIA" maxlength="3">
+<label>Origen &rarr; Destino</label>
+<div style="display:flex; gap:5px;">
+<input id="origen" placeholder="MIA" maxlength="3" style="width:50%;">
+<input id="destino" placeholder="BOG" maxlength="3" style="width:50%;">
 </div>
-<div>
-<label>Destino</label>
-<input id="destino" placeholder="BOG" maxlength="3">
 </div>
 <div>
 <label>Vuelo</label>
-<input id="vuelo" placeholder="Número de vuelo">
+<input id="vuelo" placeholder="Ej. AV092 / AV8500">
 </div>
 <div>
-<label>Aeronave</label>
-<input id="aeronave" placeholder="Tipo de aeronave">
-</div>
-<div class="full">
-<label>Tipo / categoría de carga</label>
-<select id="tipo">
-<option value="general">General / seca</option>
-<option value="dg">Dangerous Goods (DG)</option>
-<option value="perishable">Perecedero / flores</option>
-<option value="avi">AVI / animal vivo</option>
+<label>Tipo de Aeronave</label>
+<select id="aeronave" onchange="actualizarLimitesAeronave()">
+<option value="a320">A320 / A321 (Narrowbody - Solo Belly / Contenedores Bajos o Suelta)</option>
+<option value="a330_pax">A330 Passenger (Widebody - Belly AKE / Pallets Contorno Bajo)</option>
+<option value="a330_f">A330 Freighter (Carga Principal + Bodega Inferior)</option>
+<option value="b787">B787 Dreamliner (Widebody - Posiciones LD3 / AKE en Belly)</option>
+<option value="atr">ATR 72 (Turbohélice - Limitación estricta de volumen y peso puerta)</option>
 </select>
 </div>
+<div>
+<label>Ubicación / Posición de Carga</label>
+<select id="posicion_carga">
+<option value="belly">Belly (Compartimiento Inferior / PAX)</option>
+<option value="main_deck">Main Deck (Cubierta Principal - Avión Cargo)</option>
+<option value="bulk">Bulk / Carga a granel (Suelta manual)</option>
+</select>
+</div>
+</div>
+<div id="info_aeronave" class="alert" style="margin-top:10px; background:#f0f4f8; border-left-color:#30343b;">
+<b>Parámetros del Equipo:</b> Seleccione una aeronave para ver restricciones de contorno, altura máxima de puerta y peso por posición.
 </div>
 </section>
 
+<!-- 2. CONTROL DOCUMENTAL Y PAPELERÍA (ORIGINALES, COPIAS, CHEQUES, PERMISOS) -->
 <section>
-<h2>2. Identificación Física y Desglose de Carga</h2>
-<div class="help">
-Seleccione si desea ingresar las medidas de forma <b>General (consolidado)</b> o <b>Pieza por pieza (detalle independiente)</b>.
+<h2>2. Control de Papelería y Documentación Legal</h2>
+<div class="help">Clasificación obligatoria para cumplimiento TSA, CBP y regulaciones aduaneras.</div>
+<div class="grid" style="margin-top:8px;">
+<div>
+<label>Air Waybill (AWB) / Manifiesto</label>
+<select id="doc_awb_tipo">
+<option value="original">Original (Shipper Copy / Issuing Carrier)</option>
+<option value="copia">Copia / S檔 (Digital o Impresa)</option>
+<option value="house">House AWB (HAWB) / Master AWB (MAWB)</option>
+</select>
+</div>
+<div>
+<label>Permisos y Certificados de Aduana / OGA</label>
+<select id="doc_permisos">
+<option value="completos">Permisos Completos (FDA, USDA, CITES, Licencias)</option>
+<option value="pendientes">Permisos Pendientes de Retención CBP</option>
+<option value="no_aplica">No Aplica / Carga Nacional / COMAT</option>
+</select>
+</div>
+<div>
+<label>Cheques, Pagos y Voucher Financiero</label>
+<select id="doc_pagos">
+<option value="verificado">Cheque / Voucher / Pago verificado y OK</option>
+<option value="pendiente">Pago Pendiente / Crédito por Autorizar</option>
+<option value="efectivo_comprobante">Comprobante de Pago en Efectivo / Tarjeta</option>
+</select>
+</div>
+</div>
+<div class="filebox" style="margin-top:10px;">
+<label>Adjuntar Archivos PDF (Documentos, Facturas, Certificados, Cheques)</label>
+<input id="pdfs" type="file" accept=".pdf,application/pdf" multiple>
+<div id="pdfCount" class="count">0 documentos seleccionados</div>
+</div>
+</section>
+
+<!-- 3. IDENTIFICACIÓN FÍSICA, ULD/PALLET Y DESGLOSE DE CARGA -->
+<section>
+<h2>3. Identificación Física, ULD, Pallets y Desglose de Medidas</h2>
+<div class="grid-2">
+<div>
+<label>Tipo de ULD / Contenedor / Pallet</label>
+<select id="tipo_uld">
+<optgroup label="Contenedores de Bodega (Belly ULDs)">
+<option value="AKE">AKE / LD3 (Contenedor Contornado Estándar - Max 1,588 kg)</option>
+<option value="AKH">AKH / LD3-45 (Contenedor bajo para A320/A321)</option>
+<option value="PLA">PLA / LD4 (Contenedor Rígido Base 60x60)</option>
+</optgroup>
+<optgroup label="Pallets de Carga">
+<option value="PMC">PMC / P1P Pallet (125" x 96" - Cubierta Principal / Widebody)</option>
+<option value="PAG">PAG Pallet (88" x 125" - Contorno Estándar Avianca)</option>
+<option value="PLO">PLO / Pallet Ligero Regional</option>
+</optgroup>
+<optgroup label="Carga Suelta / Sin ULD">
+<option value="loose">Carga Suelta (Bulk / Floor Loaded)</option>
+<option value="skid">Skid / Tarima de madera</option>
+</optgroup>
+</select>
+</div>
+<div>
+<label>Categoría de Mercancía para el Pallet / Estiba</label>
+<select id="categoria_mercancia">
+<option value="general">Carga General / Seca</option>
+<option value="dg">Mercancías Peligrosas (DG - IATA DGR)</option>
+<option value="perishable">Perecederos / Flores / Alimentos (Control de Temp)</option>
+<option value="avi">Animales Vivos (AVI - Contenedor aprobado IATA)</option>
+<option value="val">VAL / VUN (Carga Valiosa o Vulnerable - Alta seguridad)</option>
+<option value="pharma">Pharma / Temperatura Controlada (+2°C a +8°C)</option>
+</select>
+</div>
 </div>
 
-<div class="grid" style="margin-top:12px">
-<div class="full">
-<label>Modo de ingreso de medidas</label>
+<div style="margin-top:10px;">
+<label>Modo de Ingreso de Medidas</label>
 <select id="modo_medicion" onchange="cambiarModoMedicion()">
-<option value="general">General (Medidas promedio aplicadas al total de piezas)</option>
-<option value="detalle">Mercancía por mercancía / Detallado por bulto</option>
+<option value="general">General (Medidas promedio aplicadas al total)</option>
+<option value="detalle">Detallado por bulto / estiba independiente</option>
 </select>
 </div>
 
-<!-- SECCIÓN GENERAL -->
-<div id="seccion_general" class="full">
-<div class="grid">
+<!-- GENERAL -->
+<div id="seccion_general" class="grid" style="margin-top:10px;">
 <div>
-<label>Número total de piezas</label>
-<input id="piezas" type="number" min="0" step="1" placeholder="0" oninput="calcularVolumen()">
+<label>Piezas Totales</label>
+<input id="piezas" type="number" min="0" placeholder="0" oninput="calcularVolumen()">
 </div>
 <div>
-<label>Peso bruto total (kg)</label>
+<label>Peso Bruto Total (kg)</label>
 <input id="peso" type="number" min="0" step="0.01" placeholder="0">
 </div>
 <div>
-<label>Largo por pieza (cm)</label>
+<label>Largo (cm)</label>
 <input id="largo" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
 </div>
 <div>
-<label>Ancho por pieza (cm)</label>
+<label>Ancho (cm)</label>
 <input id="ancho" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
 </div>
 <div>
-<label>Alto por pieza (cm)</label>
+<label>Alto (cm)</label>
 <input id="alto" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
 </div>
 <div>
-<label>Volumen Automático (m³)</label>
+<label>Volumen Calc. (m³)</label>
 <input id="volumen_auto" type="text" readonly placeholder="0.0000 m³" style="background:#f1f3f5; font-weight:bold;">
 </div>
 </div>
-</div>
 
-<!-- SECCIÓN DETALLE POR PIEZA -->
-<div id="seccion_detalle" class="full" style="display:none;">
-<label>Desglose de medidas por bulto o ítem específico</label>
+<!-- DETALLE -->
+<div id="seccion_detalle" style="display:none; margin-top:10px;">
+<label>Desglose por bulto / tarima</label>
 <table id="tablaDetalle">
 <tr>
-<th>Bulto / Ítem</th>
+<th>Ítem / Bulto</th>
 <th>Piezas</th>
 <th>L (cm)</th>
 <th>An (cm)</th>
@@ -159,72 +232,42 @@ Seleccione si desea ingresar las medidas de forma <b>General (consolidado)</b> o
 <td><input type="number" value="0" min="0" step="0.1" class="d-an" oninput="calcularVolumenDetalle()"></td>
 <td><input type="number" value="0" min="0" step="0.1" class="d-al" oninput="calcularVolumenDetalle()"></td>
 <td><input type="number" value="0" min="0" step="0.01" class="d-peso"></td>
-<td><button type="button" class="secondary" onclick="eliminarFila(this)" style="padding:6px 10px;">X</button></td>
+<td><button type="button" class="secondary" onclick="eliminarFila(this)" style="padding:4px 8px;">X</button></td>
 </tr>
 </table>
-<button type="button" class="secondary" onclick="agregarFilaDetalle()" style="margin-top:8px;">+ Agregar otro bulto al desglose</button>
-<div style="margin-top:8px;">
-<label>Volumen Total Acumulado (m³): <span id="vol_detalle_lbl" style="color:#b00000;">0.0000 m³</span></label>
+<button type="button" class="secondary" onclick="agregarFilaDetalle()" style="margin-top:6px;">+ Agregar otro bulto</button>
+<div style="margin-top:6px; font-size:11px;">
+<label>Volumen Acumulado: <span id="vol_detalle_lbl" style="color:#b00000; font-weight:bold;">0.0000 m³</span></label>
 </div>
 </div>
 
-<div class="full">
-<label>Tipo de envoltura / Contenedor</label>
-<select id="envoltura">
-<optgroup label="Unidades de Carga (ULD)">
-<option value="metal_crate">Metal Crate / Contenedor rígido (Ej. LD3/AKE)</option>
-<option value="pallet">Pallet con red (PMC / PAG)</option>
-</optgroup>
-<optgroup label="Embalaje y Carga General">
-<option value="box">Box (Caja de cartón / madera)</option>
-<option value="skid">Skid (Tarima / Base de soporte)</option>
-<option value="drum">Drum / Pail (Tambor / Bidón)</option>
-<option value="bag">Bag / Sacks / Big Bag (Sacos / Contenedor flexible)</option>
-<option value="bundle">Bundle / Pipe / Roll (Atados / Rollos / Tubos)</option>
-<option value="otros">Otros / Carga suelta</option>
-</optgroup>
-</select>
-</div>
-
-<div class="full">
-<label>Descripción exacta de la mercancía o incidencia</label>
-<textarea id="descripcion" rows="3" placeholder="Describa marcas, estado del ULD, tarimas o incidencias operativas..."></textarea>
-</div>
-</div>
-</section>
-
-<section>
-<h2>3. Papelería Legal y Documental</h2>
-<div class="help">
-Adjunte documentos PDF y/o fotos de evidencia. Haga clic sobre cualquier miniatura de foto para ampliarla.
-</div>
-<div class="grid" style="margin-top:12px">
+<div style="margin-top:10px;">
+<label>Fotos de Evidencia (Mercancía, Estiba, Embalaje, Etiquetas DG)</label>
 <div class="filebox">
-<label>PDF — documentos de la carga</label>
-<input id="pdfs" type="file" accept=".pdf,application/pdf" multiple>
-<div id="pdfCount" class="count">0 documentos seleccionados</div>
-</div>
-<div class="filebox">
-<label>Fotos — mercancía y evidencia</label>
 <input id="fotos" type="file" accept="image/*" multiple>
 <div id="photoCount" class="count">0 fotos seleccionadas</div>
 <div id="photoPreview" class="thumb-container"></div>
 </div>
 </div>
+
+<div style="margin-top:10px;">
+<label>Descripción de Incidencias o Observaciones Operativas</label>
+<textarea id="descripcion" rows="2" placeholder="Detalle estado de redes, tarimas de madera (si cumplen NIMF-15), roturas o marcas..."></textarea>
+</div>
 </section>
 
 <div class="row">
-<button class="primary" onclick="revisar()">REVISAR CARGA Y DOCUMENTOS</button>
+<button class="primary" onclick="revisar()">EJECUTAR ASESORÍA Y VALIDAR CARGA</button>
 <button class="secondary" onclick="limpiar()">BORRAR DATOS</button>
 </div>
 
-<div id="busy">Procesando datos en el sistema...</div>
+<div id="busy">Analizando requerimientos de Avianca, ULDs y normativa...</div>
 
 <section id="result">
-<h2>Resultado de la Operación</h2>
-<div id="summary" style="padding:15px; border-radius:8px; margin-bottom:15px; background:#f8f9fa;"></div>
+<h2>Directrices y Soluciones del Asesor</h2>
+<div id="summary" style="padding:12px; border-radius:6px; margin-bottom:10px; background:#f8f9fa;"></div>
 <div id="alerts"></div>
-<h3>Verificación de Puntos Críticos</h3>
+<h3>Puntos de Control Normativo (IATA / DOT / CBP / TSA)</h3>
 <div id="checks"></div>
 </section>
 
@@ -237,13 +280,30 @@ Adjunte documentos PDF y/o fotos de evidencia. Haga clic sobre cualquier miniatu
 <script>
 const $=id=>document.getElementById(id);
 
+function actualizarLimitesAeronave(){
+ const av = $("aeronave").value;
+ const box = $("info_aeronave");
+ if(av === "a320"){
+  box.innerHTML = "<b>A320/A321 (Narrowbody):</b> Solo compartimiento inferior (Belly). Altura máxima de puerta de bodega: ~110 cm. No admite pallets estándar PMC; solo contenedores bajos (AKH/LD3-45) o carga suelta a granel.";
+ } else if(av === "a330_pax"){
+  box.innerHTML = "<b>A330 Passenger (Widebody):</b> Bodega inferior (Belly) apta para contenedores AKE/LD3 y pallets de contorno bajo. Peso máximo por AKE: 1,588 kg. Estricta revisión de perfil.";
+ } else if(av === "a330_f"){
+  box.innerHTML = "<b>A330 Freighter (Carga):</b> Cubierta principal admite pallets PMC (125\"x96\") hasta 6,800 kg por posición. Bodega inferior para AKE y suelta. Máxima eficiencia volumétrica.";
+ } else if(av === "b787"){
+  box.innerHTML = "<b>B787 Dreamliner:</b> Bodega con capacidad para contenedores AKE y tarimas perfiladas. Control riguroso de balance y centro de gravedad en belly.";
+ } else if(av === "atr"){
+  box.innerHTML = "<b>ATR 72 (Turbohélice):</b> Restricción severa de peso por posición y dimensiones de puerta de carga trasera. No apto para ULDs rígidos grandes.";
+ }
+}
+actualizarLimitesAeronave();
+
 function cambiarModoMedicion(){
  const modo = $("modo_medicion").value;
  if(modo === "detalle"){
   $("seccion_general").style.display = "none";
   $("seccion_detalle").style.display = "block";
  } else {
-  $("seccion_general").style.display = "block";
+  $("seccion_general").style.display = "grid";
   $("seccion_detalle").style.display = "none";
  }
 }
@@ -253,7 +313,6 @@ function calcularVolumen() {
  const l = parseFloat($("largo").value) || 0;
  const w = parseFloat($("ancho").value) || 0;
  const h = parseFloat($("alto").value) || 0;
- 
  if(p > 0 && l > 0 && w > 0 && h > 0) {
   const vol = (l * w * h * p) / 1000000;
   $("volumen_auto").value = vol.toFixed(4) + " m³";
@@ -272,7 +331,7 @@ function agregarFilaDetalle(){
   <td><input type="number" value="0" min="0" step="0.1" class="d-an" oninput="calcularVolumenDetalle()"></td>
   <td><input type="number" value="0" min="0" step="0.1" class="d-al" oninput="calcularVolumenDetalle()"></td>
   <td><input type="number" value="0" min="0" step="0.01" class="d-peso"></td>
-  <td><button type="button" class="secondary" onclick="eliminarFila(this)" style="padding:6px 10px;">X</button></td>
+  <td><button type="button" class="secondary" onclick="eliminarFila(this)" style="padding:4px 8px;">X</button></td>
  `;
 }
 
@@ -306,9 +365,7 @@ $("fotos").addEventListener("change",(e)=>{
  const files = e.target.files;
  const container = $("photoPreview");
  container.innerHTML = "";
- 
  $("photoCount").textContent = `${files.length} foto${files.length===1?"":"s"} seleccionada${files.length===1?"":"s"}`;
-
  for(const file of files){
   const reader = new FileReader();
   reader.onload = function(evt){
@@ -341,8 +398,12 @@ async function revisar(){
  add(fd,"destino","destino");
  add(fd,"vuelo","vuelo");
  add(fd,"aeronave","aeronave");
- add(fd,"tipo_carga","tipo");
- add(fd,"estado_envoltura","envoltura");
+ add(fd,"posicion_carga","posicion_carga");
+ add(fd,"tipo_uld","tipo_uld");
+ add(fd,"categoria_mercancia","categoria_mercancia");
+ add(fd,"doc_awb_tipo","doc_awb_tipo");
+ add(fd,"doc_permisos","doc_permisos");
+ add(fd,"doc_pagos","doc_pagos");
  add(fd,"descripcion","descripcion");
 
  const modo = $("modo_medicion").value;
@@ -353,7 +414,6 @@ async function revisar(){
   let pesoTotal = 0;
   const filas = document.querySelectorAll("#tablaDetalle tr");
   let detalleItems = [];
-  
   for(let i=1; i<filas.length; i++){
    const desc = filas[i].querySelector(".d-desc").value;
    const pz = parseFloat(filas[i].querySelector(".d-pz").value) || 0;
@@ -361,7 +421,6 @@ async function revisar(){
    const an = parseFloat(filas[i].querySelector(".d-an").value) || 0;
    const al = parseFloat(filas[i].querySelector(".d-al").value) || 0;
    const ps = parseFloat(filas[i].querySelector(".d-peso").value) || 0;
-   
    piezasTotales += pz;
    pesoTotal += ps;
    detalleItems.push(`${desc}: ${pz}pz (${l}x${an}x${al}cm, ${ps}kg)`);
@@ -389,8 +448,7 @@ async function revisar(){
  try{
   const r=await fetch("/api/smartcargo/resolver",{method:"POST",body:fd});
   const d=await r.json();
-
-  if(!r.ok) throw new Error(d.detail||"No se pudo procesar la revisión.");
+  if(!r.ok) throw new Error(d.detail||"Error en la revisión.");
 
   const status=d.estatus_general||"HOLD";
   let statusBg="#fff4f4", statusColor="#b00000";
@@ -400,15 +458,15 @@ async function revisar(){
 
   $("summary").style.background = statusBg;
   $("summary").innerHTML=`
-   <div style="font-size:20px; font-weight:bold; color:${statusColor}; margin-bottom:6px;">
-     MANDATO: ${esc(status)}
+   <div style="font-size:18px; font-weight:bold; color:${statusColor}; margin-bottom:5px;">
+     DIRECCIÓN TÉCNICA: ${esc(status)}
    </div>
-   <p style="margin:0 0 10px 0; font-size:13px;"><b>Instrucción:</b> ${esc(d.solucion_directa||"")}</p>
+   <p style="margin:0 0 8px 0; font-size:12px;"><b>Instrucción directa:</b> ${esc(d.solucion_directa||"")}</p>
    <div class="chips">
     <span class="chip">AWB: ${esc(d.awb)}</span>
-    <span class="chip">Destino: ${esc(d.destino)}</span>
-    <span class="chip">Piezas: ${esc(d.piezas)}</span>
-    <span class="chip">Peso: ${esc(d.peso_kg)} kg</span>
+    <span class="chip">Aeronave/Posición: ${esc(d.aeronave)} (${esc(d.posicion_carga)})</span>
+    <span class="chip">ULD/Pallet: ${esc(d.tipo_uld)}</span>
+    <span class="chip">Categoría: ${esc(d.categoria_mercancia)}</span>
     <span class="chip">Volumen: ${esc(d.volumen_m3)} m³</span>
    </div>
   `;
@@ -420,12 +478,12 @@ async function revisar(){
     </div>
    `).join("");
   }else{
-   $("alerts").innerHTML="<div style='color:#16733a; font-size:12px; margin-bottom:10px;'>✓ Sin incidencias registradas en la revisión base.</div>";
+   $("alerts").innerHTML="<div style='color:#16733a; font-size:11px; margin-bottom:8px;'>✓ Sin observaciones críticas en documentación y perfil físico.</div>";
   }
 
   $("checks").innerHTML=`
    <table>
-    <tr><th>Punto de Control</th><th>Estado</th><th>Detalle</th></tr>
+    <tr><th>Componente Verificado</th><th>Estado</th><th>Instrucción Operativa</th></tr>
     ${(d.checks||[]).map(x=>`
      <tr>
       <td>${esc(x.item)}</td>
@@ -435,21 +493,13 @@ async function revisar(){
    </table>`;
 
  }catch(e){
-  let errorMsg = e.message;
-  try {
-   const errObj = JSON.parse(e.message);
-   if(errObj.detail) errorMsg = errObj.detail;
-  } catch(err) {}
-
   $("summary").style.background="#fff4f4";
   $("summary").innerHTML=`
-   <div style="font-size:18px; font-weight:bold; color:#b00000; margin-bottom:6px;">
-     MANDATO: REJECT / HOLD
+   <div style="font-size:16px; font-weight:bold; color:#b00000; margin-bottom:5px;">
+     ESTADO: HOLD / RECHAZO OPERATIVO
    </div>
-   <p style="margin:0; font-size:13px; color:#b00000;"><b>Atención Operativa:</b> ${esc(errorMsg)}</p>
+   <p style="margin:0; font-size:12px; color:#b00000;"><b>Atención:</b> ${esc(e.message)}</p>
   `;
-  $("alerts").innerHTML="";
-  $("checks").innerHTML="";
  }finally{
   $("busy").style.display="none";
  }
@@ -466,10 +516,16 @@ function esc(v){
 
 function limpiar(){
  $("actor").value="counter";
- ["awb","origen","destino","vuelo","aeronave","piezas","peso","largo","ancho","alto","descripcion","volumen_auto"]
+ ["awb","origen","destino","vuelo","piezas","peso","largo","ancho","alto","descripcion","volumen_auto"]
  .forEach(id=>{ if($(id)) $(id).value=""; });
- $("tipo").value="general";
- $("envoltura").value="metal_crate";
+ $("aeronave").value="a320";
+ actualizarLimitesAeronave();
+ $("posicion_carga").value="belly";
+ $("tipo_uld").value="AKE";
+ $("categoria_mercancia").value="general";
+ $("doc_awb_tipo").value="original";
+ $("doc_permisos").value="completos";
+ $("doc_pagos").value="verificado";
  $("modo_medicion").value="general";
  cambiarModoMedicion();
  $("pdfs").value="";
