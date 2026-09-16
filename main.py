@@ -1,400 +1,211 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.responses import HTMLResponse
-from typing import Optional
+from fastapi.staticfiles import StaticFiles
+from typing import List, Optional
+from pathlib import Path
+import json, re, io, os, hashlib
+from pypdf import PdfReader
 
-app = FastAPI(
-    title="SmartCargo Advisory",
-    version="9.0.0"
-)
+APP = "SmartCargo Advisory"
+VERSION = "10.0.0"
+BASE = Path(__file__).parent
+DATA = BASE / "data"
+TEMPLATE = BASE / "templates" / "index.htm"
+
+app = FastAPI(title=APP, version=VERSION)
+if (BASE / "static").exists():
+    app.mount("/static", StaticFiles(directory=BASE / "static"), name="static")
+
+# Knowledge is deliberately local and editable. Do not represent it as Avianca's
+# private system. Carrier/operator/state variations must be checked against current manuals.
+RULES = {
+    "general": ["AWB/HAWB-MAWB data", "shipper/consignee", "piece count", "gross weight",
+                "dimensions", "security status", "marks/labels", "packaging condition",
+                "routing/booking", "required export/import documents"],
+    "dg": ["AWB", "Shipper's Declaration/DGD when applicable", "UN number",
+           "proper shipping name", "class/division", "packing instruction",
+           "quantity", "package type", "marks/labels", "operator/state variations",
+           "acceptance checklist", "security status"],
+    "perishable": ["AWB", "commodity", "piece count", "gross weight", "dimensions",
+                   "packaging", "temperature requirements", "handling codes",
+                   "flight/routing", "permits/certificates when required",
+                   "security status"],
+    "avi": ["AWB", "species/animal details", "shipper/consignee", "container",
+            "dimensions/weight", "health/veterinary documents when required",
+            "routing/flight", "handling instructions", "acceptance checklist"],
+}
 
 @app.get("/", response_class=HTMLResponse)
 def home():
-    return """
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCargo Advisory - MIA</title>
-    <style>
-        :root {
-            --primary-red: #cc0000;
-            --bg-color: #f2f4f7;
-            --card-bg: #ffffff;
-            --text-main: #222222;
-            --border: #cccccc;
-        }
+    if TEMPLATE.exists():
+        return TEMPLATE.read_text(encoding="utf-8")
+    return "<h1>SmartCargo Advisory</h1><p>Falta templates/index.htm</p>"
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 15px;
-        }
+def norm(s):
+    return re.sub(r"\s+", " ", (s or "").strip()).lower()
 
-        .container {
-            max-width: 850px;
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            margin: auto;
-        }
+def read_pdf(upload: UploadFile):
+    raw = upload.file.read()
+    if not raw:
+        return {"name": upload.filename, "pages": 0, "text": "", "hash": ""}
+    try:
+        reader = PdfReader(io.BytesIO(raw))
+        text = "\n".join((p.extract_text() or "") for p in reader.pages)
+        return {"name": upload.filename, "pages": len(reader.pages),
+                "text": text[:120000], "hash": hashlib.sha256(raw).hexdigest()}
+    except Exception as e:
+        return {"name": upload.filename, "pages": 0, "text": "",
+                "hash": hashlib.sha256(raw).hexdigest(), "error": str(e)}
 
-        h2 {
-            color: var(--primary-red);
-            text-align: center;
-            margin-bottom: 3px;
-            text-transform: uppercase;
-            font-size: 20px;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: #555;
-            margin-bottom: 15px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        /* Sección del Manual y Requisitos de Aviación */
-        .manual-section {
-            background: #fffdfd;
-            border: 1px solid var(--primary-red);
-            padding: 12px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            font-size: 12px;
-        }
-
-        .manual-section h3 {
-            margin: 0 0 8px 0;
-            color: var(--primary-red);
-            font-size: 13px;
-            text-transform: uppercase;
-        }
-
-        .manual-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .manual-grid ul {
-            margin: 0;
-            padding-left: 15px;
-        }
-
-        .manual-grid li {
-            margin-bottom: 4px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .full {
-            grid-column: span 2;
-        }
-
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 3px;
-            font-size: 12px;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid var(--border);
-            border-radius: 3px;
-            box-sizing: border-box;
-            font-size: 13px;
-        }
-
-        .voice-box {
-            background: #fff5f5;
-            border: 1px dashed var(--primary-red);
-            padding: 8px;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
-
-        .btn-voice {
-            background: var(--primary-red);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .btn-voice.recording {
-            background: #900;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.03); }
-            100% { transform: scale(1); }
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        button.submit-btn {
-            flex: 2;
-            padding: 10px;
-            background: var(--primary-red);
-            color: white;
-            border: none;
-            border-radius: 3px;
-            font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-        }
-
-        button.clear-btn {
-            flex: 1;
-            padding: 10px;
-            background: #444;
-            color: white;
-            border: none;
-            border-radius: 3px;
-            font-weight: bold;
-            font-size: 13px;
-            cursor: pointer;
-        }
-
-        #result {
-            margin-top: 20px;
-            background: #fafafa;
-            border: 1px solid var(--border);
-            padding: 15px;
-            border-radius: 4px;
-            display: none;
-        }
-
-        .table-res {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 13px;
-        }
-
-        .table-res th, .table-res td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        .table-res th {
-            background-color: #333;
-            color: white;
-            width: 30%;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container">
-    <h2>SmartCargo Advisory</h2>
-    <div class="subtitle">MIA | Manual Operativo, Counter, Bodega, Bellies & Freighters</div>
-    
-    <!-- MANUAL Y REQUISITOS TÉCNICOS VISIBLES -->
-    <div class="manual-section">
-        <h3>📖 Manual de Requisitos y Obligaciones Operativas (Aviación Comercial)</h3>
-        <div class="manual-grid">
-            <div>
-                <strong>1. Obligaciones de Aceptación (Counter / Bodega):</strong>
-                <ul>
-                    <li>Verificar coincidencia exacta de Guía Aérea (AWB prefijo 134) y piezas físicas.</li>
-                    <li>Control de dimensiones y gálibo según tipo de aeronave (Bellies PAX vs. Freighter).</li>
-                    <li>Inspección obligatoria de marcas, etiquetas de peligro y sellos de origen.</li>
-                </ul>
-            </div>
-            <div>
-                <strong>2. Requisitos de Estibas y Empaque:</strong>
-                <ul>
-                    <li>Estibas de madera obligatoriamente con marca o certificado térmico visible. Prohibida madera cruda.</li>
-                    <li>Empaques secos, intactos y sin perforaciones que comprometan la carga.</li>
-                    <li>Distribución simétrica de peso y sujeción firme con film de alta densidad.</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <div class="voice-box">
-        <button type="button" id="vBtn" class="btn-voice" onclick="toggleVoice()">🎙️ Dictar Incidencia / Carga</button>
-        <span id="vStatus" style="display:block; font-size:10px; color:#666; margin-top:3px;">Opcional: Describa la carga por voz (máx 60s).</span>
-    </div>
-
-    <form id="cForm" onsubmit="analizar(event)">
-        <div class="form-grid">
-            <div>
-                <label>Rol Operativo:</label>
-                <select id="rol">
-                    <option value="Counter / Bodega">Counter / Bodega</option>
-                    <option value="Forwarder">Forwarder</option>
-                    <option value="Transfer / GSA">Transfer / GSA</option>
-                </select>
-            </div>
-            <div>
-                <label>Guía (AWB / Ref):</label>
-                <input type="text" id="awb" placeholder="Ej: 134-XXXXXXXX" required>
-            </div>
-            <div>
-                <label>Tipo de Carga:</label>
-                <select id="tipo">
-                    <option value="General / Seca">General / Seca / Comat</option>
-                    <option value="Perecedero / Flores">Perecederos / Flores</option>
-                    <option value="Especial / DG">Especiales / DG / Valor</option>
-                    <option value="Bellies / Pax">Bellies (PAX) / Interlines</option>
-                </select>
-            </div>
-            <div>
-                <label>Destino:</label>
-                <input type="text" id="destino" placeholder="Ej: BOG" required>
-            </div>
-            <div class="full">
-                <label>Situación / Anomalía en Rampa o Counter:</label>
-                <textarea id="problema" rows="2" placeholder="Ej: Pallet húmedo en base, altura excedida para bellies, estiba sin sello NIMF 15..." required></textarea>
-            </div>
-            <div class="full">
-                <label>Documento Adjunto (PDF):</label>
-                <input type="file" id="pdfFile" accept=".pdf">
-            </div>
-        </div>
-
-        <div class="btn-group">
-            <button type="submit" class="submit-btn">Obtener Solución Directa</button>
-            <button type="button" class="clear-btn" onclick="resetForm()">Borrar Datos</button>
-        </div>
-    </form>
-
-    <div id="result">
-        <h3 style="margin:0 0 10px 0; color:var(--primary-red); font-size:15px; text-transform:uppercase;">Dictamen Operativo y Solución Directa</h3>
-        <table class="table-res">
-            <tr><th>Estatus</th><td id="res-estatus" style="font-weight:bold; color:var(--primary-red);"></td></tr>
-            <tr><th>Solución 1 (Principal)</th><td id="res-sol1"></td></tr>
-            <tr><th>Solución 2 (Alternativa)</th><td id="res-sol2"></td></tr>
-            <tr><th>Instrucción Directa</th><td id="res-inst" style="font-weight:bold; background:#fff3f3;"></td></tr>
-        </table>
-        <div style="text-align: right; margin-top: 10px;">
-            <button onclick="window.print()" style="background:#222; color:#fff; border:none; padding:6px 12px; font-size:11px; cursor:pointer; border-radius:3px;">🖨️ Imprimir / Guardar PDF</button>
-        </div>
-    </div>
-</div>
-
-<script>
-let rec = null;
-let recording = false;
-
-function toggleVoice() {
-    const btn = document.getElementById('vBtn');
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-        alert('No compatible con voz.'); return;
+def extract_fields(text):
+    t = text or ""
+    compact = norm(t)
+    out = {}
+    patterns = {
+        "awb": r"\b(\d{3}[- ]?\d{8})\b",
+        "pieces": r"(?:pieces|piezas|pcs)\s*[:\-]?\s*(\d+)",
+        "gross_weight": r"(?:gross\s*weight|peso\s*bruto)\s*[:\-]?\s*([\d.,]+)\s*(kg|kgs|lb|lbs)?",
+        "destination": r"(?:destination|destino)\s*[:\-]?\s*([A-Z]{3})\b",
+        "origin": r"(?:origin|origen)\s*[:\-]?\s*([A-Z]{3})\b",
     }
-    if (!recording) {
-        const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-        rec = new SR(); rec.lang = 'es-US';
-        rec.onstart = () => { recording = true; btn.classList.add('recording'); btn.innerText = '🔴 Escuchando...'; };
-        rec.onresult = (e) => { document.getElementById('problema').value = e.results[0][0].transcript; };
-        rec.onend = () => stopV(btn);
-        rec.onerror = () => stopV(btn);
-        rec.start();
-        setTimeout(() => { if(recording && rec) rec.stop(); }, 60000);
-    } else {
-        if(rec) rec.stop(); stopV(btn);
-    }
-}
-function stopV(btn) { recording = false; btn.classList.remove('recording'); btn.innerText = '🎙️ Dictar Incidencia / Carga'; }
+    for k,p in patterns.items():
+        m = re.search(p, t, re.I)
+        if m: out[k] = " ".join(x for x in m.groups() if x)
+    out["has_dgd"] = bool(re.search(r"shipper.?s declaration|dangerous goods declaration|dgd\b", compact))
+    out["has_awb"] = bool(re.search(r"\bair waybill\b|\bawb\b", compact))
+    out["has_invoice"] = bool(re.search(r"commercial invoice|invoice|factura comercial", compact))
+    out["has_packing_list"] = bool(re.search(r"packing list|lista de empaque", compact))
+    out["has_health_doc"] = bool(re.search(r"health certificate|veterinary|fitosanitary|phytosanitary|sanitary", compact))
+    return out
 
-async function analizar(e) {
-    e.preventDefault();
-    const fd = new FormData();
-    fd.append("rol", document.getElementById('rol').value);
-    fd.append("awb", document.getElementById('awb').value);
-    fd.append("tipo", document.getElementById('tipo').value);
-    fd.append("destino", document.getElementById('destino').value);
-    fd.append("problema", document.getElementById('problema').value);
-    const file = document.getElementById('pdfFile').files[0];
-    if(file) fd.append("pdfFile", file);
+def build_checks(actor, category, awb, destination, weight, wrap, pdfs, photos):
+    key = category if category in RULES else "general"
+    checks = [{"item": x, "status": "PENDIENTE", "note": "Revisar con documento/operación aplicable."}
+              for x in RULES[key]]
+    alerts = []
+    docs = []
+    all_text = "\n".join(p.get("text","") for p in pdfs)
+    extracted = extract_fields(all_text)
 
-    const res = await fetch('/api/resolver', { method: 'POST', body: fd });
-    const data = await res.json();
-    
-    document.getElementById('res-estatus').innerText = data.estatus;
-    document.getElementById('res-sol1').innerText = data.sol_1;
-    document.getElementById('res-sol2').innerText = data.sol_2;
-    document.getElementById('res-inst').innerText = data.instruccion;
-    document.getElementById('result').style.display = 'block';
-}
+    if not re.fullmatch(r"\d{3}[- ]?\d{8}", awb or ""):
+        alerts.append(("AWB", "Formato no validado", "ALERTA"))
+    if not destination or len(destination.strip()) != 3:
+        alerts.append(("Destino", "Código IATA de 3 letras requerido para validación", "ALERTA"))
+    if not weight or weight <= 0:
+        alerts.append(("Peso", "Peso bruto requerido", "ALERTA"))
+    if wrap in ("humedo","roto"):
+        alerts.append(("Empaque", "Condición física reportada como no conforme", "HOLD"))
+    if not photos:
+        alerts.append(("Fotografías", "No se aportaron fotos; si existen, súbalas para inspección visual", "PENDIENTE"))
 
-function resetForm() {
-    document.getElementById('cForm').reset();
-    document.getElementById('result').style.display = 'none';
-}
-</script>
-
-</body>
-</html>
-    """
-
-@app.post("/api/resolver")
-def resolver(
-    rol: str = Form(...),
-    awb: str = Form(...),
-    tipo: str = Form(...),
-    destino: str = Form(...),
-    problema: str = Form(...),
-    pdfFile: Optional[UploadFile] = File(None)
-):
-    p = problema.lower()
-    
-    if "humed" in p or "agua" in p or "mojado" in p:
-        estatus = "No Conforme por Humedad o Empaque Dañado"
-        sol_1 = "Aplicar refuerzo con strech film de alta densidad y cartón corrugado antihumedad en la base."
-        sol_2 = "Transferir de inmediato la mercancía a estiba plástica limpia y descartar la tarima húmeda."
-        instruccion = "Llevar la carga a zona de reempaque o cambiar a estiba plástica."
-    elif "alto" in p or "dimension" in p or "grande" in p or "medida" in p:
-        estatus = "Fuera de Gálibo / Exceso de Perfil Operativo"
-        sol_1 = "Reestructurar el armado rebajando la altura de la estiba para cumplir con el gálibo de aeronave PAX (Bellies)."
-        sol_2 = "Derivar la carga hacia un vuelo carguero puro (Freighter) si la pieza no puede reducirse."
-        instruccion = "Desarmar capa superior del pallet o reasignar a carguero."
-    elif "peso" in p or "kilo" in p or "sobrepeso" in p:
-        estatus = "Alerta de Desbalance o Límite de Posición"
-        sol_1 = "Fraccionar la carga en dos guías hijas (HAWB) o repartir el peso en otra posición de bodega."
-        sol_2 = "Reequilibrar el centro de gravedad ajustando la distribución simétrica sobre la base."
-        instruccion = "Dividir carga en dos posiciones o rebalancear estiba."
-    elif "madera" in p or "estiba" in p or "tarima" in p or "nimf" in p:
-        estatus = "Incidencia Crítica en Estiba o Tratamiento"
-        sol_1 = "Reemplazar inmediatamente por estiba plástica o madera con sello térmico visible de certificación."
-        sol_2 = "Verificar documentación del proveedor de tarimas antes de aceptar el ingreso a bodega."
-        instruccion = "Cambiar estiba por una plástica."
+    if category == "dg":
+        docs += ["AWB", "DGD/Declaración de Mercancías Peligrosas cuando aplique",
+                 "Documentos/autorizaciones adicionales según clasificación y ruta"]
+        if not extracted["has_dgd"]:
+            alerts.append(("DG", "No se identificó una DGD en los PDFs aportados", "HOLD"))
+    elif category == "perishable":
+        docs += ["AWB", "Documentación sanitaria/fitosanitaria cuando corresponda",
+                 "Documentación de temperatura/handling cuando corresponda"]
+        if not extracted["has_health_doc"]:
+            alerts.append(("Perecedero", "No se identificó certificado sanitario/fitosanitario en los PDFs; verificar si aplica", "PENDIENTE"))
+    elif category == "avi":
+        docs += ["AWB", "Documentación sanitaria/veterinaria y de importación/exportación cuando corresponda",
+                 "Documentos de transporte/handling aplicables"]
+        if not extracted["has_health_doc"]:
+            alerts.append(("AVI", "No se identificó documento sanitario/veterinario; verificar requisitos de ruta", "PENDIENTE"))
     else:
-        estatus = "Revisión Documental y Física Conforme"
-        sol_1 = "Verificar concordancia de etiquetas secundarias y marcas físicas con los datos del manifiesto."
-        sol_2 = "Proceder con la aceptación y transferencia directa hacia la zona de tránsitos y conexiones."
-        instruccion = "Aceptar carga y rutear a bodega de transferencia."
+        docs += ["AWB", "Factura comercial cuando corresponda", "Packing list cuando corresponda",
+                 "Documentación de exportación/importación y seguridad aplicable"]
 
-    if pdfFile:
-        sol_1 += f" [Documento adjunto '{pdfFile.filename}' verificado en sistema]."
+    if pdfs:
+        if not all_text.strip():
+            alerts.append(("PDF", "El PDF fue recibido pero no contiene texto extraíble; puede ser escaneado/imagen. No se debe declarar verificado.", "PENDIENTE"))
+        else:
+            if extracted["awb"] and norm(extracted["awb"]) != norm(awb):
+                alerts.append(("AWB", f"El AWB extraído del PDF ({extracted['awb']}) no coincide con el ingresado ({awb})", "HOLD"))
+    else:
+        alerts.append(("Documentos", "No se adjuntaron PDFs para revisión documental", "PENDIENTE"))
+
+    status = "HOLD" if any(a[2]=="HOLD" for a in alerts) else ("PENDIENTE" if alerts else "REVISIÓN COMPLETA")
+    return checks, alerts, docs, extracted, status
+
+@app.post("/api/smartcargo/resolver")
+async def resolver(
+    actor: str = Form(...),
+    awb_numero: str = Form(...),
+    tipo_carga: str = Form(...),
+    peso_kg: float = Form(...),
+    destino: str = Form(...),
+    estado_envoltura: str = Form(...),
+    descripcion: str = Form(""),
+    vuelo: str = Form(""),
+    aeronave: str = Form(""),
+    piezas: int = Form(0),
+    largo_cm: float = Form(0),
+    ancho_cm: float = Form(0),
+    alto_cm: float = Form(0),
+    fotos: Optional[List[UploadFile]] = File(None),
+    pdfs: Optional[List[UploadFile]] = File(None),
+):
+    pdf_data = []
+    for f in (pdfs or []):
+        pdf_data.append(read_pdf(f))
+    photo_count = len(fotos or [])
+    checks, alerts, docs, extracted, status = build_checks(
+        actor, tipo_carga, awb_numero, destino, peso_kg, estado_envoltura, pdf_data, photo_count
+    )
+
+    if descripcion:
+        d = norm(descripcion)
+        if any(x in d for x in ["mojado","humedo","húmedo","perforado","roto","leak","leaking"]):
+            alerts.append(("Mercancía/embalaje", "La descripción reporta posible daño o condición física que requiere revisión", "HOLD"))
+            status = "HOLD"
+
+    volume_m3 = 0
+    if largo_cm > 0 and ancho_cm > 0 and alto_cm > 0 and piezas > 0:
+        volume_m3 = (largo_cm * ancho_cm * alto_cm * piezas) / 1_000_000
+
+    if status == "HOLD":
+        solution = "NO CONTINUAR COMO CONFORME. Poner la carga/documentación en revisión y resolver las alertas marcadas antes de aceptar como ready for carriage."
+    elif status == "PENDIENTE":
+        solution = "No declarar la carga lista todavía. Complete los documentos, datos físicos y verificaciones pendientes."
+    else:
+        solution = "La información aportada supera las comprobaciones básicas locales. Aún debe contrastarse con booking, seguridad, requisitos del operador, Estado y destino antes de la aceptación final."
 
     return {
-        "estatus": estatus,
-        "sol_1": sol_1,
-        "sol_2": sol_2,
-        "instruccion": instruccion
+        "version": VERSION,
+        "estacion": "MIA",
+        "actor": actor,
+        "awb": awb_numero,
+        "tipo_carga": tipo_carga,
+        "destino": destino.upper(),
+        "vuelo": vuelo.upper(),
+        "aeronave": aeronave.upper(),
+        "piezas": piezas,
+        "peso_kg": peso_kg,
+        "dimensiones_cm": [largo_cm, ancho_cm, alto_cm],
+        "volumen_m3": round(volume_m3, 4),
+        "fotos_recibidas": photo_count,
+        "pdfs_recibidos": len(pdf_data),
+        "documentos_requeridos_base": docs,
+        "documentos_detectados": extracted,
+        "checks": checks,
+        "alertas": [{"item":a,"detalle":b,"nivel":c} for a,b,c in alerts],
+        "estatus_general": status,
+        "solucion_directa": solution,
+        "nota_operativa": "Herramienta de apoyo. No sustituye manuales vigentes del transportista, IATA/ICAO, seguridad, autoridades, booking/load control ni variaciones de Estado/operador."
     }
+
+# Backward compatibility with the earlier prototype.
+@app.post("/api/resolver")
+async def legacy_resolver(
+    rol: str = Form(...), awb: str = Form(...), tipo: str = Form(...),
+    destino: str = Form(...), problema: str = Form(...),
+    pdfFile: Optional[UploadFile] = File(None)
+):
+    return await resolver(
+        actor=rol, awb_numero=awb, tipo_carga="dg" if "dg" in norm(tipo) else "general",
+        peso_kg=0, destino=destino, estado_envoltura="roto" if "roto" in norm(problema) else "intacto",
+        descripcion=problema, vuelo="", aeronave="", piezas=0, largo_cm=0, ancho_cm=0, alto_cm=0,
+        fotos=None, pdfs=[pdfFile] if pdfFile else None
+    )
