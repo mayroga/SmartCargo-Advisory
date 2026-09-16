@@ -32,6 +32,12 @@ th{background:#f1f3f5}
 #busy{display:none;color:#9a6400;font-size:12px;margin-top:8px}
 .filebox{border:1px dashed #aeb5bf;padding:11px;border-radius:7px}
 .count{font-size:11px;color:#667085;margin-top:4px}
+.thumb-container{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.thumb{width:60px;height:60px;object-fit:cover;border-radius:4px;border:1px solid #b9c0c9;cursor:pointer;transition:transform 0.2s}
+.thumb:hover{transform:scale(1.05)}
+/* Modal para ver imagen grande */
+#modalImg{display:none;position:fixed;z-index:9999;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);align-items:center;justify-content:center}
+#modalImg img{max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 0 20px #000}
 @media(max-width:700px){main{margin:0;border-radius:0}.grid{grid-template-columns:1fr}.full{grid-column:auto}}
 </style>
 </head>
@@ -92,9 +98,21 @@ Asesoría especializada en normativa IATA, DOT, CBP y operaciones de carga aére
 <section>
 <h2>2. Identificación Física y Desglose de Carga</h2>
 <div class="help">
-Ingrese las medidas y el peso. El volumen se calculará automáticamente para el control de gálibo.
+Seleccione si desea ingresar las medidas de forma <b>General (consolidado)</b> o <b>Pieza por pieza (detalle independiente)</b>.
 </div>
+
 <div class="grid" style="margin-top:12px">
+<div class="full">
+<label>Modo de ingreso de medidas</label>
+<select id="modo_medicion" onchange="cambiarModoMedicion()">
+<option value="general">General (Medidas promedio aplicadas al total de piezas)</option>
+<option value="detalle">Mercancía por mercancía / Detallado por bulto</option>
+</select>
+</div>
+
+<!-- SECCIÓN GENERAL -->
+<div id="seccion_general" class="full">
+<div class="grid">
 <div>
 <label>Número total de piezas</label>
 <input id="piezas" type="number" min="0" step="1" placeholder="0" oninput="calcularVolumen()">
@@ -119,6 +137,38 @@ Ingrese las medidas y el peso. El volumen se calculará automáticamente para el
 <label>Volumen Automático (m³)</label>
 <input id="volumen_auto" type="text" readonly placeholder="0.0000 m³" style="background:#f1f3f5; font-weight:bold;">
 </div>
+</div>
+</div>
+
+<!-- SECCIÓN DETALLE POR PIEZA -->
+<div id="seccion_detalle" class="full" style="display:none;">
+<label>Desglose de medidas por bulto o ítem específico</label>
+<table id="tablaDetalle">
+<tr>
+<th>Bulto / Ítem</th>
+<th>Piezas</th>
+<th>L (cm)</th>
+<th>An (cm)</th>
+<th>Al (cm)</th>
+<th>Peso (kg)</th>
+<th>Acción</th>
+</tr>
+<tr>
+<td><input type="text" value="Bulto 1" class="d-desc"></td>
+<td><input type="number" value="1" min="1" class="d-pz" oninput="calcularVolumenDetalle()"></td>
+<td><input type="number" value="0" min="0" step="0.1" class="d-l" oninput="calcularVolumenDetalle()"></td>
+<td><input type="number" value="0" min="0" step="0.1" class="d-an" oninput="calcularVolumenDetalle()"></td>
+<td><input type="number" value="0" min="0" step="0.1" class="d-al" oninput="calcularVolumenDetalle()"></td>
+<td><input type="number" value="0" min="0" step="0.01" class="d-peso"></td>
+<td><button type="button" class="secondary" onclick="eliminarFila(this)" style="padding:6px 10px;">X</button></td>
+</tr>
+</table>
+<button type="button" class="secondary" onclick="agregarFilaDetalle()" style="margin-top:8px;">+ Agregar otro bulto al desglose</button>
+<div style="margin-top:8px;">
+<label>Volumen Total Acumulado (m³): <span id="vol_detalle_lbl" style="color:#b00000;">0.0000 m³</span></label>
+</div>
+</div>
+
 <div>
 <label>Tipo de envoltura / Contenedor</label>
 <select id="envoltura">
@@ -136,6 +186,7 @@ Ingrese las medidas y el peso. El volumen se calculará automáticamente para el
 </optgroup>
 </select>
 </div>
+
 <div class="full">
 <label>Descripción exacta de la mercancía o incidencia</label>
 <textarea id="descripcion" rows="3" placeholder="Describa marcas, estado del ULD, tarimas o incidencias operativas..."></textarea>
@@ -146,7 +197,7 @@ Ingrese las medidas y el peso. El volumen se calculará automáticamente para el
 <section>
 <h2>3. Papelería Legal y Documental</h2>
 <div class="help">
-Adjunte documentos PDF y/o fotos de evidencia.
+Adjunte documentos PDF y/o fotos de evidencia. Haga clic sobre cualquier miniatura de foto para ampliarla.
 </div>
 <div class="grid" style="margin-top:12px">
 <div class="filebox">
@@ -158,6 +209,7 @@ Adjunte documentos PDF y/o fotos de evidencia.
 <label>Fotos — mercancía y evidencia</label>
 <input id="fotos" type="file" accept="image/*" multiple>
 <div id="photoCount" class="count">0 fotos seleccionadas</div>
+<div id="photoPreview" class="thumb-container"></div>
 </div>
 </div>
 </section>
@@ -179,8 +231,24 @@ Adjunte documentos PDF y/o fotos de evidencia.
 
 </main>
 
+<!-- MODAL PARA VER FOTO AMPLIADA -->
+<div id="modalImg" onclick="cerrarModal()">
+ <img id="imgAmpliada" src="">
+</div>
+
 <script>
 const $=id=>document.getElementById(id);
+
+function cambiarModoMedicion(){
+ const modo = $("modo_medicion").value;
+ if(modo === "detalle"){
+  $("seccion_general").style.display = "none";
+  $("seccion_detalle").style.display = "block";
+ } else {
+  $("seccion_general").style.display = "block";
+  $("seccion_detalle").style.display = "none";
+ }
+}
 
 function calcularVolumen() {
  const p = parseFloat($("piezas").value) || 0;
@@ -196,15 +264,73 @@ function calcularVolumen() {
  }
 }
 
+function agregarFilaDetalle(){
+ const tabla = $("tablaDetalle");
+ const fila = tabla.insertRow(-1);
+ fila.innerHTML = `
+  <td><input type="text" value="Bulto" class="d-desc"></td>
+  <td><input type="number" value="1" min="1" class="d-pz" oninput="calcularVolumenDetalle()"></td>
+  <td><input type="number" value="0" min="0" step="0.1" class="d-l" oninput="calcularVolumenDetalle()"></td>
+  <td><input type="number" value="0" min="0" step="0.1" class="d-an" oninput="calcularVolumenDetalle()"></td>
+  <td><input type="number" value="0" min="0" step="0.1" class="d-al" oninput="calcularVolumenDetalle()"></td>
+  <td><input type="number" value="0" min="0" step="0.01" class="d-peso"></td>
+  <td><button type="button" class="secondary" onclick="eliminarFila(this)" style="padding:6px 10px;">X</button></td>
+ `;
+}
+
+function eliminarFila(btn){
+ const fila = btn.parentNode.parentNode;
+ if(fila.parentNode.rows.length > 2){
+  fila.parentNode.removeChild(fila);
+  calcularVolumenDetalle();
+ }
+}
+
+function calcularVolumenDetalle(){
+ let volTotal = 0;
+ const filas = document.querySelectorAll("#tablaDetalle tr");
+ for(let i=1; i<filas.length; i++){
+  const pz = parseFloat(filas[i].querySelector(".d-pz").value) || 0;
+  const l = parseFloat(filas[i].querySelector(".d-l").value) || 0;
+  const an = parseFloat(filas[i].querySelector(".d-an").value) || 0;
+  const al = parseFloat(filas[i].querySelector(".d-al").value) || 0;
+  volTotal += (l * an * al * pz) / 1000000;
+ }
+ $("vol_detalle_lbl").textContent = volTotal.toFixed(4) + " m³";
+}
+
 $("pdfs").addEventListener("change",()=>{
  const n=$("pdfs").files.length;
  $("pdfCount").textContent=`${n} documento${n===1?"":"s"} seleccionado${n===1?"":"s"}`;
 });
 
-$("fotos").addEventListener("change",()=>{
- const n=$("fotos").files.length;
- $("photoCount").textContent=`${n} foto${n===1?"":"s"} seleccionada${n===1?"":"s"}`;
+// Previsualización de fotos interactivas con clic para ampliar
+$("fotos").addEventListener("change", (e)=>{
+ const files = e.target.files;
+ const container = $("photoPreview");
+ container.innerHTML = "";
+ 
+ $("photoCount").textContent = `${files.length} foto${files.length===1?"":"s"} seleccionada${files.length===1?"":"s"}`;
+
+ for(const file of files){
+  const reader = new FileReader();
+  reader.onload = function(evt){
+   const img = document.createElement("img");
+   img.src = evt.target.result;
+   img.className = "thumb";
+   img.onclick = function(){
+    $("imgAmpliada").src = this.src;
+    $("modalImg").style.display = "flex";
+   };
+   container.appendChild(img);
+  };
+  reader.readAsDataURL(file);
+ });
 });
+
+function cerrarModal(){
+ $("modalImg").style.display = "none";
+}
 
 function add(fd,name,id){
  fd.append(name,$(id).value);
@@ -219,13 +345,40 @@ async function revisar(){
  add(fd,"vuelo","vuelo");
  add(fd,"aeronave","aeronave");
  add(fd,"tipo_carga","tipo");
- add(fd,"peso_kg","peso");
  add(fd,"estado_envoltura","envoltura");
  add(fd,"descripcion","descripcion");
- add(fd,"piezas","piezas");
- add(fd,"largo_cm","largo");
- add(fd,"ancho_cm","ancho");
- add(fd,"alto_cm","alto");
+
+ const modo = $("modo_medicion").value;
+ fd.append("modo_medicion", modo);
+
+ if(modo === "detalle"){
+  let piezasTotales = 0;
+  let pesoTotal = 0;
+  const filas = document.querySelectorAll("#tablaDetalle tr");
+  let detalleItems = [];
+  
+  for(let i=1; i<filas.length; i++){
+   const desc = filas[i].querySelector(".d-desc").value;
+   const pz = parseFloat(filas[i].querySelector(".d-pz").value) || 0;
+   const l = parseFloat(filas[i].querySelector(".d-l").value) || 0;
+   const an = parseFloat(filas[i].querySelector(".d-an").value) || 0;
+   const al = parseFloat(filas[i].querySelector(".d-al").value) || 0;
+   const ps = parseFloat(filas[i].querySelector(".d-peso").value) || 0;
+   
+   piezasTotales += pz;
+   pesoTotal += ps;
+   detalleItems.push(`${desc}: ${pz}pz (${l}x${an}x${al}cm, ${ps}kg)`);
+  }
+  fd.append("piezas", piezasTotales);
+  fd.append("peso_kg", pesoTotal);
+  fd.append("detalle_bultos", JSON.stringify(detalleItems));
+ } else {
+  add(fd,"piezas","piezas");
+  add(fd,"peso_kg","peso");
+  add(fd,"largo_cm","largo");
+  add(fd,"ancho_cm","ancho");
+  add(fd,"alto_cm","alto");
+ }
 
  for(const f of $("pdfs").files) fd.append("pdfs",f);
  for(const f of $("fotos").files) fd.append("fotos",f);
@@ -317,13 +470,16 @@ function esc(v){
 function limpiar(){
  $("actor").value="counter";
  ["awb","origen","destino","vuelo","aeronave","piezas","peso","largo","ancho","alto","descripcion","volumen_auto"]
- .forEach(id=>$(id).value="");
+ .forEach(id=>{ if($(id)) $(id).value=""; });
  $("tipo").value="general";
  $("envoltura").value="metal_crate";
+ $("modo_medicion").value="general";
+ cambiarModoMedicion();
  $("pdfs").value="";
  $("fotos").value="";
  $("pdfCount").textContent="0 documentos seleccionados";
  $("photoCount").textContent="0 fotos seleccionadas";
+ $("photoPreview").innerHTML="";
  $("result").style.display="none";
  $("busy").style.display="none";
 }
