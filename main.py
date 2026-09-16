@@ -7,7 +7,7 @@ import json, re, io, os, hashlib
 from pypdf import PdfReader
 
 APP = "SmartCargo Advisory"
-VERSION = "10.1.0"
+VERSION = "10.2.0"
 BASE = Path(__file__).parent
 DATA = BASE / "data"
 TEMPLATE = BASE / "templates" / "index.htm"
@@ -26,7 +26,6 @@ RULES = {
 @app.get("/", response_class=HTMLResponse)
 def home():
     if TEMPLATE.exists():
-        # Forzar cabecera UTF-8 estricta
         return HTMLResponse(content=TEMPLATE.read_text(encoding="utf-8"), status_code=200)
     return HTMLResponse(content="<h1>SmartCargo Advisory</h1><p>Falta templates/index.htm</p>", status_code=404)
 
@@ -84,12 +83,12 @@ async def resolver(
     # BLOQUEO ESTRICTO (HARD STOP CONTRA ERRORES)
     # ==========================================
     
-    # 1. Validar formato estricto de AWB (3 dígitos + guión opcional + 8 dígitos = 11 dígitos numéricos)
+    # 1. Validar formato estricto de AWB (11 dígitos numéricos)
     awb_clean = re.sub(r"[- ]", "", awb_numero or "")
     if not re.fullmatch(r"\d{11}", awb_clean):
         raise HTTPException(
             status_code=400, 
-            detail="RECHAZADO: Formato de AWB inválido. Debe contener exactamente 11 dígitos (Ej: 13412345678 o 134-12345678). Corrija el número para continuar."
+            detail="RECHAZADO: Formato de AWB inválido. Debe contener exactamente 11 dígitos (Ej: 13412345678 o 134-12345678)."
         )
 
     # 2. Validar código IATA de destino (Exactamente 3 letras)
@@ -103,18 +102,17 @@ async def resolver(
     if peso_kg is None or peso_kg <= 0:
         raise HTTPException(
             status_code=400, 
-            detail="RECHAZADO: El peso bruto debe ser mayor a 0 kg. Ingrese el peso real verificado en báscula."
+            detail="RECHAZADO: El peso bruto debe ser mayor a 0 kg."
         )
 
     # 4. Validar piezas obligatorias
-    if pieces_val := piezas is None or piezas <= 0:
-        if piezas <= 0:
-            raise HTTPException(
-                status_code=400, 
-                detail="RECHAZADO: El número de piezas es obligatorio y debe ser mayor a 0."
-            )
+    if piezas is None or piezas <= 0:
+        raise HTTPException(
+            status_code=400, 
+            detail="RECHAZADO: El número de piezas es obligatorio y debe ser mayor a 0."
+        )
 
-    # Procesamiento normal de documentos y reglas si pasa el filtro estricto
+    # Procesamiento de documentos y reglas
     pdf_data = [read_pdf(f) for f in (pdfs or [])]
     photo_count = len(fotos or [])
     key = tipo_carga if tipo_carga in RULES else "general"
@@ -125,7 +123,7 @@ async def resolver(
     all_text = "\n".join(p.get("text","") for p in pdf_data)
     extracted = extract_fields(all_text)
 
-    # Evaluación de condiciones físicas y de empaque
+    # Evaluación de condiciones físicas y de empaque (Asignando niveles REJECT, ESCALATE o HOLD)
     if estado_envoltura in ("humedo", "roto"):
         alerts.append(("Empaque", "Condición no conforme detectada en envoltura.", "HOLD"))
 
@@ -137,7 +135,9 @@ async def resolver(
     if tipo_carga == "dg":
         docs += ["AWB", "DGD (Declaración de Mercancías Peligrosas)", "Autorizaciones específicas"]
         if not extracted["has_dgd"]:
-            alerts.append(("DG", "Falta DGD en documentos adjuntos.", "HOLD"))
+            alerts.append(("DG", "Falta DGD o documentación de mercancías peligrosas obligatoria.", "ESCALATE"))
+        else:
+            alerts.append(("DG", "Carga clasificada como mercancía peligrosa requiere revisión de especialista.", "ESCALATE"))
     elif tipo_carga == "perishable":
         docs += ["AWB", "Certificado Sanitario / Fitosanitario"]
         if not extracted["has_health_doc"]:
@@ -150,19 +150,23 @@ async def resolver(
         docs += ["AWB", "Factura Comercial", "Packing List"]
 
     if pdf_data and not all_text.strip():
-        alerts.append(("PDF", "El documento PDF es una imagen escaneada sin texto legible. Verificación manual obligatoria.", "PENDIENTE"))
-
-    status = "HOLD" if any(a[2] == "HOLD" for a in alerts) else ("PENDIENTE" if alerts else "REVISIÓN COMPLETA")
+        alerts.append(("PDF", "El documento PDF es una imagen escaneada sin texto legible. Verificación manual obligatoria.", "HOLD"))
 
     # ==========================================
-    # RESPUESTAS DIRECTAS, CORTANTES Y DE ESPECIALISTA
+    # ASIGNACIÓN DE LOS 4 MANDATOS DE DECISIÓN
     # ==========================================
-    if status == "HOLD":
-        solution = "RECHAZAR CARGA. No apta para embarque (*Ready for Carriage*). Retener en bodega, corregir no conformidades y reevaluar."
-    elif status == "PENDIENTE":
-        solution = "RETENER ACEPTACIÓN. Faltan comprobaciones o documentos obligatorios. Verificar antes de proceder."
+    if any(a[2] == "REJECT" for a in alerts):
+        status = "REJECT"
+        solution = "RECHAZAR CARGA. No cumple con parámetros normativos obligatorios. No admitir en bodega."
+    elif any(a[2] == "ESCALATE" for a in alerts):
+        status = "ESCALATE"
+        solution = "ESCALAR A SUPERVISOR / ESPECIALISTA. Requiere validación de seguridad o aceptación especializada."
+    elif any(a[2] == "HOLD" for a in alerts) or estado_envoltura in ("humedo", "roto"):
+        status = "HOLD"
+        solution = "RETENER (HOLD). No continuar como conforme. Revisar condición física o discrepancia antes de aceptar."
     else:
-        solution = "CARGA CONFORME. Cumple parámetros documentales y físicos básicos. Proceder a aceptación final según normativa aplicable."
+        status = "ACCEPT"
+        solution = "CARGA CONFORME. Parámetros documentales y físicos correctos. Proceder a aceptación final."
 
     volume_m3 = 0
     if largo_cm > 0 and ancho_cm > 0 and alto_cm > 0 and piezas > 0:
