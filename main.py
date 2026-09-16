@@ -19,20 +19,20 @@ async def read_index(request: Request):
     )
 @app.post("/api/smartcargo/resolver")
 async def resolver_carga(
-    actor: str = Form(...),
-    awb_numero: str = Form(None),
-    origen: str = Form(None),
-    destino: str = Form(None),
-    vuelo: str = Form(None),
-    aeronave: str = Form(None),
-    tipo_carga: str = Form(...),
-    peso_kg: float = Form(0),
-    estado_envoltura: str = Form(...),
-    descripcion: str = Form(None),
+    actor: str = Form("counter"),
+    awb_numero: str = Form("N/D"),
+    origen: str = Form("MIA"),
+    destino: str = Form("BOG"),
+    vuelo: str = Form("N/D"),
+    aeronave: str = Form("N/D"),
+    tipo_carga: str = Form("general"),
+    peso_kg: float = Form(0.0),
+    estado_envoltura: str = Form("intacto"),
+    descripcion: str = Form(""),
     piezas: int = Form(0),
-    largo_cm: float = Form(0),
-    ancho_cm: float = Form(0),
-    alto_cm: float = Form(0),
+    largo_cm: float = Form(0.0),
+    ancho_cm: float = Form(0.0),
+    alto_cm: float = Form(0.0),
     pdfs: list[UploadFile] = File([]),
     fotos: list[UploadFile] = File([])
 ):
