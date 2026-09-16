@@ -1,24 +1,27 @@
 import os
 import json
-from fastapi import FastAPI, Form, File, UploadFile, HTTPException
+from fastapi import FastAPI, Form, File, UploadFile, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
-from typing import List, Optional
 from fastapi.templating import Jinja2Templates
-from fastapi import Request
+from typing import List, Optional
 
-# 1. Primero se instancia la aplicación FastAPI
+# Instanciar la aplicación
 app = FastAPI(title="SmartCargo Advisory")
 
-# 2. Se configuran las plantillas de Jinja2 apuntando a la carpeta "templates"
-templates = Jinja2Templates(directory="templates")
+# === ENLACE ABSOLUTO SEGURO ENTRE MAIN.PY Y LA CARPETA TEMPLATES ===
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
-# 3. Montar archivos estáticos si existe la carpeta static
-if os.path.exists("static"):
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+# Configurar Jinja2 apuntando directamente a la ruta absoluta
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
-# 4. Única ruta raíz limpia usando Jinja2Templates para renderizar index.html
+# Montar archivos estáticos si existe la carpeta static
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# Ruta raíz que vincula main.py con templates/index.html
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
@@ -41,7 +44,7 @@ async def resolver_carga(
     piezas: float = Form(0),
     peso_kg: float = Form(0),
     largo_cm: float = Form(0),
-    ancho_cm: float = Form(0),
+    ancho_cm: Form(0),
     alto_cm: float = Form(0),
     detalle_bultos: Optional[str] = Form(None),
     descripcion: str = Form(""),
@@ -49,7 +52,6 @@ async def resolver_carga(
     fotos: List[UploadFile] = File([])
 ):
     try:
-        # Validaciones operativas internas
         alertas = []
         checks = []
         
@@ -130,7 +132,7 @@ async def resolver_carga(
             solucion_directa = "Rechazar pallet estándar en A320. Cambiar a contenedor bajo (AKH/LD3-45) o desarmar para carga a granel (Bulk)."
             alertas.append({
                 "item": "Incompatibilidad de Aeronave",
-                "detalle": "Los narrowbody A320/A321 não admiten pallets de cubierta principal ni contenedores altos."
+                "detalle": "Los narrowbody A320/A321 no admiten pallets de cubierta principal ni contenedores altos."
             })
 
         if peso_kg > 1588 and tipo_uld == "ake":
