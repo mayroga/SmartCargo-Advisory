@@ -1,17 +1,21 @@
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, UploadFile
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.requests import Request
 import os
 
-app = FastAPI(title="SmartCargo-Advisory", version="3.1")
+app = FastAPI(title="SmartCargo-Advisory", version="3.2")
 
-# Configuración de plantillas
+# Configuración de archivos estáticos y plantillas
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(request: Request):
+    """Renderiza la interfaz principal de la aplicación."""
     return templates.TemplateResponse(
         request, 
         "index.html", 
@@ -37,10 +41,11 @@ async def resolver_carga(
     pdfs: list[UploadFile] = File([]),
     fotos: list[UploadFile] = File([])
 ):
+    """Motor de asesoría técnica para aceptación y revisión de carga."""
+    
     # Cálculo automático de volumen en m³
     volumen_m3 = (largo_cm * ancho_cm * alto_cm * piezas) / 1000000.0 if (piezas > 0 and largo_cm > 0 and ancho_cm > 0 and alto_cm > 0) else 0.0
 
-    # Motor de decisiones de SmartCargo-Advisory
     alertas = []
     checks = []
     estatus_general = "ACCEPT"
@@ -80,7 +85,7 @@ async def resolver_carga(
     # 4. Validación de documentos PDF adjuntos
     if pdfs:
         for pdf in pdfs:
-            if not pdf.filename.lower().endswith('.pdf'):
+            if pdf.filename and not pdf.filename.lower().endswith('.pdf'):
                 estatus_general = "HOLD"
                 alertas.append({
                     "item": "Documentación PDF",
