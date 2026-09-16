@@ -1,0 +1,52 @@
+{
+  "smartcargo_advisory_engine": {
+    "version": "3.0",
+    "nombre_sistema": "SmartCargo-Advisory",
+    "alcance_legal": "Asesoría operativa en tierra y aire limitada al comprador en USA. No sustituye manuales internos ni normativas oficiales de aerolíneas o autoridades.",
+    "protocolo_recepcion": {
+      "saludo_inicial": "Buenos días. Bienvenido/a. ¿En qué podemos ayudarle?",
+      "filtro_inicial": "No se acepta carga, documentos ni dinero sin identificar la operación y solicitar el número de guía aérea (AWB) o referencia."
+    },
+    "matriz_decision_operacional": [
+      {
+        "condicion_volumetrica": "anomala_baja_densidad",
+        "criterio": "Volumen desproporcionado frente al peso bruto (ej. >50 m³ para <1500 kg)",
+        "mandato": "HOLD",
+        "instruccion_directa": "Detener proceso. Reasurar pesaje y cubicaje físico en báscula por discrepancia de gálibo.",
+        "puntos_criticos": [
+          {"item": "Dimensiones físicas", "status": "FAIL", "note": "Posible error de digitación en centímetros o bultos mal medidos."},
+          {"item": "Aceptación de bodega", "status": "HOLD", "note": "Prohibido el ingreso a rampa hasta rectificar."}
+        ]
+      },
+      {
+        "tipo_carga": "general",
+        "envoltura": "intacto",
+        "mandato": "ACCEPT",
+        "instruccion_directa": "Proceder con estiba estándar y transferencia a zona de armado (Build-up).",
+        "puntos_criticos": [
+          {"item": "Documentación y AWB", "status": "OK", "note": "Datos conformes entre sistema y físico."},
+          {"item": "Integridad de bultos", "status": "OK", "note": "Sin daños ni humedad aparente."}
+        ]
+      },
+      {
+        "tipo_carga": "general",
+        "envoltura": "humedo_o_roto",
+        "mandato": "REJECT",
+        "instruccion_directa": "Rechazar empaque dañado y devolver al forwarder para reempaque inmediato.",
+        "puntos_criticos": [
+          {"item": "Condición del embalaje", "status": "FAIL", "note": "Riesgo de derrame o daño estructural en vuelo."}
+        ]
+      },
+      {
+        "tipo_carga": "dg",
+        "mandato": "ESCALATE",
+        "instruccion_directa": "Detener recepción. Exigir Shipper's Declaration (DGD) física y verificar UN Number y clases bajo normativas vigentes.",
+        "puntos_criticos": [
+          {"item": "Documentación DG", "status": "CHECK", "note": "Prohibida la aceptación verbal o visual sin DGD válido."},
+          {"item": "Personal competente", "status": "ESCALATE", "note": "Notificar a especialista en mercancías peligrosas."}
+        ]
+      }
+    ],
+    "regla_de_oro": "SI NO COINCIDE, NO SE ADIVINA. SE DETIENE. SE VERIFICA. SE DOCUMENTA. SE ESCALA CUANDO CORRESPONDA."
+  }
+}
