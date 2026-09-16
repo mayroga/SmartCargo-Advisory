@@ -15,7 +15,7 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
 
 # Configurar Jinja2 apuntando directamente a la ruta absoluta
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
-
+templates.env.cache = None
 # Montar archivos estáticos si existe la carpeta static
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 if os.path.exists(STATIC_DIR):
