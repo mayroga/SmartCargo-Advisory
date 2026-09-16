@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SmartCargo Advisory — MIA</title>
+<title>SmartCargo-Advisory — MIA</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f2f4f7;color:#17202a;font:14px Arial,sans-serif}
@@ -39,15 +39,14 @@ th{background:#f1f3f5}
 <body>
 <main>
 
-<h1>SmartCargo Advisory — MIA</h1>
+<h1>SmartCargo-Advisory — MIA</h1>
 <div class="sub">
-Asistente de revisión documental, física y operativa de carga aérea
+Asistente operativo de revisión documental, física y de carga aérea
 </div>
 
 <section>
-<h2>1. Identificación de la operación</h2>
+<h2>1. Identificación de la Operación</h2>
 <div class="grid">
-
 <div>
 <label>Rol operativo</label>
 <select id="actor">
@@ -58,32 +57,26 @@ Asistente de revisión documental, física y operativa de carga aérea
 <option value="transfer">Transfer / GSA</option>
 </select>
 </div>
-
 <div>
-<label>AWB</label>
+<label>AWB o Referencia</label>
 <input id="awb" placeholder="134-12345678" autocomplete="off">
 </div>
-
 <div>
 <label>Origen</label>
 <input id="origen" placeholder="MIA" maxlength="3">
 </div>
-
 <div>
 <label>Destino</label>
 <input id="destino" placeholder="BOG" maxlength="3">
 </div>
-
 <div>
 <label>Vuelo</label>
-<input id="vuelo" placeholder="Número de vuelo, si está disponible">
+<input id="vuelo" placeholder="Número de vuelo">
 </div>
-
 <div>
 <label>Aeronave</label>
-<input id="aeronave" placeholder="Tipo de aeronave, si está disponible">
+<input id="aeronave" placeholder="Tipo de aeronave">
 </div>
-
 <div class="full">
 <label>Tipo / categoría de carga</label>
 <select id="tipo">
@@ -93,48 +86,39 @@ Asistente de revisión documental, física y operativa de carga aérea
 <option value="avi">AVI / animal vivo</option>
 </select>
 </div>
-
 </div>
 </section>
 
 <section>
-<h2>2. Identificación física y desglose de carga</h2>
+<h2>2. Identificación Física y Desglose de Carga</h2>
 <div class="help">
-Ingrese los datos globales o realice el desglose por pieza. El volumen se calculará de forma automática a partir de las medidas físicas provistas.
+Ingrese las medidas y el peso. El volumen se calculará automáticamente para el control de gálibo.
 </div>
-
 <div class="grid" style="margin-top:12px">
-
 <div>
 <label>Número total de piezas</label>
 <input id="piezas" type="number" min="0" step="1" placeholder="0" oninput="calcularVolumen()">
 </div>
-
 <div>
 <label>Peso bruto total (kg)</label>
 <input id="peso" type="number" min="0" step="0.01" placeholder="0">
 </div>
-
 <div>
 <label>Largo por pieza (cm)</label>
 <input id="largo" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
 </div>
-
 <div>
 <label>Ancho por pieza (cm)</label>
 <input id="ancho" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
 </div>
-
 <div>
 <label>Alto por pieza (cm)</label>
 <input id="alto" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
 </div>
-
 <div>
 <label>Volumen Automático (m³)</label>
 <input id="volumen_auto" type="text" readonly placeholder="0.0000 m³" style="background:#f1f3f5; font-weight:bold;">
 </div>
-
 <div>
 <label>Condición del empaque</label>
 <select id="envoltura">
@@ -143,28 +127,24 @@ Ingrese los datos globales o realice el desglose por pieza. El volumen se calcul
 <option value="roto">Roto / perforado</option>
 </select>
 </div>
-
 <div class="full">
 <label>Descripción exacta de la mercancía o incidencia</label>
 <textarea id="descripcion" rows="3" placeholder="Describa marcas, estado del ULD, tarimas o incidencias operativas..."></textarea>
 </div>
-
 </div>
 </section>
 
 <section>
-<h2>3. Papelería legal y documental</h2>
+<h2>3. Papelería Legal y Documental</h2>
 <div class="help">
-Adjunte documentos de respaldo o imágenes de evidencia si la operación lo requiere.
+Adjunte documentos PDF y/o fotos de evidencia.
 </div>
-
 <div class="grid" style="margin-top:12px">
 <div class="filebox">
 <label>PDF — documentos de la carga</label>
 <input id="pdfs" type="file" accept=".pdf,application/pdf" multiple>
 <div id="pdfCount" class="count">0 documentos seleccionados</div>
 </div>
-
 <div class="filebox">
 <label>Fotos — mercancía y evidencia</label>
 <input id="fotos" type="file" accept="image/*" multiple>
@@ -223,7 +203,6 @@ function add(fd,name,id){
 
 async function revisar(){
  const fd=new FormData();
-
  add(fd,"actor","actor");
  add(fd,"awb_numero","awb");
  add(fd,"origen","origen");
@@ -239,8 +218,8 @@ async function revisar(){
  add(fd,"ancho_cm","ancho");
  add(fd,"alto_cm","alto");
 
- for(const f of $("pdfs").files)fd.append("pdfs",f);
- for(const f of $("fotos").files)fd.append("fotos",f);
+ for(const f of $("pdfs").files) fd.append("pdfs",f);
+ for(const f of $("fotos").files) fd.append("fotos",f);
 
  $("result").style.display="block";
  $("busy").style.display="block";
@@ -252,10 +231,9 @@ async function revisar(){
   const r=await fetch("/api/smartcargo/resolver",{method:"POST",body:fd});
   const d=await r.json();
 
-  if(!r.ok)throw new Error(d.detail||"No se pudo procesar la revisión.");
+  if(!r.ok) throw new Error(d.detail||"No se pudo procesar la revisión.");
 
   const status=d.estatus_general||"HOLD";
-  
   let statusBg="#fff4f4", statusColor="#b00000";
   if(status==="ACCEPT"){ statusBg="#f1f9f4"; statusColor="#16733a"; }
   else if(status==="HOLD"){ statusBg="#fffcf0"; statusColor="#9a6400"; }
