@@ -7,7 +7,7 @@ import os
 
 app = FastAPI(title="SmartCargo-Advisory", version="3.1")
 
-# Configuración de plantillas y estáticos
+# Configuración de plantillas
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
@@ -17,6 +17,7 @@ async def read_index(request: Request):
         "index.html", 
         {"request": request}
     )
+
 @app.post("/api/smartcargo/resolver")
 async def resolver_carga(
     actor: str = Form("counter"),
