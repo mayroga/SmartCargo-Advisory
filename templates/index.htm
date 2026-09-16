@@ -98,17 +98,16 @@ Asistente de revisión documental, física y operativa de carga aérea
 </section>
 
 <section>
-<h2>2. Identificación física de la carga</h2>
+<h2>2. Identificación física y desglose de carga</h2>
 <div class="help">
-Introduzca los datos reales de la carga. Si existen varias piezas con dimensiones diferentes,
-no las presente como si fueran una sola medida: deben revisarse individualmente.
+Ingrese los datos globales o realice el desglose por pieza. El volumen se calculará de forma automática a partir de las medidas físicas provistas.
 </div>
 
 <div class="grid" style="margin-top:12px">
 
 <div>
 <label>Número total de piezas</label>
-<input id="piezas" type="number" min="0" step="1" placeholder="0">
+<input id="piezas" type="number" min="0" step="1" placeholder="0" oninput="calcularVolumen()">
 </div>
 
 <div>
@@ -118,17 +117,22 @@ no las presente como si fueran una sola medida: deben revisarse individualmente.
 
 <div>
 <label>Largo por pieza (cm)</label>
-<input id="largo" type="number" min="0" step="0.1" placeholder="Si aplica">
+<input id="largo" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
 </div>
 
 <div>
 <label>Ancho por pieza (cm)</label>
-<input id="ancho" type="number" min="0" step="0.1" placeholder="Si aplica">
+<input id="ancho" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
 </div>
 
 <div>
 <label>Alto por pieza (cm)</label>
-<input id="alto" type="number" min="0" step="0.1" placeholder="Si aplica">
+<input id="alto" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
+</div>
+
+<div>
+<label>Volumen Automático (m³)</label>
+<input id="volumen_auto" type="text" readonly placeholder="0.0000 m³" style="background:#f1f3f5; font-weight:bold;">
 </div>
 
 <div>
@@ -142,8 +146,7 @@ no las presente como si fueran una sola medida: deben revisarse individualmente.
 
 <div class="full">
 <label>Descripción exacta de la mercancía o incidencia</label>
-<textarea id="descripcion" rows="4"
-placeholder="Describa lo que observa: mercancía, empaque, pallet, etiquetas, marcas, daño, diferencia de peso, dimensiones, documentación, etc."></textarea>
+<textarea id="descripcion" rows="3" placeholder="Describa marcas, estado del ULD, tarimas o incidencias operativas..."></textarea>
 </div>
 
 </div>
@@ -151,13 +154,11 @@ placeholder="Describa lo que observa: mercancía, empaque, pallet, etiquetas, ma
 
 <section>
 <h2>3. Papelería legal y documental</h2>
-
 <div class="help">
-Suba todos los documentos disponibles. La aplicación procesará los PDF de forma interna para validar los requisitos normativos aplicables.
+Adjunte documentos de respaldo o imágenes de evidencia si la operación lo requiere.
 </div>
 
 <div class="grid" style="margin-top:12px">
-
 <div class="filebox">
 <label>PDF — documentos de la carga</label>
 <input id="pdfs" type="file" accept=".pdf,application/pdf" multiple>
@@ -169,7 +170,6 @@ Suba todos los documentos disponibles. La aplicación procesará los PDF de form
 <input id="fotos" type="file" accept="image/*" multiple>
 <div id="photoCount" class="count">0 fotos seleccionadas</div>
 </div>
-
 </div>
 </section>
 
@@ -182,23 +182,30 @@ Suba todos los documentos disponibles. La aplicación procesará los PDF de form
 
 <section id="result">
 <h2>Resultado de la Operación</h2>
-
-<!-- Tarjeta de Mandato Principal -->
 <div id="summary" style="padding:15px; border-radius:8px; margin-bottom:15px; background:#f8f9fa;"></div>
-
-<!-- Alertas Operativas Directas -->
 <div id="alerts"></div>
-
-<!-- Tabla de Comprobación Esencial -->
 <h3>Verificación de Puntos Críticos</h3>
 <div id="checks"></div>
-
 </section>
 
 </main>
 
 <script>
 const $=id=>document.getElementById(id);
+
+function calcularVolumen() {
+ const p = parseFloat($("piezas").value) || 0;
+ const l = parseFloat($("largo").value) || 0;
+ const w = parseFloat($("ancho").value) || 0;
+ const h = parseFloat($("alto").value) || 0;
+ 
+ if(p > 0 && l > 0 && w > 0 && h > 0) {
+  const vol = (l * w * h * p) / 1000000;
+  $("volumen_auto").value = vol.toFixed(4) + " m³";
+ } else {
+  $("volumen_auto").value = "0.0000 m³";
+ }
+}
 
 $("pdfs").addEventListener("change",()=>{
  const n=$("pdfs").files.length;
@@ -249,7 +256,6 @@ async function revisar(){
 
   const status=d.estatus_general||"HOLD";
   
-  // Clases visuales para los 4 mandatos estrictos
   let statusBg="#fff4f4", statusColor="#b00000";
   if(status==="ACCEPT"){ statusBg="#f1f9f4"; statusColor="#16733a"; }
   else if(status==="HOLD"){ statusBg="#fffcf0"; statusColor="#9a6400"; }
@@ -266,6 +272,7 @@ async function revisar(){
     <span class="chip">Destino: ${esc(d.destino)}</span>
     <span class="chip">Piezas: ${esc(d.piezas)}</span>
     <span class="chip">Peso: ${esc(d.peso_kg)} kg</span>
+    <span class="chip">Volumen: ${esc(d.volumen_m3)} m³</span>
    </div>
   `;
 
@@ -290,29 +297,29 @@ async function revisar(){
      </tr>`).join("")}
    </table>`;
 
-}catch(e){
-   let errorMsg = e.message;
-   try {
-    const errObj = JSON.parse(e.message);
-    if(errObj.detail) errorMsg = errObj.detail;
-   } catch(err) {}
+ }catch(e){
+  let errorMsg = e.message;
+  try {
+   const errObj = JSON.parse(e.message);
+   if(errObj.detail) errorMsg = errObj.detail;
+  } catch(err) {}
 
-   $("summary").style.background="#fff4f4";
-   $("summary").innerHTML=`
-    <div style="font-size:18px; font-weight:bold; color:#b00000; margin-bottom:6px;">
-      MANDATO: REJECT / HOLD
-    </div>
-    <p style="margin:0; font-size:13px; color:#b00000;"><b>Atención Operativa:</b> ${esc(errorMsg)}</p>
-   `;
-   $("alerts").innerHTML="";
-   $("checks").innerHTML="";
-  }finally{
-   $("busy").style.display="none";
-  }
+  $("summary").style.background="#fff4f4";
+  $("summary").innerHTML=`
+   <div style="font-size:18px; font-weight:bold; color:#b00000; margin-bottom:6px;">
+     MANDATO: REJECT / HOLD
+   </div>
+   <p style="margin:0; font-size:13px; color:#b00000;"><b>Atención Operativa:</b> ${esc(errorMsg)}</p>
+  `;
+  $("alerts").innerHTML="";
+  $("checks").innerHTML="";
+ }finally{
+  $("busy").style.display="none";
+ }
 }
 
 function esc(v){
- return String(v??"")
+ return String(v?="")
   .replace(/&/g,"&amp;")
   .replace(/</g,"&lt;")
   .replace(/>/g,"&gt;")
@@ -322,7 +329,7 @@ function esc(v){
 
 function limpiar(){
  $("actor").value="counter";
- ["awb","origen","destino","vuelo","aeronave","piezas","peso","largo","ancho","alto","descripcion"]
+ ["awb","origen","destino","vuelo","aeronave","piezas","peso","largo","ancho","alto","descripcion","volumen_auto"]
  .forEach(id=>$(id).value="");
  $("tipo").value="general";
  $("envoltura").value="intacto";
