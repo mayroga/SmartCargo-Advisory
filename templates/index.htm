@@ -41,7 +41,7 @@ th{background:#f1f3f5}
 
 <h1>SmartCargo-Advisory — MIA</h1>
 <div class="sub">
-Especialista en normativa IATA, DOT, CBP y operaciones de carga aérea
+Asesoría especializada en normativa IATA, DOT, CBP y operaciones de carga aérea
 </div>
 
 <section>
@@ -120,11 +120,20 @@ Ingrese las medidas y el peso. El volumen se calculará automáticamente para el
 <input id="volumen_auto" type="text" readonly placeholder="0.0000 m³" style="background:#f1f3f5; font-weight:bold;">
 </div>
 <div>
-<label>Condición del empaque</label>
+<label>Tipo de envoltura / Contenedor</label>
 <select id="envoltura">
-<option value="intacto">Intacto / seco</option>
-<option value="humedo">Húmedo</option>
-<option value="roto">Roto / perforado</option>
+<optgroup label="Unidades de Carga (ULD)">
+<option value="metal_crate">Metal Crate / Contenedor rígido (Ej. LD3/AKE)</option>
+<option value="pallet">Pallet con red (PMC / PAG)</option>
+</optgroup>
+<optgroup label="Embalaje y Carga General">
+<option value="box">Box (Caja de cartón / madera)</option>
+<option value="skid">Skid (Tarima / Base de soporte)</option>
+<option value="drum">Drum / Pail (Tambor / Bidón)</option>
+<option value="bag">Bag / Sacks / Big Bag (Sacos / Contenedor flexible)</option>
+<option value="bundle">Bundle / Pipe / Roll (Atados / Rollos / Tubos)</option>
+<option value="otros">Otros / Carga suelta</option>
+</optgroup>
 </select>
 </div>
 <div class="full">
@@ -310,7 +319,7 @@ function limpiar(){
  ["awb","origen","destino","vuelo","aeronave","piezas","peso","largo","ancho","alto","descripcion","volumen_auto"]
  .forEach(id=>$(id).value="");
  $("tipo").value="general";
- $("envoltura").value="intacto";
+ $("envoltura").value="metal_crate";
  $("pdfs").value="";
  $("fotos").value="";
  $("pdfCount").textContent="0 documentos seleccionados";
