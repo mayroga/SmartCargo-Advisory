@@ -23,10 +23,10 @@ SMARTCARGO_MATRIZ = {
 
 @app.get("/", response_class=HTMLResponse)
 async def read_index(request: Request):
-    """Renderiza la interfaz principal de la aplicación."""
+    """Renderiza la interfaz principal buscando index.htm en la carpeta templates."""
     return templates.TemplateResponse(
         request, 
-        "index.html", 
+        "index.htm", 
         {"request": request}
     )
 
