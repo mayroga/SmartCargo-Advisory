@@ -1,397 +1,64 @@
-* {
-    box-sizing: border-box;
-}
-
-:root {
-    --blue: #102a43;
-    --blue2: #1976d2;
-    --text: #18212b;
-    --muted: #66737e;
-    --border: #d8dee4;
-    --bg: #f4f6f8;
-    --white: #ffffff;
-    --red: #c62828;
-    --green: #2e7d32;
-    --yellow: #f9a825;
-}
-
-body {
-    margin: 0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-}
-
-header {
-    background: var(--blue);
-    color: white;
-    text-align: center;
-    padding: 22px 15px;
-}
-
-header h1 {
-    margin: 0;
-    font-size: 30px;
-    letter-spacing: 1px;
-}
-
-header p {
-    margin: 8px 0 0;
-    font-size: 15px;
-    opacity: .9;
-}
-
-main {
-    width: min(760px, 94%);
-    margin: 25px auto 50px;
-}
-
-.card {
-    background: var(--white);
-    border-radius: 14px;
-    padding: 22px;
-    margin-bottom: 18px;
-    box-shadow: 0 3px 15px rgba(0, 0, 0, .08);
-}
-
-h2 {
-    margin-top: 0;
-    font-size: 22px;
-}
-
-h3 {
-    margin-top: 0;
-}
-
-.sub {
-    color: var(--muted);
-    line-height: 1.5;
-}
-
-.hidden {
-    display: none !important;
-}
-
-/* =========================
-   ROLES
-========================= */
-
-.roles {
+.photo-gallery {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-}
-
-.role {
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    background: white;
-    padding: 20px 12px;
-    cursor: pointer;
-    text-align: center;
-    font-size: 17px;
-    transition: .15s;
-}
-
-.role:hover {
-    border-color: var(--blue2);
-    transform: translateY(-1px);
-}
-
-.role:active {
-    transform: scale(.99);
-}
-
-.role .icon {
-    display: block;
-    font-size: 34px;
-    margin-bottom: 8px;
-}
-
-.role small {
-    display: block;
-    margin-top: 7px;
-    color: var(--muted);
-    line-height: 1.3;
-}
-
-/* =========================
-   FORMULARIO
-========================= */
-
-label {
-    display: block;
-    font-weight: bold;
-    margin: 16px 0 7px;
-}
-
-input,
-select,
-textarea {
-    width: 100%;
-    padding: 13px;
-    border: 1px solid #c9d1d9;
-    border-radius: 9px;
-    font-size: 16px;
-    background: white;
-    color: var(--text);
-}
-
-textarea {
-    min-height: 90px;
-    resize: vertical;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    outline: none;
-    border-color: var(--blue2);
-    box-shadow: 0 0 0 2px rgba(25, 118, 210, .08);
-}
-
-input:disabled,
-select:disabled,
-textarea:disabled {
-    background: #f0f2f4;
-}
-
-/* =========================
-   BOTONES
-========================= */
-
-.actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-}
-
-button {
-    border: 0;
-    border-radius: 9px;
-    padding: 13px 18px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-button:disabled {
-    opacity: .6;
-    cursor: not-allowed;
-}
-
-.primary {
-    background: var(--blue2);
-    color: white;
-}
-
-.primary:hover {
-    filter: brightness(.95);
-}
-
-.secondary {
-    background: #e8edf2;
-    color: #1d2b36;
-}
-
-.secondary:hover {
-    background: #dce3e9;
-}
-
-.danger {
-    background: var(--red);
-    color: white;
-}
-
-.success {
-    background: var(--green);
-    color: white;
-}
-
-/* =========================
-   PASOS
-========================= */
-
-.step {
-    display: inline-block;
-    background: #e8edf2;
-    border-radius: 20px;
-    padding: 6px 11px;
-    font-size: 13px;
-    color: #46535e;
-    margin-bottom: 12px;
-}
-
-/* =========================
-   UPLOADS
-========================= */
-
-.upload {
-    border: 2px dashed #b7c1ca;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    background: #fafbfc;
-    margin-top: 10px;
-}
-
-.upload:hover {
-    border-color: var(--blue2);
-}
-
-.upload input[type="file"] {
+    grid-template-columns: repeat(
+        auto-fill,
+        minmax(150px, 1fr)
+    );
+    gap: 14px;
     margin-top: 14px;
-    border: 0;
-    padding: 5px;
 }
 
-/* =========================
-   AVISOS
-========================= */
-
-.notice {
-    background: #eef5ff;
-    border-left: 4px solid var(--blue2);
-    padding: 12px;
-    border-radius: 7px;
-    margin-top: 15px;
-    line-height: 1.45;
-}
-
-.mini {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.45;
-}
-
-/* =========================
-   CHECKS
-========================= */
-
-.check {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 13px;
-    margin-top: 10px;
-}
-
-/* =========================
-   RESULTADOS
-========================= */
-
-.result {
+.photo-item {
+    overflow: hidden;
     border-radius: 12px;
-    padding: 20px;
-    margin-top: 18px;
+    border: 1px solid rgba(255,255,255,.15);
+    background: rgba(0,0,0,.15);
 }
 
-.result h2 {
+.photo-item img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+}
+
+.photo-label {
+    padding: 8px;
+    font-size: 12px;
+    text-align: center;
+    word-break: break-word;
+}
+
+.photos-count {
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.evidence-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,.15);
+}
+
+.evidence-title {
+    font-size: 18px;
+    font-weight: 800;
     margin-bottom: 8px;
 }
 
-.result-list {
-    margin-top: 15px;
+.evidence-note {
+    font-size: 13px;
+    opacity: .8;
+    line-height: 1.5;
+    margin-bottom: 14px;
 }
 
-.problem {
-    background: white;
-    border-radius: 9px;
-    padding: 13px;
-    margin-top: 10px;
-    border-left: 5px solid var(--red);
+.result-gallery {
+    max-height: 900px;
+    overflow-y: auto;
+    padding-right: 4px;
 }
 
-.problem.review {
-    border-left-color: var(--yellow);
-}
-
-.problem strong {
-    display: block;
-    margin-bottom: 5px;
-}
-
-.ready {
-    background: #e8f5e9;
-    border: 1px solid #a5d6a7;
-    color: #1b5e20;
-}
-
-.correct {
-    background: #ffebee;
-    border: 1px solid #ef9a9a;
-    color: #8e0000;
-}
-
-.review-box {
-    background: #fff8e1;
-    border: 1px solid #ffe082;
-    color: #795548;
-}
-
-/* =========================
-   GRID DIMENSIONES
-========================= */
-
-.dimensions {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-}
-
-/* =========================
-   CARGA
-========================= */
-
-.loading {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.spinner {
-    width: 16px;
-    height: 16px;
-    border: 3px solid rgba(255,255,255,.45);
-    border-top-color: white;
-    border-radius: 50%;
-    animation: spin .8s linear infinite;
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width: 560px) {
-
-    .roles {
-        grid-template-columns: 1fr;
-    }
-
-    header h1 {
-        font-size: 25px;
-    }
-
-    main {
-        width: 96%;
-        margin-top: 15px;
-    }
-
-    .card {
-        padding: 17px;
-    }
-
-    .dimensions {
-        grid-template-columns: 1fr;
-    }
-
-    .actions button {
-        width: 100%;
-    }
+.result-gallery .photo-item {
+    min-width: 0;
 }
