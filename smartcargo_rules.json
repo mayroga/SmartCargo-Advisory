@@ -1,279 +1,526 @@
 {
-  "smartcargo_advisory_engine": {
-    "version": "4.0",
-    "nombre_sistema": "SmartCargo-Advisory",
-    "alcance_legal": "Herramienta de apoyo para revisión operativa y documental de carga aérea. No sustituye manuales de la aerolínea, IATA DGR, requisitos aduanales, autoridades competentes, instrucciones del operador, fabricante de aeronave ni procedimientos locales vigentes.",
-    "principio_operativo": "SI NO COINCIDE, NO SE ADIVINA. SE DETIENE. SE VERIFICA. SE DOCUMENTA. SE ESCALA CUANDO CORRESPONDA.",
-    "protocolo_recepcion": {
-      "saludo_inicial": "Buenos días. Bienvenido/a. ¿En qué podemos ayudarle?",
-      "filtro_inicial": "Antes de aceptar carga, documentos o pagos, identificar la operación y solicitar AWB, referencia o identificación aplicable.",
-      "regla_identificacion": "La información física, documental y registrada debe corresponder antes de continuar."
+  "smartcargo": {
+    "version": "5.0.0",
+    "nombre": "SMARTCARGO",
+    "proposito": "Preparacion y revision previa de carga y documentos para detectar errores antes de presentar la carga.",
+    "alcance": "Herramienta informativa y de preparacion previa. La aceptacion final corresponde al proceso y personal responsable del transporte.",
+    "regla_principal": "NO ADIVINAR. Si un dato no puede verificarse, debe corregirse o revisarse antes de continuar.",
+    "bloquear_si_hay_error": true
+  },
+
+  "roles": {
+    "camionero": {
+      "nombre": "Camionero",
+      "objetivo": "Comprobar que la carga y los documentos basicos esten preparados antes de presentarlos.",
+      "pasos": [
+        "identificar_carga",
+        "documentos",
+        "fotos_carga",
+        "peso_piezas",
+        "embalaje",
+        "marcas_etiquetas",
+        "resultado"
+      ]
     },
-    "matriz_decision_operacional": [
-      {
-        "id": "VOLUMEN_BAJA_DENSIDAD",
-        "condicion_volumetrica": "anomala_baja_densidad",
-        "criterio": "Volumen >50 m³ y peso bruto <1500 kg",
-        "mandato": "HOLD",
-        "instruccion_directa": "Detener el proceso y repetir físicamente el pesaje y cubicaje. Verificar unidades, cantidad de piezas y dimensiones.",
-        "puntos_criticos": [
-          {
-            "item": "Dimensiones físicas",
-            "status": "FAIL",
-            "note": "Verificar largo, ancho, alto, unidades y cantidad de bultos."
-          },
-          {
-            "item": "Peso y cubicaje",
-            "status": "HOLD",
-            "note": "No continuar hasta resolver la discrepancia."
-          }
+    "dueno": {
+      "nombre": "Dueno de la mercancia",
+      "objetivo": "Comprobar que la mercancia y su expediente esten preparados.",
+      "pasos": [
+        "identificar_carga",
+        "documentos",
+        "fotos_carga",
+        "peso_piezas",
+        "permisos_si_aplican",
+        "resultado"
+      ]
+    },
+    "forwarder": {
+      "nombre": "Forwarder",
+      "objetivo": "Revisar el expediente y detectar diferencias entre documentos y datos declarados.",
+      "pasos": [
+        "identificar_carga",
+        "documentos",
+        "comparar_documentos",
+        "peso_piezas_dimensiones",
+        "permisos_si_aplican",
+        "marcas_etiquetas",
+        "resultado"
+      ]
+    },
+    "counter": {
+      "nombre": "Agente de Counter",
+      "objetivo": "Realizar una revision completa de documentos, carga y condiciones declaradas antes de continuar con el proceso correspondiente.",
+      "pasos": [
+        "identificar_carga",
+        "documentos",
+        "comparar_documentos",
+        "identificacion",
+        "permisos_si_aplican",
+        "peso_piezas_dimensiones",
+        "embalaje",
+        "marcas_etiquetas",
+        "carga_especial_si_aplica",
+        "resultado"
+      ]
+    }
+  },
+
+  "tipos_de_carga": {
+    "general": {
+      "nombre": "Carga general"
+    },
+    "perecedera": {
+      "nombre": "Perecedera",
+      "requiere_revision_especial": true
+    },
+    "animal_vivo": {
+      "nombre": "Animal vivo",
+      "requiere_revision_especial": true
+    },
+    "peligrosa": {
+      "nombre": "Mercancia peligrosa",
+      "requiere_revision_especial": true
+    },
+    "valiosa": {
+      "nombre": "Mercancia de valor",
+      "requiere_revision_especial": true
+    },
+    "farmaceutica": {
+      "nombre": "Farmaceutica",
+      "requiere_revision_especial": true
+    },
+    "otra": {
+      "nombre": "Otra",
+      "requiere_revision": true
+    }
+  },
+
+  "documentos": {
+    "regla_general": "Todo documento debe ser legible, relacionado con la operacion y coherente con los demas datos.",
+    "controles": {
+      "archivo": {
+        "pdf_valido": true,
+        "tamano_mayor_cero": true,
+        "extensiones_permitidas": [
+          ".pdf"
         ]
       },
-      {
-        "id": "GENERAL_INTACTA",
-        "tipo_carga": "general",
-        "envoltura": "intacto",
-        "mandato": "ACCEPT",
-        "instruccion_directa": "Continuar con la revisión documental, identificación, etiquetado, preparación y ubicación conforme a los procedimientos aplicables.",
-        "puntos_criticos": [
-          {
-            "item": "Documentación y AWB",
-            "status": "OK",
-            "note": "No se identificó una discrepancia documental mediante los datos introducidos."
-          },
-          {
-            "item": "Integridad de bultos",
-            "status": "OK",
-            "note": "No se registraron indicios de daño físico en las observaciones."
-          }
-        ]
+      "pagina": {
+        "detectar_pagina_vacia": true,
+        "detectar_pagina_casi_vacia": true,
+        "detectar_texto_ilegible": true,
+        "detectar_texto_basura": true,
+        "detectar_caracteres_sin_sentido": true
       },
-      {
-        "id": "GENERAL_DANADA",
-        "tipo_carga": "general",
-        "envoltura": "humedo_o_roto",
-        "mandato": "REJECT",
-        "instruccion_directa": "Detener la recepción física. Separar la mercancía cuando corresponda, documentar la condición y solicitar corrección, reempaque o evaluación según el procedimiento aplicable.",
-        "puntos_criticos": [
-          {
-            "item": "Condición del embalaje",
-            "status": "FAIL",
-            "note": "Humedad, rotura, apertura, derrame o daño requieren evaluación antes de continuar."
-          },
-          {
-            "item": "Evidencia fotográfica",
-            "status": "CHECK",
-            "note": "Conservar evidencia fotográfica de la condición observada cuando el procedimiento aplicable lo permita."
-          }
-        ]
-      },
-      {
-        "id": "MERCANCIA_PELIGROSA",
-        "tipo_carga": "dg",
-        "mandato": "ESCALATE",
-        "instruccion_directa": "Detener la recepción hasta verificar la documentación y clasificación aplicables. Confirmar UN Number, Proper Shipping Name, clase/división, etiquetas, marcas, embalaje y documentación requerida conforme a la normativa vigente y personal competente.",
-        "puntos_criticos": [
-          {
-            "item": "Documentación DG",
-            "status": "CHECK",
-            "note": "Verificar la documentación requerida para la mercancía específica."
-          },
-          {
-            "item": "Identificación DG",
-            "status": "CHECK",
-            "note": "Verificar UN Number, nombre apropiado de expedición, clase/división, etiquetas y marcas aplicables."
-          },
-          {
-            "item": "Personal competente",
-            "status": "ESCALATE",
-            "note": "Escalar cuando la revisión requiera personal certificado o autorizado."
-          }
-        ]
-      },
-      {
-        "id": "PERECEDERO",
-        "tipo_carga": "perishable",
-        "mandato": "ESCALATE",
-        "instruccion_directa": "Verificar requisitos de temperatura, embalaje, marcado, documentación, aceptación y manejo especial antes de continuar.",
-        "puntos_criticos": [
-          {
-            "item": "Control de temperatura",
-            "status": "CHECK",
-            "note": "Verificar rango requerido y condiciones reales de recepción."
-          },
-          {
-            "item": "Embalaje y marcado",
-            "status": "CHECK",
-            "note": "Verificar que sean adecuados para el producto y operación."
-          }
-        ]
-      },
-      {
-        "id": "ANIMALES_VIVOS",
-        "tipo_carga": "avi",
-        "mandato": "ESCALATE",
-        "instruccion_directa": "Detener la aceptación hasta verificar documentación, contenedor, marcado, bienestar, requisitos de la especie y autorización del operador.",
-        "puntos_criticos": [
-          {
-            "item": "Documentación AVI",
-            "status": "CHECK",
-            "note": "Verificar documentos y permisos aplicables."
-          },
-          {
-            "item": "Contenedor y condiciones",
-            "status": "CHECK",
-            "note": "Verificar configuración, ventilación, seguridad y requisitos aplicables."
-          }
-        ]
-      },
-      {
-        "id": "CARGA_VALIOSA",
-        "tipo_carga": "val",
-        "mandato": "ESCALATE",
-        "instruccion_directa": "Verificar procedimiento de seguridad, identificación, documentación, custodia, acceso y ubicación aplicables a la carga.",
-        "puntos_criticos": [
-          {
-            "item": "Seguridad",
-            "status": "CHECK",
-            "note": "Aplicar controles de seguridad y custodia correspondientes."
-          },
-          {
-            "item": "Documentación",
-            "status": "CHECK",
-            "note": "Verificar que la documentación corresponda con la mercancía recibida."
-          }
-        ]
-      },
-      {
-        "id": "PHARMA",
-        "tipo_carga": "pharma",
-        "mandato": "ESCALATE",
-        "instruccion_directa": "Verificar rango de temperatura, embalaje, indicadores, documentación y manejo específico antes de continuar.",
-        "puntos_criticos": [
-          {
-            "item": "Temperatura",
-            "status": "CHECK",
-            "note": "Verificar las condiciones requeridas por el envío."
-          },
-          {
-            "item": "Embalaje especializado",
-            "status": "CHECK",
-            "note": "Verificar integridad y configuración del embalaje."
-          }
-        ]
-      },
-      {
-        "id": "DOCUMENTACION_AWB_COPIA",
-        "condicion_documental": "awb_copia",
-        "mandato": "HOLD",
-        "instruccion_directa": "Detener la aceptación final hasta verificar el AWB, sus copias, documentos asociados y requisitos del operador.",
-        "puntos_criticos": [
-          {
-            "item": "AWB",
-            "status": "CHECK",
-            "note": "Verificar número, partes, piezas, peso, origen, destino y correspondencia documental."
-          }
-        ]
-      },
-      {
-        "id": "PERMISOS_PENDIENTES",
-        "condicion_documental": "permisos_pendientes",
-        "mandato": "HOLD",
-        "instruccion_directa": "Retener la operación hasta verificar los permisos, certificados o autorizaciones requeridos.",
-        "puntos_criticos": [
-          {
-            "item": "Permisos / OGA",
-            "status": "HOLD",
-            "note": "No continuar hasta completar la revisión documental aplicable."
-          }
-        ]
-      },
-      {
-        "id": "PAGO_PENDIENTE",
-        "condicion_documental": "pago_pendiente",
-        "mandato": "HOLD",
-        "instruccion_directa": "Verificar el estado financiero y la autorización correspondiente antes de continuar.",
-        "puntos_criticos": [
-          {
-            "item": "Pago / Crédito",
-            "status": "HOLD",
-            "note": "Confirmar voucher, pago o autorización de crédito según el procedimiento aplicable."
-          }
-        ]
-      }
-    ],
-    "controles_aeronave_uld": {
-      "a320": {
-        "descripcion": "Narrowbody",
-        "controles": [
-          "Verificar compatibilidad entre ULD, contorno, compartimiento y posición.",
-          "No asumir que un pallet o ULD es compatible solamente por sus dimensiones nominales.",
-          "Confirmar restricciones vigentes del operador y aeronave."
-        ]
-      },
-      "a330_pax": {
-        "descripcion": "Widebody Passenger",
-        "controles": [
-          "Verificar compatibilidad del ULD con la bodega inferior.",
-          "Confirmar límites de peso, contorno y posición según configuración vigente."
-        ]
-      },
-      "a330_f": {
-        "descripcion": "Freighter",
-        "controles": [
-          "Verificar compatibilidad de pallets, contenedores y posición.",
-          "Confirmar límites estructurales y operativos vigentes antes de aceptación."
-        ]
-      },
-      "b787": {
-        "descripcion": "Widebody",
-        "controles": [
-          "Verificar compatibilidad de ULD y contorno.",
-          "Confirmar restricciones de peso, posición y balance aplicables."
-        ]
-      },
-      "atr": {
-        "descripcion": "Turbohélice",
-        "controles": [
-          "Verificar dimensiones de puerta y compartimiento.",
-          "Confirmar límites de peso y configuración antes de aceptar ULD o carga."
-        ]
+      "contenido": {
+        "debe_tener_informacion_util": true,
+        "debe_relacionarse_con_la_operacion": true,
+        "no_adivinar_datos": true
       }
     },
-    "limites_configurados": {
-      "ake_peso_revision_kg": 1588,
-      "nota": "Este valor es un parámetro de revisión del sistema y debe confirmarse contra la configuración, operador, posición y documentación vigente antes de utilizarlo como límite operativo."
-    },
-    "controles_documentales": [
-      "AWB / MAWB / HAWB según corresponda",
-      "Factura comercial cuando aplique",
-      "Packing list cuando aplique",
-      "Permisos y certificados gubernamentales cuando correspondan",
-      "Documentación de mercancías peligrosas cuando corresponda",
-      "Documentación sanitaria, fitosanitaria, veterinaria o especializada cuando corresponda",
-      "Identificación del expedidor, consignatario o representante cuando corresponda",
-      "Comprobantes financieros o autorización de crédito cuando corresponda",
-      "Correspondencia entre documentos, piezas, peso, dimensiones, descripción y carga física"
+
+    "tipos": {
+      "identificacion": {
+        "nombre": "Identificacion",
+        "puede_ser_requerida": true
+      },
+      "factura": {
+        "nombre": "Factura o documento comercial",
+        "puede_ser_requerida": true
+      },
+      "awb": {
+        "nombre": "AWB o documento de transporte",
+        "puede_ser_requerida": true
+      },
+      "permiso": {
+        "nombre": "Permiso",
+        "puede_ser_requerida": true
+      },
+      "certificado": {
+        "nombre": "Certificado",
+        "puede_ser_requerida": true
+      },
+      "declaracion": {
+        "nombre": "Declaracion",
+        "puede_ser_requerida": true
+      },
+      "otro": {
+        "nombre": "Otro documento",
+        "requiere_verificacion": true
+      }
+    }
+  },
+
+  "validacion_documental": {
+    "reglas": [
+      {
+        "id": "DOC001",
+        "condicion": "archivo_no_pdf",
+        "resultado": "ERROR",
+        "mensaje": "El archivo no es un PDF valido.",
+        "accion": "Sube nuevamente el documento en formato PDF."
+      },
+      {
+        "id": "DOC002",
+        "condicion": "archivo_vacio",
+        "resultado": "ERROR",
+        "mensaje": "El archivo no contiene informacion util.",
+        "accion": "Sube un documento que pueda ser revisado."
+      },
+      {
+        "id": "DOC003",
+        "condicion": "pagina_vacia",
+        "resultado": "ERROR",
+        "mensaje": "El documento contiene una pagina vacia.",
+        "accion": "Corrige el PDF y vuelve a subirlo."
+      },
+      {
+        "id": "DOC004",
+        "condicion": "pagina_ilegible",
+        "resultado": "ERROR",
+        "mensaje": "No se puede leer correctamente una pagina del documento.",
+        "accion": "Sube una copia mas clara."
+      },
+      {
+        "id": "DOC005",
+        "condicion": "texto_sin_sentido",
+        "resultado": "ERROR",
+        "mensaje": "El contenido extraido del documento no puede verificarse.",
+        "accion": "Revisa el archivo original y vuelve a subirlo."
+      },
+      {
+        "id": "DOC006",
+        "condicion": "documento_no_relacionado",
+        "resultado": "ERROR",
+        "mensaje": "El documento no parece corresponder con esta operacion de carga.",
+        "accion": "Sube el documento correcto."
+      },
+      {
+        "id": "DOC007",
+        "condicion": "dato_no_verificable",
+        "resultado": "REVISAR",
+        "mensaje": "No se puede confirmar este dato con la informacion disponible.",
+        "accion": "Revisa el documento antes de continuar."
+      }
+    ]
+  },
+
+  "consistencia": {
+    "regla": "Los datos importantes deben coincidir entre los documentos y los datos declarados.",
+    "campos": [
+      "shipper",
+      "consignee",
+      "descripcion",
+      "piezas",
+      "peso",
+      "dimensiones",
+      "origen",
+      "destino",
+      "numero_documento",
+      "awb"
     ],
-    "controles_fisicos": [
-      "Cantidad de piezas",
-      "Peso bruto",
-      "Dimensiones",
-      "Volumen",
-      "Estado del embalaje",
-      "Marcas y etiquetas",
-      "Identificación de bultos",
-      "Tarimas y soportes",
-      "Estabilidad y seguridad de la carga",
-      "Compatibilidad con ULD y posición",
-      "Evidencia fotográfica cuando corresponda"
-    ],
-    "resultado_estados": {
-      "ACCEPT": "Los datos introducidos no activaron una condición de retención o escalamiento. Continuar solamente conforme a los procedimientos vigentes.",
-      "HOLD": "Detener temporalmente la operación hasta resolver la condición identificada.",
-      "REJECT": "No continuar con la aceptación de la condición presentada; documentar y corregir o escalar según corresponda.",
-      "ESCALATE": "Detener la decisión autónoma y remitir la operación al personal, departamento u autoridad competente."
+    "reglas": [
+      {
+        "id": "CON001",
+        "condicion": "piezas_diferentes",
+        "resultado": "ERROR",
+        "mensaje": "La cantidad de piezas no coincide.",
+        "accion": "Corrige los documentos o los datos declarados antes de continuar."
+      },
+      {
+        "id": "CON002",
+        "condicion": "peso_diferente",
+        "resultado": "ERROR",
+        "mensaje": "El peso no coincide entre la informacion revisada.",
+        "accion": "Verifica el peso y corrige la informacion."
+      },
+      {
+        "id": "CON003",
+        "condicion": "dimensiones_diferentes",
+        "resultado": "ERROR",
+        "mensaje": "Las dimensiones no coinciden.",
+        "accion": "Verifica y corrige las dimensiones."
+      },
+      {
+        "id": "CON004",
+        "condicion": "descripcion_diferente",
+        "resultado": "ERROR",
+        "mensaje": "La descripcion de la mercancia no coincide.",
+        "accion": "Corrige la descripcion antes de continuar."
+      },
+      {
+        "id": "CON005",
+        "condicion": "shipper_diferente",
+        "resultado": "ERROR",
+        "mensaje": "El remitente no coincide entre los datos revisados.",
+        "accion": "Verifica y corrige el remitente."
+      },
+      {
+        "id": "CON006",
+        "condicion": "consignee_diferente",
+        "resultado": "ERROR",
+        "mensaje": "El destinatario no coincide entre los datos revisados.",
+        "accion": "Verifica y corrige el destinatario."
+      },
+      {
+        "id": "CON007",
+        "condicion": "origen_diferente",
+        "resultado": "ERROR",
+        "mensaje": "El origen no coincide.",
+        "accion": "Verifica y corrige el origen."
+      },
+      {
+        "id": "CON008",
+        "condicion": "destino_diferente",
+        "resultado": "ERROR",
+        "mensaje": "El destino no coincide.",
+        "accion": "Verifica y corrige el destino."
+      }
+    ]
+  },
+
+  "carga": {
+    "controles_generales": {
+      "descripcion": true,
+      "piezas": true,
+      "peso": true,
+      "dimensiones": true,
+      "volumen": true,
+      "embalaje": true,
+      "marcas": true,
+      "etiquetas": true,
+      "condicion_fisica": true
     },
-    "regla_de_oro": "SI NO COINCIDE, NO SE ADIVINA. SE DETIENE. SE VERIFICA. SE DOCUMENTA. SE ESCALA CUANDO CORRESPONDA."
+
+    "peso": {
+      "debe_ser_numerico": true,
+      "debe_ser_mayor_que_cero": true
+    },
+
+    "piezas": {
+      "debe_ser_entero": true,
+      "debe_ser_mayor_que_cero": true
+    },
+
+    "dimensiones": {
+      "deben_ser_numericas": true,
+      "deben_ser_mayores_que_cero": true
+    },
+
+    "volumen": {
+      "calcular_automaticamente": true,
+      "formula": "largo * ancho * alto",
+      "si_hay_varias_piezas": "sumar_volumen_de_las_piezas"
+    },
+
+    "embalaje": {
+      "estados_permitidos": [
+        "intacto",
+        "danado",
+        "humedo",
+        "roto",
+        "deformado",
+        "no_verificable"
+      ],
+      "si_danado": {
+        "resultado": "REVISAR",
+        "accion": "Corregir o revisar la condicion del embalaje antes de continuar."
+      },
+      "si_humedo": {
+        "resultado": "REVISAR",
+        "accion": "No continuar hasta revisar la condicion de la carga."
+      },
+      "si_roto": {
+        "resultado": "REVISAR",
+        "accion": "No continuar hasta corregir o revisar el embalaje."
+      }
+    },
+
+    "marcas_etiquetas": {
+      "deben_corresponder_con_la_carga": true,
+      "si_faltan": {
+        "resultado": "REVISAR",
+        "accion": "Verificar y corregir las marcas o etiquetas aplicables."
+      },
+      "si_son_incorrectas": {
+        "resultado": "ERROR",
+        "accion": "Corregir antes de continuar."
+      }
+    }
+  },
+
+  "carga_especial": {
+    "peligrosa": {
+      "activar_si_tipo": "peligrosa",
+      "controles": [
+        "identificacion_de_la_mercancia",
+        "documentacion_aplicable",
+        "clasificacion_si_corresponde",
+        "marcas",
+        "etiquetas",
+        "embalaje",
+        "estado_fisico"
+      ],
+      "si_falta_informacion": "BLOQUEAR"
+    },
+
+    "perecedera": {
+      "activar_si_tipo": "perecedera",
+      "controles": [
+        "descripcion",
+        "embalaje",
+        "condicion",
+        "documentacion_aplicable"
+      ],
+      "si_falta_informacion": "REVISAR"
+    },
+
+    "animal_vivo": {
+      "activar_si_tipo": "animal_vivo",
+      "controles": [
+        "descripcion",
+        "documentacion_aplicable",
+        "embalaje_o_contenedor",
+        "condiciones_aplicables"
+      ],
+      "si_falta_informacion": "REVISAR"
+    },
+
+    "valiosa": {
+      "activar_si_tipo": "valiosa",
+      "controles": [
+        "descripcion",
+        "documentacion_aplicable",
+        "cantidad",
+        "peso",
+        "condiciones_aplicables"
+      ],
+      "si_falta_informacion": "REVISAR"
+    },
+
+    "farmaceutica": {
+      "activar_si_tipo": "farmaceutica",
+      "controles": [
+        "descripcion",
+        "documentacion_aplicable",
+        "embalaje",
+        "condiciones_aplicables"
+      ],
+      "si_falta_informacion": "REVISAR"
+    }
+  },
+
+  "permisos": {
+    "regla": "Los permisos solo deben exigirse cuando correspondan a la mercancia, ruta, autoridad o proceso aplicable.",
+    "principio": "No inventar permisos.",
+    "estados": [
+      "no_aplica",
+      "presente",
+      "pendiente",
+      "ilegible",
+      "no_verificable"
+    ],
+    "reglas": [
+      {
+        "id": "PER001",
+        "condicion": "permiso_pendiente",
+        "resultado": "BLOQUEAR",
+        "mensaje": "Hay un permiso pendiente que debe revisarse.",
+        "accion": "Obtiene o corrige el permiso antes de continuar."
+      },
+      {
+        "id": "PER002",
+        "condicion": "permiso_ilegible",
+        "resultado": "BLOQUEAR",
+        "mensaje": "El permiso no puede leerse correctamente.",
+        "accion": "Sube una copia legible."
+      },
+      {
+        "id": "PER003",
+        "condicion": "permiso_no_verificable",
+        "resultado": "REVISAR",
+        "mensaje": "No se puede verificar el permiso con la informacion disponible.",
+        "accion": "Revisa el documento antes de continuar."
+      }
+    ]
+  },
+
+  "awb": {
+    "prefijo_referencia": "134",
+    "reglas": [
+      {
+        "id": "AWB001",
+        "condicion": "awb_incompleto",
+        "resultado": "ERROR",
+        "mensaje": "La informacion del AWB esta incompleta.",
+        "accion": "Completa o corrige la informacion."
+      },
+      {
+        "id": "AWB002",
+        "condicion": "awb_no_coincide",
+        "resultado": "ERROR",
+        "mensaje": "La informacion del AWB no coincide con el expediente.",
+        "accion": "Corrige la informacion antes de continuar."
+      }
+    ]
+  },
+
+  "fotos": {
+    "permitidas": [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".webp"
+    ],
+    "controles": {
+      "archivo_valido": true,
+      "tamano_mayor_cero": true,
+      "maximo_recomendado": 3,
+      "si_supera_maximo": "AVISAR"
+    },
+    "objetivos": [
+      "carga",
+      "embalaje",
+      "marcas",
+      "etiquetas",
+      "pallet",
+      "danos"
+    ]
+  },
+
+  "resultado": {
+    "estados": {
+      "LISTO": {
+        "nivel": "verde",
+        "permite_continuar": true,
+        "mensaje": "No se detectaron problemas pendientes con la informacion revisada."
+      },
+      "CORREGIR": {
+        "nivel": "rojo",
+        "permite_continuar": false,
+        "mensaje": "Hay informacion o documentos que deben corregirse antes de continuar."
+      },
+      "REVISAR": {
+        "nivel": "amarillo",
+        "permite_continuar": false,
+        "mensaje": "Hay informacion que no puede confirmarse y debe revisarse antes de continuar."
+      },
+      "BLOQUEADO": {
+        "nivel": "rojo",
+        "permite_continuar": false,
+        "mensaje": "No se puede continuar hasta resolver el problema indicado."
+      }
+    },
+
+    "regla_de_salida": "Si existe al menos un ERROR o BLOQUEADO, no permitir continuar. Si existe REVISAR, no presentar el expediente como listo. Solo permitir resultado LISTO cuando los controles aplicables hayan sido verificados."
+  },
+
+  "mensajes": {
+    "inicio": "Vamos a revisar tu carga paso a paso.",
+    "error": "Encontramos un problema.",
+    "corregir": "Corrige esto antes de continuar.",
+    "revisar": "Necesitamos revisar esta informacion antes de continuar.",
+    "listo": "La revision previa no encontro problemas pendientes.",
+    "no_adivinar": "No podemos confirmar este dato. Revisa el documento y vuelve a intentarlo."
   }
 }
