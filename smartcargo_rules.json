@@ -1,52 +1,279 @@
 {
   "smartcargo_advisory_engine": {
-    "version": "3.0",
+    "version": "4.0",
     "nombre_sistema": "SmartCargo-Advisory",
-    "alcance_legal": "Asesoría operativa en tierra y aire limitada al comprador en USA. No sustituye manuales internos ni normativas oficiales de aerolíneas o autoridades.",
+    "alcance_legal": "Herramienta de apoyo para revisión operativa y documental de carga aérea. No sustituye manuales de la aerolínea, IATA DGR, requisitos aduanales, autoridades competentes, instrucciones del operador, fabricante de aeronave ni procedimientos locales vigentes.",
+    "principio_operativo": "SI NO COINCIDE, NO SE ADIVINA. SE DETIENE. SE VERIFICA. SE DOCUMENTA. SE ESCALA CUANDO CORRESPONDA.",
     "protocolo_recepcion": {
       "saludo_inicial": "Buenos días. Bienvenido/a. ¿En qué podemos ayudarle?",
-      "filtro_inicial": "No se acepta carga, documentos ni dinero sin identificar la operación y solicitar el número de guía aérea (AWB) o referencia."
+      "filtro_inicial": "Antes de aceptar carga, documentos o pagos, identificar la operación y solicitar AWB, referencia o identificación aplicable.",
+      "regla_identificacion": "La información física, documental y registrada debe corresponder antes de continuar."
     },
     "matriz_decision_operacional": [
       {
+        "id": "VOLUMEN_BAJA_DENSIDAD",
         "condicion_volumetrica": "anomala_baja_densidad",
-        "criterio": "Volumen desproporcionado frente al peso bruto (ej. >50 m³ para <1500 kg)",
+        "criterio": "Volumen >50 m³ y peso bruto <1500 kg",
         "mandato": "HOLD",
-        "instruccion_directa": "Detener proceso. Reasurar pesaje y cubicaje físico en báscula por discrepancia de gálibo.",
+        "instruccion_directa": "Detener el proceso y repetir físicamente el pesaje y cubicaje. Verificar unidades, cantidad de piezas y dimensiones.",
         "puntos_criticos": [
-          {"item": "Dimensiones físicas", "status": "FAIL", "note": "Posible error de digitación en centímetros o bultos mal medidos."},
-          {"item": "Aceptación de bodega", "status": "HOLD", "note": "Prohibido el ingreso a rampa hasta rectificar."}
+          {
+            "item": "Dimensiones físicas",
+            "status": "FAIL",
+            "note": "Verificar largo, ancho, alto, unidades y cantidad de bultos."
+          },
+          {
+            "item": "Peso y cubicaje",
+            "status": "HOLD",
+            "note": "No continuar hasta resolver la discrepancia."
+          }
         ]
       },
       {
+        "id": "GENERAL_INTACTA",
         "tipo_carga": "general",
         "envoltura": "intacto",
         "mandato": "ACCEPT",
-        "instruccion_directa": "Proceder con estiba estándar y transferencia a zona de armado (Build-up).",
+        "instruccion_directa": "Continuar con la revisión documental, identificación, etiquetado, preparación y ubicación conforme a los procedimientos aplicables.",
         "puntos_criticos": [
-          {"item": "Documentación y AWB", "status": "OK", "note": "Datos conformes entre sistema y físico."},
-          {"item": "Integridad de bultos", "status": "OK", "note": "Sin daños ni humedad aparente."}
+          {
+            "item": "Documentación y AWB",
+            "status": "OK",
+            "note": "No se identificó una discrepancia documental mediante los datos introducidos."
+          },
+          {
+            "item": "Integridad de bultos",
+            "status": "OK",
+            "note": "No se registraron indicios de daño físico en las observaciones."
+          }
         ]
       },
       {
+        "id": "GENERAL_DANADA",
         "tipo_carga": "general",
         "envoltura": "humedo_o_roto",
         "mandato": "REJECT",
-        "instruccion_directa": "Rechazar empaque dañado y devolver al forwarder para reempaque inmediato.",
+        "instruccion_directa": "Detener la recepción física. Separar la mercancía cuando corresponda, documentar la condición y solicitar corrección, reempaque o evaluación según el procedimiento aplicable.",
         "puntos_criticos": [
-          {"item": "Condición del embalaje", "status": "FAIL", "note": "Riesgo de derrame o daño estructural en vuelo."}
+          {
+            "item": "Condición del embalaje",
+            "status": "FAIL",
+            "note": "Humedad, rotura, apertura, derrame o daño requieren evaluación antes de continuar."
+          },
+          {
+            "item": "Evidencia fotográfica",
+            "status": "CHECK",
+            "note": "Conservar evidencia fotográfica de la condición observada cuando el procedimiento aplicable lo permita."
+          }
         ]
       },
       {
+        "id": "MERCANCIA_PELIGROSA",
         "tipo_carga": "dg",
         "mandato": "ESCALATE",
-        "instruccion_directa": "Detener recepción. Exigir Shipper's Declaration (DGD) física y verificar UN Number y clases bajo normativas vigentes.",
+        "instruccion_directa": "Detener la recepción hasta verificar la documentación y clasificación aplicables. Confirmar UN Number, Proper Shipping Name, clase/división, etiquetas, marcas, embalaje y documentación requerida conforme a la normativa vigente y personal competente.",
         "puntos_criticos": [
-          {"item": "Documentación DG", "status": "CHECK", "note": "Prohibida la aceptación verbal o visual sin DGD válido."},
-          {"item": "Personal competente", "status": "ESCALATE", "note": "Notificar a especialista en mercancías peligrosas."}
+          {
+            "item": "Documentación DG",
+            "status": "CHECK",
+            "note": "Verificar la documentación requerida para la mercancía específica."
+          },
+          {
+            "item": "Identificación DG",
+            "status": "CHECK",
+            "note": "Verificar UN Number, nombre apropiado de expedición, clase/división, etiquetas y marcas aplicables."
+          },
+          {
+            "item": "Personal competente",
+            "status": "ESCALATE",
+            "note": "Escalar cuando la revisión requiera personal certificado o autorizado."
+          }
+        ]
+      },
+      {
+        "id": "PERECEDERO",
+        "tipo_carga": "perishable",
+        "mandato": "ESCALATE",
+        "instruccion_directa": "Verificar requisitos de temperatura, embalaje, marcado, documentación, aceptación y manejo especial antes de continuar.",
+        "puntos_criticos": [
+          {
+            "item": "Control de temperatura",
+            "status": "CHECK",
+            "note": "Verificar rango requerido y condiciones reales de recepción."
+          },
+          {
+            "item": "Embalaje y marcado",
+            "status": "CHECK",
+            "note": "Verificar que sean adecuados para el producto y operación."
+          }
+        ]
+      },
+      {
+        "id": "ANIMALES_VIVOS",
+        "tipo_carga": "avi",
+        "mandato": "ESCALATE",
+        "instruccion_directa": "Detener la aceptación hasta verificar documentación, contenedor, marcado, bienestar, requisitos de la especie y autorización del operador.",
+        "puntos_criticos": [
+          {
+            "item": "Documentación AVI",
+            "status": "CHECK",
+            "note": "Verificar documentos y permisos aplicables."
+          },
+          {
+            "item": "Contenedor y condiciones",
+            "status": "CHECK",
+            "note": "Verificar configuración, ventilación, seguridad y requisitos aplicables."
+          }
+        ]
+      },
+      {
+        "id": "CARGA_VALIOSA",
+        "tipo_carga": "val",
+        "mandato": "ESCALATE",
+        "instruccion_directa": "Verificar procedimiento de seguridad, identificación, documentación, custodia, acceso y ubicación aplicables a la carga.",
+        "puntos_criticos": [
+          {
+            "item": "Seguridad",
+            "status": "CHECK",
+            "note": "Aplicar controles de seguridad y custodia correspondientes."
+          },
+          {
+            "item": "Documentación",
+            "status": "CHECK",
+            "note": "Verificar que la documentación corresponda con la mercancía recibida."
+          }
+        ]
+      },
+      {
+        "id": "PHARMA",
+        "tipo_carga": "pharma",
+        "mandato": "ESCALATE",
+        "instruccion_directa": "Verificar rango de temperatura, embalaje, indicadores, documentación y manejo específico antes de continuar.",
+        "puntos_criticos": [
+          {
+            "item": "Temperatura",
+            "status": "CHECK",
+            "note": "Verificar las condiciones requeridas por el envío."
+          },
+          {
+            "item": "Embalaje especializado",
+            "status": "CHECK",
+            "note": "Verificar integridad y configuración del embalaje."
+          }
+        ]
+      },
+      {
+        "id": "DOCUMENTACION_AWB_COPIA",
+        "condicion_documental": "awb_copia",
+        "mandato": "HOLD",
+        "instruccion_directa": "Detener la aceptación final hasta verificar el AWB, sus copias, documentos asociados y requisitos del operador.",
+        "puntos_criticos": [
+          {
+            "item": "AWB",
+            "status": "CHECK",
+            "note": "Verificar número, partes, piezas, peso, origen, destino y correspondencia documental."
+          }
+        ]
+      },
+      {
+        "id": "PERMISOS_PENDIENTES",
+        "condicion_documental": "permisos_pendientes",
+        "mandato": "HOLD",
+        "instruccion_directa": "Retener la operación hasta verificar los permisos, certificados o autorizaciones requeridos.",
+        "puntos_criticos": [
+          {
+            "item": "Permisos / OGA",
+            "status": "HOLD",
+            "note": "No continuar hasta completar la revisión documental aplicable."
+          }
+        ]
+      },
+      {
+        "id": "PAGO_PENDIENTE",
+        "condicion_documental": "pago_pendiente",
+        "mandato": "HOLD",
+        "instruccion_directa": "Verificar el estado financiero y la autorización correspondiente antes de continuar.",
+        "puntos_criticos": [
+          {
+            "item": "Pago / Crédito",
+            "status": "HOLD",
+            "note": "Confirmar voucher, pago o autorización de crédito según el procedimiento aplicable."
+          }
         ]
       }
     ],
+    "controles_aeronave_uld": {
+      "a320": {
+        "descripcion": "Narrowbody",
+        "controles": [
+          "Verificar compatibilidad entre ULD, contorno, compartimiento y posición.",
+          "No asumir que un pallet o ULD es compatible solamente por sus dimensiones nominales.",
+          "Confirmar restricciones vigentes del operador y aeronave."
+        ]
+      },
+      "a330_pax": {
+        "descripcion": "Widebody Passenger",
+        "controles": [
+          "Verificar compatibilidad del ULD con la bodega inferior.",
+          "Confirmar límites de peso, contorno y posición según configuración vigente."
+        ]
+      },
+      "a330_f": {
+        "descripcion": "Freighter",
+        "controles": [
+          "Verificar compatibilidad de pallets, contenedores y posición.",
+          "Confirmar límites estructurales y operativos vigentes antes de aceptación."
+        ]
+      },
+      "b787": {
+        "descripcion": "Widebody",
+        "controles": [
+          "Verificar compatibilidad de ULD y contorno.",
+          "Confirmar restricciones de peso, posición y balance aplicables."
+        ]
+      },
+      "atr": {
+        "descripcion": "Turbohélice",
+        "controles": [
+          "Verificar dimensiones de puerta y compartimiento.",
+          "Confirmar límites de peso y configuración antes de aceptar ULD o carga."
+        ]
+      }
+    },
+    "limites_configurados": {
+      "ake_peso_revision_kg": 1588,
+      "nota": "Este valor es un parámetro de revisión del sistema y debe confirmarse contra la configuración, operador, posición y documentación vigente antes de utilizarlo como límite operativo."
+    },
+    "controles_documentales": [
+      "AWB / MAWB / HAWB según corresponda",
+      "Factura comercial cuando aplique",
+      "Packing list cuando aplique",
+      "Permisos y certificados gubernamentales cuando correspondan",
+      "Documentación de mercancías peligrosas cuando corresponda",
+      "Documentación sanitaria, fitosanitaria, veterinaria o especializada cuando corresponda",
+      "Identificación del expedidor, consignatario o representante cuando corresponda",
+      "Comprobantes financieros o autorización de crédito cuando corresponda",
+      "Correspondencia entre documentos, piezas, peso, dimensiones, descripción y carga física"
+    ],
+    "controles_fisicos": [
+      "Cantidad de piezas",
+      "Peso bruto",
+      "Dimensiones",
+      "Volumen",
+      "Estado del embalaje",
+      "Marcas y etiquetas",
+      "Identificación de bultos",
+      "Tarimas y soportes",
+      "Estabilidad y seguridad de la carga",
+      "Compatibilidad con ULD y posición",
+      "Evidencia fotográfica cuando corresponda"
+    ],
+    "resultado_estados": {
+      "ACCEPT": "Los datos introducidos no activaron una condición de retención o escalamiento. Continuar solamente conforme a los procedimientos vigentes.",
+      "HOLD": "Detener temporalmente la operación hasta resolver la condición identificada.",
+      "REJECT": "No continuar con la aceptación de la condición presentada; documentar y corregir o escalar según corresponda.",
+      "ESCALATE": "Detener la decisión autónoma y remitir la operación al personal, departamento u autoridad competente."
+    },
     "regla_de_oro": "SI NO COINCIDE, NO SE ADIVINA. SE DETIENE. SE VERIFICA. SE DOCUMENTA. SE ESCALA CUANDO CORRESPONDA."
   }
 }
