@@ -1,716 +1,953 @@
-<!doctype html>
-<html lang="en" id="htmlRoot">
+<!DOCTYPE html>
+<html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SmartCargo Advisory</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#f2f4f7;color:#17202a;font:13px Arial,sans-serif}
-main{max-width:1150px;margin:15px auto;padding:15px;background:#fff;border-radius:10px;box-shadow:0 3px 15px #0002}
-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:2px solid #eaedf2;padding-bottom:10px}
-h1{margin:0;color:#b00000;font-size:22px}
-.sub{color:#667085;font-size:11px;margin:2px 0 0}
-.lang-box{display:flex;gap:5px}
-section{border:1px solid #d9dde3;border-radius:8px;padding:12px;margin:10px 0}
-h2{margin:0 0 10px;color:#b00000;font-size:15px}
-h3{margin:10px 0 5px;font-size:12px}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.full{grid-column:1/-1}
-label{display:block;font-size:11px;font-weight:bold;margin-bottom:3px;color:#333}
-input,select,textarea{width:100%;padding:7px;border:1px solid #b9c0c9;border-radius:5px;background:#fff;font:inherit;font-size:12px}
-textarea{resize:vertical}
-.help{font-size:11px;color:#667085;line-height:1.4}
-.row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
-button{border:0;border-radius:6px;padding:10px 15px;font-weight:bold;cursor:pointer;font-size:12px}
-.primary{background:#b00000;color:#fff}
-.secondary{background:#30343b;color:#fff}
-.tertiary{background:#eef0f3;color:#333;border:1px solid #b9c0c9}
-.alert{padding:8px;margin:5px 0;border-left:4px solid #b00000;background:#fff4f4;border-radius:4px;font-size:12px}
-.chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}
-.chip{background:#eef0f3;padding:4px 7px;border-radius:12px;font-size:10px}
-table{width:100%;border-collapse:collapse;font-size:11px}
-th,td{border:1px solid #d9dde3;padding:6px;text-align:left;vertical-align:top}
-th{background:#f1f3f5}
-#result{display:none}
-#busy{display:none;color:#9a6400;font-size:12px;margin-top:8px;font-weight:bold}
-.filebox{border:1px dashed #aeb5bf;padding:8px;border-radius:6px;background:#fafbfc}
-.count{font-size:10px;color:#667085;margin-top:3px}
-.thumb-container{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.thumb{width:50px;height:50px;object-fit:cover;border-radius:4px;border:1px solid #b9c0c9;cursor:pointer}
-#modalImg{display:none;position:fixed;z-index:9999;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);align-items:center;justify-content:center}
-#modalImg img{max-width:90%;max-height:90%;border-radius:8px}
-#warningModal{display:none;position:fixed;z-index:10000;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);align-items:center;justify-content:center}
-.warning-box{background:#fff;padding:20px;border-radius:8px;max-width:400px;text-align:center}
-@media(max-width:800px){.grid{grid-template-columns:1fr}.grid-2{grid-template-columns:1fr}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMARTCARGO</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f8;
+            color: #18212b;
+        }
+
+        header {
+            background: #102a43;
+            color: white;
+            text-align: center;
+            padding: 22px 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 30px;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            margin: 8px 0 0;
+            font-size: 15px;
+            opacity: .9;
+        }
+
+        main {
+            width: min(760px, 94%);
+            margin: 25px auto 50px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 3px 15px rgba(0,0,0,.08);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 22px;
+        }
+
+        h3 {
+            margin-top: 0;
+        }
+
+        .sub {
+            color: #5d6b78;
+            line-height: 1.5;
+        }
+
+        .roles {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .role {
+            border: 2px solid #d8dee4;
+            border-radius: 12px;
+            background: white;
+            padding: 20px 12px;
+            cursor: pointer;
+            text-align: center;
+            font-size: 17px;
+            transition: .15s;
+        }
+
+        .role:hover {
+            border-color: #1976d2;
+            transform: translateY(-1px);
+        }
+
+        .role .icon {
+            display: block;
+            font-size: 34px;
+            margin-bottom: 8px;
+        }
+
+        .role small {
+            display: block;
+            margin-top: 7px;
+            color: #66737e;
+            line-height: 1.3;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin: 16px 0 7px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #c9d1d9;
+            border-radius: 9px;
+            font-size: 16px;
+            background: white;
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #1976d2;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 9px;
+            padding: 13px 18px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .primary {
+            background: #1976d2;
+            color: white;
+        }
+
+        .secondary {
+            background: #e8edf2;
+            color: #1d2b36;
+        }
+
+        .danger {
+            background: #c62828;
+            color: white;
+        }
+
+        .success {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .step {
+            display: inline-block;
+            background: #e8edf2;
+            border-radius: 20px;
+            padding: 6px 11px;
+            font-size: 13px;
+            color: #46535e;
+            margin-bottom: 12px;
+        }
+
+        .check {
+            border: 1px solid #d8dee4;
+            border-radius: 10px;
+            padding: 13px;
+            margin-top: 10px;
+        }
+
+        .check input {
+            width: auto;
+            margin-right: 8px;
+        }
+
+        .upload {
+            border: 2px dashed #b7c1ca;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            background: #fafbfc;
+            margin-top: 10px;
+        }
+
+        .result {
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 18px;
+        }
+
+        .result h2 {
+            margin-bottom: 8px;
+        }
+
+        .result-list {
+            margin-top: 15px;
+        }
+
+        .problem {
+            background: white;
+            border-radius: 9px;
+            padding: 13px;
+            margin-top: 10px;
+            border-left: 5px solid #c62828;
+        }
+
+        .problem.review {
+            border-left-color: #f9a825;
+        }
+
+        .problem strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .ready {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            color: #1b5e20;
+        }
+
+        .correct {
+            background: #ffebee;
+            border: 1px solid #ef9a9a;
+            color: #8e0000;
+        }
+
+        .review-box {
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            color: #795548;
+        }
+
+        .notice {
+            background: #eef5ff;
+            border-left: 4px solid #1976d2;
+            padding: 12px;
+            border-radius: 7px;
+            margin-top: 15px;
+            line-height: 1.45;
+        }
+
+        .back {
+            margin-bottom: 15px;
+        }
+
+        .mini {
+            font-size: 13px;
+            color: #66737e;
+            line-height: 1.45;
+        }
+
+        @media (max-width: 560px) {
+            .roles {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 25px;
+            }
+
+            main {
+                width: 96%;
+                margin-top: 15px;
+            }
+
+            .card {
+                padding: 17px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-<main>
 
 <header>
-<div>
-  <h1 id="lblTitle">SmartCargo Advisory</h1>
-  <div class="sub" id="lblSubtitle">Asesoría Técnica Especializada: Avianca Cargo, Bellies (PAX), GSA, Interlines, Transfer, COMAT</div>
-</div>
-<div class="lang-box">
-  <button type="button" class="tertiary" onclick="setLanguage('en')">English</button>
-  <button type="button" class="tertiary" onclick="setLanguage('es')">Español</button>
-</div>
+    <h1>SMARTCARGO</h1>
+    <p>Prepara tu carga antes de presentarla</p>
 </header>
 
-<!-- 1. IDENTIFICACIÓN DE LA OPERACIÓN Y EQUIPO -->
-<section>
-<h2 id="sec1Title">1. Operación, Ruta y Aeronave (Bellies / Bodega Principal)</h2>
-<div class="grid">
-<div>
-<label id="lblActor">Rol Operativo</label>
-<select id="actor">
-<option value="counter" id="optCounter">Counter / Bodega AGI</option>
-<option value="forwarder" id="optForwarder">Forwarder</option>
-<option value="camionero" id="optTransp">Transportista</option>
-<option value="dueño" id="optShipper">Shipper / Dueño de la carga</option>
-<option value="transfer" id="optTransfer">Transfer / GSA / Interline</option>
-<option value="comat" id="optComat">COMAT (Carga de Aerolínea)</option>
-</select>
-</div>
-<div>
-<label id="lblAwb">AWB o Referencia / COMAT ID</label>
-<input id="awb" placeholder="134-12345678" autocomplete="off">
-</div>
-<div>
-<label id="lblRoute">Origen &rarr; Destino</label>
-<div style="display:flex; gap:5px;">
-<input id="origen" placeholder="MIA" maxlength="3" style="width:50%;">
-<input id="destino" placeholder="BOG" maxlength="3" style="width:50%;">
-</div>
-</div>
-<div>
-<label id="lblFlight">Vuelo</label>
-<input id="vuelo" placeholder="Ej. AV092 / AV8500">
-</div>
-<div>
-<label id="lblAircraft">Tipo de Aeronave</label>
-<select id="aeronave" onchange="actualizarLimitesAeronave()">
-<option value="a320">A320 / A321 (Narrowbody)</option>
-<option value="a330_pax">A330 Passenger (Widebody - Belly AKE)</option>
-<option value="a330_f">A330 Freighter (Principal + Inferior)</option>
-<option value="b787">B787 Dreamliner (Widebody)</option>
-<option value="atr">ATR 72 (Turbohélice)</option>
-</select>
-</div>
-<div>
-<label id="lblPosition">Ubicación / Posición de Carga</label>
-<select id="posicion_carga">
-<option value="belly" id="optBelly">Belly (Compartimiento Inferior / PAX)</option>
-<option value="main_deck" id="optMain">Main Deck (Cubierta Principal)</option>
-<option value="bulk" id="optBulk">Bulk / Carga a granel (Suelta manual)</option>
-</select>
-</div>
-</div>
-<div id="info_aeronave" class="alert" style="margin-top:10px; background:#f0f4f8; border-left-color:#30343b;">
-<b>Parámetros del Equipo:</b> Seleccione una aeronave para verificar restricciones de contorno, altura máxima de puerta y peso por posición.
-</div>
-</section>
+<main>
 
-<!-- 2. CONTROL DOCUMENTAL Y PAPELERÍA INTERNA -->
-<section>
-<h2 id="sec2Title">2. Control de Papelería, Manifiestos y Documentación Legal</h2>
-<div class="help" id="lblDocHelp">Clasificación interna de originales, copias, sobres de pouch, permisos y comprobantes financieros.</div>
-<div class="grid" style="margin-top:8px;">
-<div>
-<label id="lblDocAwb">Air Waybill (AWB) / Manifiesto</label>
-<select id="doc_awb_tipo">
-<option value="original">Original (Shipper Copy / Issuing Carrier)</option>
-<option value="copia">Copia / Archivo Operativo</option>
-<option value="house">House AWB (HAWB) / Master AWB (MAWB)</option>
-</select>
-</div>
-<div>
-<label id="lblDocOga">Permisos Gubernamentales / OGA</label>
-<select id="doc_permisos">
-<option value="completos">Permisos Completos (FDA, USDA, CITES, Licencias)</option>
-<option value="pendientes">Permisos Pendientes de Retención</option>
-<option value="no_aplica">No Aplica / Carga Nacional / COMAT</option>
-</select>
-</div>
-<div>
-<label id="lblDocPay">Control Financiero (Cheques / Pagos)</label>
-<select id="doc_pagos">
-<option value="verificado">Cheque / Voucher / Pago verificado y OK</option>
-<option value="pendiente">Pago Pendiente / Crédito por Autorizar</option>
-<option value="efectivo_comprobante">Comprobante de Pago en Efectivo / Tarjeta</option>
-</select>
-</div>
-</div>
-<div class="filebox" style="margin-top:10px;">
-<label id="lblAttachPdf">Adjuntar Documentación PDF (Manifiesto, Guías, Facturas, Permisos, Cheques)</label>
-<input id="pdfs" type="file" accept=".pdf,application/pdf" multiple>
-<div id="pdfCount" class="count">0 documentos seleccionados</div>
-</div>
-</section>
+    <!-- =====================================================
+         INICIO / SELECCION DE ROL
+    ====================================================== -->
 
-<!-- 3. IDENTIFICACIÓN FÍSICA Y RECEPCIÓN DE MERCANCÍA -->
-<section>
-<h2 id="sec3Title">3. Recepción Física, Tipos de Unidades (Drum, Cage, Crate, Pallet) y Desglose</h2>
-<div class="grid-2">
-<div>
-<label id="lblUldType">Unidad de Carga (ULD / Estiba / Embalaje)</label>
-<select id="tipo_uld">
-<optgroup label="Contenedores Rígidos y Jaulas">
-<option value="ake">AKE / LD3 (Contenedor Contornado Estándar)</option>
-<option value="akh">AKH / LD3-45 (Contenedor bajo A320/A321)</option>
-<option value="cage">Cage (Jaula de seguridad / Carga valiosa)</option>
-<option value="crate">Crate (Cajón rígido de madera / industrial)</option>
-</optgroup>
-<optgroup label="Pallets y Soportes">
-<option value="pmc">PMC / P1P Pallet (125" x 96" Widebody)</option>
-<option value="pag">PAG Pallet (88" x 125" Estándar Avianca)</option>
-<option value="skid">Skid (Tarima / Base de soporte)</option>
-</optgroup>
-<optgroup label="Contenedores Flexibles y Cilindros">
-<option value="drum">Drum / Pail (Tambor / Bidón / Cilindro)</option>
-<option value="bag">Big Bag / Sacks (Contenedor flexible)</option>
-<option value="bundle">Bundle / Roll (Atados / Rollos / Tubos)</option>
-<option value="box">Box (Caja de cartón reforzado)</option>
-</optgroup>
-</select>
-</div>
-<div>
-<label id="lblCargoCat">Categoría Específica de la Mercancía</label>
-<select id="categoria_mercancia">
-<option value="general">Carga General / Seca</option>
-<option value="dg">Mercancías Peligrosas (DG - IATA DGR)</option>
-<option value="perishable">Perecederos / Flores / Alimentos (Control Temp)</option>
-<option value="avi">Animales Vivos (AVI)</option>
-<option value="val">VAL / VUN (Carga Valiosa o Vulnerable)</option>
-<option value="pharma">Pharma / Temperatura Controlada (+2°C a +8°C)</option>
-</select>
-</div>
-</div>
+    <section id="inicio" class="card">
+        <h2>¿Qué haces?</h2>
 
-<div style="margin-top:10px;">
-<label id="lblMeasureMode">Modo de Recepción de Medidas</label>
-<select id="modo_medicion" onchange="cambiarModoMedicion()">
-<option value="general">Recepción General (Medidas promedio aplicadas al lote)</option>
-<option value="detalle">Recepción Detallada por Ítem / Artículo / Pieza individual</option>
-</select>
-</div>
+        <p class="sub">
+            Selecciona tu rol. Te mostraremos solamente lo que necesitas revisar.
+        </p>
 
-<!-- GENERAL -->
-<div id="seccion_general" class="grid" style="margin-top:10px;">
-<div>
-<label id="lblPieces">Cantidad Total de Artículos / Piezas</label>
-<input id="piezas" type="number" min="0" placeholder="0" oninput="calcularVolumen()">
-</div>
-<div>
-<label id="lblGrossWeight">Peso Bruto Total (kg)</label>
-<input id="peso" type="number" min="0" step="0.01" placeholder="0">
-</div>
-<div>
-<label id="lblLength">Largo (cm)</label>
-<input id="largo" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
-</div>
-<div>
-<label id="lblWidth">Ancho (cm)</label>
-<input id="ancho" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
-</div>
-<div>
-<label id="lblHeight">Alto (cm)</label>
-<input id="alto" type="number" min="0" step="0.1" placeholder="0" oninput="calcularVolumen()">
-</div>
-<div>
-<label id="lblVolume">Volumen Calc. (m³)</label>
-<input id="volumen_auto" type="text" readonly placeholder="0.0000 m³" style="background:#f1f3f5; font-weight:bold;">
-</div>
-</div>
+        <div class="roles">
 
-<!-- DETALLE -->
-<div id="seccion_detalle" style="display:none; margin-top:10px;">
-<label>Registro Detallado por Ítem / Mercancía en Bodega</label>
-<table id="tablaDetalle">
-<tr>
-<th>Ítem / Descripción</th>
-<th>Cantidad</th>
-<th>L (cm)</th>
-<th>An (cm)</th>
-<th>Al (cm)</th>
-<th>Peso (kg)</th>
-<th>Acción</th>
-</tr>
-<tr>
-<td><input type="text" value="Artículo 1" class="d-desc"></td>
-<td><input type="number" value="1" min="1" class="d-pz" oninput="calcularVolumenDetalle()"></td>
-<td><input type="number" value="0" min="0" step="0.1" class="d-l" oninput="calcularVolumenDetalle()"></td>
-<td><input type="number" value="0" min="0" step="0.1" class="d-an" oninput="calcularVolumenDetalle()"></td>
-<td><input type="number" value="0" min="0" step="0.1" class="d-al" oninput="calcularVolumenDetalle()"></td>
-<td><input type="number" value="0" min="0" step="0.01" class="d-peso"></td>
-<td><button type="button" class="secondary" onclick="eliminarFila(this)" style="padding:4px 8px;">X</button></td>
-</tr>
-</table>
-<button type="button" class="secondary" onclick="agregarFilaDetalle()" style="margin-top:6px;">+ Agregar otro artículo al desglose</button>
-<div style="margin-top:6px; font-size:11px;">
-<label>Volumen Total Acumulado: <span id="vol_detalle_lbl" style="color:#b00000; font-weight:bold;">0.0000 m³</span></label>
-</div>
-</div>
+            <button class="role" onclick="seleccionarRol('camionero')">
+                <span class="icon">🚚</span>
+                Camionero
+                <small>
+                    Revisa la carga antes de llevarla.
+                </small>
+            </button>
 
-<div style="margin-top:10px;">
-<label id="lblPhotoLabel">Respaldo Fotográfico Obligatorio de Recepción (Máx 3 fotos por pago)</label>
-<div class="filebox">
-<input id="fotos" type="file" accept="image/*" multiple>
-<div id="photoCount" class="count">0 fotos seleccionadas</div>
-<div id="photoPreview" class="thumb-container"></div>
-</div>
-</div>
+            <button class="role" onclick="seleccionarRol('dueno')">
+                <span class="icon">📦</span>
+                Dueño de la mercancía
+                <small>
+                    Revisa mercancía y documentos.
+                </small>
+            </button>
 
-<div style="margin-top:10px;">
-<label id="lblObsLabel">Observaciones de Recepción / Incidencias Físicas</label>
-<textarea id="descripcion" rows="2" placeholder="Detalle condiciones de tarimas, marcas de humedad, roturas en embalaje, etiquetas de riesgo..."></textarea>
-</div>
-</section>
+            <button class="role" onclick="seleccionarRol('forwarder')">
+                <span class="icon">📄</span>
+                Forwarder
+                <small>
+                    Revisa el expediente y sus datos.
+                </small>
+            </button>
 
-<div class="row">
-<button class="primary" onclick="revisar()" id="btnExecute">EJECUTAR ASESORÍA Y VALIDAR CARGA</button>
-<button class="secondary" onclick="limpiar()" id="btnClear">BORRAR DATOS</button>
-</div>
+            <button class="role" onclick="seleccionarRol('counter')">
+                <span class="icon">🧑‍💼</span>
+                Agente de Counter
+                <small>
+                    Realiza una revisión completa.
+                </small>
+            </button>
 
-<div id="busy">Procesando directrices normativas y control de recepción...</div>
+        </div>
 
-<section id="result">
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-  <h2 style="margin:0;" id="lblResultTitle">Directrices y Soluciones del Asesor</h2>
-  <div>
-    <button type="button" class="secondary" onclick="imprimirPDF()" style="padding:6px 12px;" id="btnPrintPdf">Imprimir / PDF</button>
-  </div>
-</div>
-<div id="summary" style="padding:12px; border-radius:6px; margin-bottom:10px; background:#f8f9fa;"></div>
-<div id="alerts"></div>
-<h3 id="lblControlPoints">Puntos de Control Normativo</h3>
-<div id="checks"></div>
-</section>
+        <div class="notice">
+            <strong>¿Qué buscamos?</strong><br>
+            Detectar errores antes de que la carga sea presentada.
+        </div>
+    </section>
+
+
+    <!-- =====================================================
+         FORMULARIO
+    ====================================================== -->
+
+    <section id="formulario" class="card hidden">
+
+        <button class="secondary back" onclick="volverInicio()">
+            ← Cambiar rol
+        </button>
+
+        <div class="step" id="rolTexto">Rol</div>
+
+        <h2 id="tituloRol">Revisión</h2>
+
+        <p class="sub" id="descripcionRol"></p>
+
+        <!-- CARGA -->
+        <label for="tipo_carga">¿Qué tipo de carga es?</label>
+
+        <select id="tipo_carga">
+            <option value="general">Carga general</option>
+            <option value="perecedera">Perecedera</option>
+            <option value="animal_vivo">Animal vivo</option>
+            <option value="peligrosa">Mercancía peligrosa</option>
+            <option value="valiosa">Mercancía de valor</option>
+            <option value="farmaceutica">Farmacéutica</option>
+            <option value="otra">Otra</option>
+        </select>
+
+        <label for="descripcion">
+            Describe la mercancía
+        </label>
+
+        <textarea
+            id="descripcion"
+            placeholder="Ejemplo: 10 cajas de repuestos de automóvil"
+        ></textarea>
+
+        <!-- CANTIDAD -->
+        <label for="piezas">Cantidad de piezas</label>
+        <input
+            id="piezas"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="Ejemplo: 10"
+        >
+
+        <label for="peso">Peso total</label>
+        <input
+            id="peso"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Ejemplo: 250"
+        >
+
+        <!-- DIMENSIONES -->
+        <label>Dimensiones</label>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+            <input id="largo" type="number" min="0" step="0.01" placeholder="Largo">
+            <input id="ancho" type="number" min="0" step="0.01" placeholder="Ancho">
+            <input id="alto" type="number" min="0" step="0.01" placeholder="Alto">
+        </div>
+
+        <p class="mini">
+            Introduce las dimensiones de la carga. Si hay varias piezas con
+            dimensiones diferentes, el resultado debe revisarse antes de continuar.
+        </p>
+
+        <!-- EMBALAJE -->
+        <label for="embalaje">¿Cómo está el embalaje?</label>
+
+        <select id="embalaje">
+            <option value="">Selecciona</option>
+            <option value="intacto">Intacto</option>
+            <option value="danado">Dañado</option>
+            <option value="humedo">Húmedo</option>
+            <option value="roto">Roto</option>
+            <option value="deformado">Deformado</option>
+            <option value="no_verificable">No puedo verificarlo</option>
+        </select>
+
+        <!-- DATOS AVANZADOS -->
+        <div id="datosAvanzados">
+
+            <label for="shipper">Remitente</label>
+            <input id="shipper" placeholder="Nombre del remitente">
+
+            <label for="consignee">Destinatario</label>
+            <input id="consignee" placeholder="Nombre del destinatario">
+
+            <label for="origen">Origen</label>
+            <input id="origen" placeholder="Origen">
+
+            <label for="destino">Destino</label>
+            <input id="destino" placeholder="Destino">
+
+            <label for="awb">
+                AWB
+            </label>
+
+            <input
+                id="awb"
+                placeholder="Número de AWB, si corresponde"
+            >
+
+        </div>
+
+        <!-- DOCUMENTOS -->
+        <label>Documentos</label>
+
+        <div class="upload">
+            <strong>Sube los documentos que tengas</strong>
+
+            <p class="mini">
+                La aplicación revisará el contenido disponible.
+                Un archivo vacío, ilegible o que no corresponda puede detener la revisión.
+            </p>
+
+            <input
+                id="documentos"
+                type="file"
+                accept=".pdf,application/pdf"
+                multiple
+            >
+        </div>
+
+        <!-- FOTOS -->
+        <label>Fotos de la carga</label>
+
+        <div class="upload">
+
+            <strong>
+                Puedes agregar fotos de la carga
+            </strong>
+
+            <p class="mini">
+                Carga, embalaje, marcas, etiquetas o daños.
+            </p>
+
+            <input
+                id="fotos"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+            >
+
+        </div>
+
+        <div class="notice">
+            <strong>Importante</strong><br>
+            Si encontramos un problema, te diremos qué debes corregir antes de continuar.
+        </div>
+
+        <div class="actions">
+            <button
+                class="primary"
+                id="btnRevisar"
+                onclick="revisarCarga()"
+            >
+                Revisar mi carga
+            </button>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         RESULTADO
+    ====================================================== -->
+
+    <section id="resultado" class="card hidden">
+
+        <button class="secondary" onclick="volverFormulario()">
+            ← Volver
+        </button>
+
+        <div id="resultadoCaja" class="result"></div>
+
+        <div id="problemas" class="result-list"></div>
+
+        <div class="actions">
+            <button
+                class="primary"
+                onclick="volverFormulario()"
+            >
+                Corregir y revisar nuevamente
+            </button>
+
+            <button
+                class="secondary"
+                onclick="nuevoProceso()"
+            >
+                Nueva revisión
+            </button>
+        </div>
+
+    </section>
 
 </main>
 
-<div id="modalImg" onclick="cerrarModal()">
- <img id="imgAmpliada" src="">
-</div>
-
-<!-- Modal de Advertencia por Inactividad (59 segundos) -->
-<div id="warningModal">
-  <div class="warning-box">
-    <h3 style="color:#b00000; margin-top:0;">⚠️ Advertencia de Inactividad</h3>
-    <p style="font-size:12px;" id="warningText">Han pasado cerca de 59 segundos sin actividad. Toque la pantalla o haga clic en el botón para mantener sus datos activos.</p>
-    <button type="button" class="primary" onclick="ocultarAdvertenciaInactividad()">Continuar Trabajando</button>
-  </div>
-</div>
 
 <script>
-const $=id=>document.getElementById(id);
 
-// Sistema de control de inactividad (59 seg advertencia, 4 min reset)
-let idleTime = 0;
-const idleInterval = setInterval(timerIncrement, 1000);
+let rolActual = "";
 
-function timerIncrement() {
-    idleTime++;
-    if (idleTime === 59) {
-        $("warningModal").style.display = "flex";
-    }
-    if (idleTime >= 240) { // 4 minutos
-        clearInterval(idleInterval);
-        limpiar();
-        alert("Sesión pausada por inactividad prolongada (más de 4 minutos). Los datos temporales han sido reseteados.");
-        $("warningModal").style.display = "none";
-    }
-}
-
-document.onmousemove = document.onkeypress = document.onclick = function() {
-    idleTime = 0;
-};
-
-function ocultarAdvertenciaInactividad(){
-    $("warningModal").style.display = "none";
-    idleTime = 0;
-}
-
-// Control de Idioma (Por defecto Inglés, opción a Español)
-let currentLang = 'en';
-
-const translations = {
-    en: {
-        title: "SmartCargo Advisory",
-        subtitle: "Specialized Technical Advisory: Avianca Cargo, Bellies (PAX), GSA, Interlines, Transfer, COMAT",
-        sec1: "1. Operation, Route & Aircraft (Bellies / Main Deck)",
-        actor: "Operational Role",
-        awb: "AWB or Reference / COMAT ID",
-        route: "Origin -> Destination",
-        flight: "Flight",
-        aircraft: "Aircraft Type",
-        position: "Cargo Position / Location",
-        sec2: "2. Documentation, Manifests & Legal Control",
-        docHelp: "Internal classification of originals, copies, pouch envelopes, permits and financial vouchers.",
-        docAwb: "Air Waybill (AWB) / Manifest",
-        docOga: "Government Permits / OGA",
-        docPay: "Financial Control (Checks / Payments)",
-        attachPdf: "Attach PDF Documentation (Manifests, AWBs, Invoices, Permits, Vouchers)",
-        sec3: "3. Physical Reception, Unit Types (Drum, Cage, Crate, Pallet) & Breakdown",
-        uldType: "Unit Load Device (ULD / Skid / Packaging)",
-        cargoCat: "Specific Cargo Category",
-        measureMode: "Measurement Reception Mode",
-        pieces: "Total Quantity of Items / Pieces",
-        grossWeight: "Total Gross Weight (kg)",
-        length: "Length (cm)",
-        width: "Width (cm)",
-        height: "Height (cm)",
-        volume: "Calc. Volume (m³)",
-        photoLabel: "Mandatory Photographic Backup (Max 3 photos per payment)",
-        obsLabel: "Reception Observations / Physical Incidents",
-        execute: "EXECUTE ADVISORY & VALIDATE CARGO",
-        clear: "CLEAR DATA",
-        resultTitle: "Advisor Directives & Solutions",
-        controlPoints: "Regulatory Control Points",
-        printPdf: "Print / PDF"
+const roles = {
+    camionero: {
+        nombre: "Camionero",
+        descripcion:
+            "Comprueba que tu carga esté preparada antes de llevarla a presentar."
     },
-    es: {
-        title: "SmartCargo Advisory",
-        subtitle: "Asesoría Técnica Especializada: Avianca Cargo, Bellies (PAX), GSA, Interlines, Transfer, COMAT",
-        sec1: "1. Operación, Ruta y Aeronave (Bellies / Bodega Principal)",
-        actor: "Rol Operativo",
-        awb: "AWB o Referencia / COMAT ID",
-        route: "Origen &rarr; Destino",
-        flight: "Vuelo",
-        aircraft: "Tipo de Aeronave",
-        position: "Ubicación / Posición de Carga",
-        sec2: "2. Control de Papelería, Manifiestos y Documentación Legal",
-        docHelp: "Clasificación interna de originales, copias, sobres de pouch, permisos y comprobantes financieros.",
-        docAwb: "Air Waybill (AWB) / Manifiesto",
-        docOga: "Permisos Gubernamentales / OGA",
-        docPay: "Control Financiero (Cheques / Pagos)",
-        attachPdf: "Adjuntar Documentación PDF (Manifiesto, Guías, Facturas, Permisos, Cheques)",
-        sec3: "3. Recepción Física, Tipos de Unidades (Drum, Cage, Crate, Pallet) y Desglose",
-        uldType: "Unidad de Carga (ULD / Estiba / Embalaje)",
-        cargoCat: "Categoría Específica de la Mercancía",
-        measureMode: "Modo de Recepción de Medidas",
-        pieces: "Cantidad Total de Artículos / Piezas",
-        grossWeight: "Peso Bruto Total (kg)",
-        length: "Largo (cm)",
-        width: "Ancho (cm)",
-        height: "Alto (cm)",
-        volume: "Volumen Calc. (m³)",
-        photoLabel: "Respaldo Fotográfico Obligatorio de Recepción (Máx 3 fotos por pago)",
-        obsLabel: "Observaciones de Recepción / Incidencias Físicas",
-        execute: "EJECUTAR ASESORÍA Y VALIDAR CARGA",
-        clear: "BORRAR DATOS",
-        resultTitle: "Directrices y Soluciones del Asesor",
-        controlPoints: "Puntos de Control Normativo",
-        printPdf: "Imprimir / PDF"
+
+    dueno: {
+        nombre: "Dueño de la mercancía",
+        descripcion:
+            "Revisa tu mercancía y tus documentos antes de continuar."
+    },
+
+    forwarder: {
+        nombre: "Forwarder",
+        descripcion:
+            "Revisa el expediente y busca diferencias entre documentos y datos."
+    },
+
+    counter: {
+        nombre: "Agente de Counter",
+        descripcion:
+            "Realiza una revisión completa de documentos, carga y datos."
     }
 };
 
-function setLanguage(lang) {
-    currentLang = lang;
-    $("htmlRoot").lang = lang;
-    const t = translations[lang];
-    $("lblTitle").textContent = t.title;
-    $("lblSubtitle").textContent = t.subtitle;
-    $("sec1Title").textContent = t.sec1;
-    $("lblActor").textContent = t.actor;
-    $("lblAwb").textContent = t.awb;
-    $("lblRoute").innerHTML = t.route;
-    $("lblFlight").textContent = t.flight;
-    $("lblAircraft").textContent = t.aircraft;
-    $("lblPosition").textContent = t.position;
-    $("sec2Title").textContent = t.sec2;
-    $("lblDocHelp").textContent = t.docHelp;
-    $("lblDocAwb").textContent = t.docAwb;
-    $("lblDocOga").textContent = t.docOga;
-    $("lblDocPay").textContent = t.docPay;
-    $("lblAttachPdf").textContent = t.attachPdf;
-    $("sec3Title").textContent = t.sec3;
-    $("lblUldType").textContent = t.uldType;
-    $("lblCargoCat").textContent = t.cargoCat;
-    $("lblMeasureMode").textContent = t.measureMode;
-    $("lblPieces").textContent = t.pieces;
-    $("lblGrossWeight").textContent = t.grossWeight;
-    $("lblLength").textContent = t.length;
-    $("lblWidth").textContent = t.width;
-    $("lblHeight").textContent = t.height;
-    $("lblVolume").textContent = t.volume;
-    $("lblPhotoLabel").textContent = t.photoLabel;
-    $("lblObsLabel").textContent = t.obsLabel;
-    $("btnExecute").textContent = t.execute;
-    $("btnClear").textContent = t.clear;
-    $("lblResultTitle").textContent = t.resultTitle;
-    $("lblControlPoints").textContent = t.controlPoints;
-    $("btnPrintPdf").textContent = t.printPdf;
+
+function seleccionarRol(rol) {
+
+    rolActual = rol;
+
+    document.getElementById("inicio").classList.add("hidden");
+    document.getElementById("resultado").classList.add("hidden");
+    document.getElementById("formulario").classList.remove("hidden");
+
+    const info = roles[rol];
+
+    document.getElementById("rolTexto").textContent =
+        info.nombre;
+
+    document.getElementById("tituloRol").textContent =
+        info.nombre;
+
+    document.getElementById("descripcionRol").textContent =
+        info.descripcion;
+
+    // Los datos detallados se reservan para forwarder y counter.
+    const avanzados = document.getElementById("datosAvanzados");
+
+    if (rol === "forwarder" || rol === "counter") {
+        avanzados.classList.remove("hidden");
+    } else {
+        avanzados.classList.add("hidden");
+    }
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
 }
 
-function actualizarLimitesAeronave(){
- const av = $("aeronave").value;
- const box = $("info_aeronave");
- if(av === "a320"){
-  box.innerHTML = "<b>A320/A321 (Narrowbody):</b> Solo compartimiento inferior (Belly). Altura máxima de puerta de bodega: ~110 cm. No admite pallets estándar PMC; solo contenedores bajos (AKH/LD3-45) o carga suelta.";
- } else if(av === "a330_pax"){
-  box.innerHTML = "<b>A330 Passenger (Widebody):</b> Bodega inferior (Belly) apta para contenedores AKE/LD3 y pallets de contorno bajo. Peso máximo por ULD: 1,588 kg.";
- } else if(av === "a330_f"){
-  box.innerHTML = "<b>A330 Freighter (Carga):</b> Cubierta principal admite pallets PMC (125\"x96\") hasta 6,800 kg por posición. Bodega inferior para AKE y carga suelta.";
- } else if(av === "b787"){
-  box.innerHTML = "<b>B787 Dreamliner:</b> Bodega con capacidad para contenedores AKE y tarimas perfiladas. Control estricto de balance en belly.";
- } else if(av === "atr"){
-  box.innerHTML = "<b>ATR 72 (Turbohélice):</b> Restricción severa de peso por posición y dimensiones de puerta de carga trasera. No apto para ULDs rígidos grandes.";
- }
-}
-actualizarLimitesAeronave();
 
-function cambiarModoMedicion(){
- const modo = $("modo_medicion").value;
- if(modo === "detalle"){
-  $("seccion_general").style.display = "none";
-  $("seccion_detalle").style.display = "block";
- } else {
-  $("seccion_general").style.display = "grid";
-  $("seccion_detalle").style.display = "none";
- }
+function volverInicio() {
+
+    document.getElementById("formulario").classList.add("hidden");
+    document.getElementById("resultado").classList.add("hidden");
+    document.getElementById("inicio").classList.remove("hidden");
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
 }
 
-function calcularVolumen() {
- const p = parseFloat($("piezas").value) || 0;
- const l = parseFloat($("largo").value) || 0;
- const w = parseFloat($("ancho").value) || 0;
- const h = parseFloat($("alto").value) || 0;
- if(p > 0 && l > 0 && w > 0 && h > 0) {
-  const vol = (l * w * h * p) / 1000000;
-  $("volumen_auto").value = vol.toFixed(4) + " m³";
- } else {
-  $("volumen_auto").value = "0.0000 m³";
- }
+
+function volverFormulario() {
+
+    document.getElementById("resultado").classList.add("hidden");
+    document.getElementById("formulario").classList.remove("hidden");
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
 }
 
-function agregarFilaDetalle(){
- const tabla = $("tablaDetalle");
- const fila = tabla.insertRow(-1);
- fila.innerHTML = `
-  <td><input type="text" value="Artículo" class="d-desc"></td>
-  <td><input type="number" value="1" min="1" class="d-pz" oninput="calcularVolumenDetalle()"></td>
-  <td><input type="number" value="0" min="0" step="0.1" class="d-l" oninput="calcularVolumenDetalle()"></td>
-  <td><input type="number" value="0" min="0" step="0.1" class="d-an" oninput="calcularVolumenDetalle()"></td>
-  <td><input type="number" value="0" min="0" step="0.1" class="d-al" oninput="calcularVolumenDetalle()"></td>
-  <td><input type="number" value="0" min="0" step="0.01" class="d-peso"></td>
-  <td><button type="button" class="secondary" onclick="eliminarFila(this)" style="padding:4px 8px;">X</button></td>
- `;
+
+function nuevoProceso() {
+
+    rolActual = "";
+
+    document.querySelectorAll(
+        "#formulario input, #formulario textarea"
+    ).forEach(el => {
+        el.value = "";
+    });
+
+    document.getElementById("tipo_carga").value = "general";
+    document.getElementById("embalaje").value = "";
+
+    document.getElementById("documentos").value = "";
+    document.getElementById("fotos").value = "";
+
+    volverInicio();
 }
 
-function eliminarFila(btn){
- const fila = btn.parentNode.parentNode;
- if(fila.parentNode.rows.length > 2){
-  fila.parentNode.removeChild(fila);
-  calcularVolumenDetalle();
- }
+
+async function revisarCarga() {
+
+    const boton = document.getElementById("btnRevisar");
+
+    boton.disabled = true;
+    boton.textContent = "Revisando...";
+
+    try {
+
+        const datos = new FormData();
+
+        datos.append("rol", rolActual);
+        datos.append(
+            "tipo_carga",
+            document.getElementById("tipo_carga").value
+        );
+
+        datos.append(
+            "descripcion",
+            document.getElementById("descripcion").value
+        );
+
+        datos.append(
+            "piezas",
+            document.getElementById("piezas").value || "0"
+        );
+
+        datos.append(
+            "peso",
+            document.getElementById("peso").value || "0"
+        );
+
+        datos.append(
+            "largo",
+            document.getElementById("largo").value || "0"
+        );
+
+        datos.append(
+            "ancho",
+            document.getElementById("ancho").value || "0"
+        );
+
+        datos.append(
+            "alto",
+            document.getElementById("alto").value || "0"
+        );
+
+        datos.append(
+            "embalaje",
+            document.getElementById("embalaje").value
+        );
+
+        datos.append(
+            "shipper",
+            document.getElementById("shipper").value
+        );
+
+        datos.append(
+            "consignee",
+            document.getElementById("consignee").value
+        );
+
+        datos.append(
+            "origen",
+            document.getElementById("origen").value
+        );
+
+        datos.append(
+            "destino",
+            document.getElementById("destino").value
+        );
+
+        datos.append(
+            "awb",
+            document.getElementById("awb").value
+        );
+
+        const documentos =
+            document.getElementById("documentos").files;
+
+        for (const archivo of documentos) {
+            datos.append("documentos", archivo);
+        }
+
+        const fotos =
+            document.getElementById("fotos").files;
+
+        for (const archivo of fotos) {
+            datos.append("fotos", archivo);
+        }
+
+        const respuesta = await fetch(
+            "/api/smartcargo/resolver",
+            {
+                method: "POST",
+                body: datos
+            }
+        );
+
+        let resultado;
+
+        try {
+            resultado = await respuesta.json();
+        } catch {
+            throw new Error(
+                "El servidor no devolvió una respuesta válida."
+            );
+        }
+
+        if (!respuesta.ok) {
+            throw new Error(
+                resultado.detail ||
+                resultado.message ||
+                "No se pudo realizar la revisión."
+            );
+        }
+
+        mostrarResultado(resultado);
+
+    } catch (error) {
+
+        mostrarError(
+            error.message ||
+            "Ocurrió un error durante la revisión."
+        );
+
+    } finally {
+
+        boton.disabled = false;
+        boton.textContent = "Revisar mi carga";
+    }
 }
 
-function calcularVolumenDetalle(){
- let volTotal = 0;
- const filas = document.querySelectorAll("#tablaDetalle tr");
- for(let i=1; i<filas.length; i++){
-  const pz = parseFloat(filas[i].querySelector(".d-pz").value) || 0;
-  const l = parseFloat(filas[i].querySelector(".d-l").value) || 0;
-  const an = parseFloat(filas[i].querySelector(".d-an").value) || 0;
-  const al = parseFloat(filas[i].querySelector(".d-al").value) || 0;
-  volTotal += (l * an * al * pz) / 1000000;
- }
- $("vol_detalle_lbl").textContent = volTotal.toFixed(4) + " m³";
+
+function mostrarResultado(data) {
+
+    document.getElementById("formulario")
+        .classList.add("hidden");
+
+    document.getElementById("resultado")
+        .classList.remove("hidden");
+
+    const caja =
+        document.getElementById("resultadoCaja");
+
+    const lista =
+        document.getElementById("problemas");
+
+    lista.innerHTML = "";
+
+    if (data.estado === "LISTO") {
+
+        caja.className = "result ready";
+
+        caja.innerHTML = `
+            <h2>✅ LISTO</h2>
+            <p>
+                ${escapeHTML(data.resumen || "")}
+            </p>
+            <p class="mini">
+                Esta es una revisión previa de la información proporcionada.
+            </p>
+        `;
+
+    } else if (data.estado === "REVISAR") {
+
+        caja.className = "result review-box";
+
+        caja.innerHTML = `
+            <h2>⚠️ REVISAR</h2>
+            <p>
+                ${escapeHTML(data.resumen || "")}
+            </p>
+            <p>
+                No continúes hasta revisar los puntos indicados.
+            </p>
+        `;
+
+    } else {
+
+        caja.className = "result correct";
+
+        caja.innerHTML = `
+            <h2>❌ CORREGIR</h2>
+            <p>
+                ${escapeHTML(data.resumen || "")}
+            </p>
+            <p>
+                Corrige los problemas indicados y vuelve a revisar.
+            </p>
+        `;
+    }
+
+    const problemas = data.problemas || [];
+
+    if (!problemas.length) {
+
+        lista.innerHTML = `
+            <div class="check">
+                No se detectaron problemas pendientes.
+            </div>
+        `;
+
+    } else {
+
+        problemas.forEach(problema => {
+
+            const div =
+                document.createElement("div");
+
+            div.className =
+                "problem" +
+                (
+                    problema.estado === "REVISAR"
+                        ? " review"
+                        : ""
+                );
+
+            div.innerHTML = `
+                <strong>
+                    ${escapeHTML(problema.mensaje || "Problema detectado")}
+                </strong>
+
+                ${
+                    problema.accion
+                    ? `<div>${escapeHTML(problema.accion)}</div>`
+                    : ""
+                }
+
+                ${
+                    problema.codigo
+                    ? `<div class="mini">Referencia: ${escapeHTML(problema.codigo)}</div>`
+                    : ""
+                }
+            `;
+
+            lista.appendChild(div);
+        });
+    }
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
 }
 
-$("pdfs").addEventListener("change",()=>{
- const n=$("pdfs").files.length;
- $("pdfCount").textContent=`${n} documento${n===1?"":"s"} seleccionado${n===1?"":"s"}`;
-});
 
-$("fotos").addEventListener("change",(e)=>{
- const files = e.target.files;
- if(files.length > 3) {
-     alert("Nota: Se recomienda un máximo de 3 fotos por pago para optimizar el análisis.");
- }
- const container = $("photoPreview");
- container.innerHTML = "";
- $("photoCount").textContent = `${files.length} foto${files.length===1?"":"s"} seleccionada${files.length===1?"":"s"}`;
- for(const file of files){
-  const reader = new FileReader();
-  reader.onload = function(evt){
-   const img = document.createElement("img");
-   img.src = evt.target.result;
-   img.className = "thumb";
-   img.onclick = function(){
-    $("imgAmpliada").src = this.src;
-    $("modalImg").style.display = "flex";
-   };
-   container.appendChild(img);
-  };
-  reader.readAsDataURL(file);
- }
-});
+function mostrarError(mensaje) {
 
-function cerrarModal(){
- $("modalImg").style.display = "none";
+    document.getElementById("formulario")
+        .classList.add("hidden");
+
+    document.getElementById("resultado")
+        .classList.remove("hidden");
+
+    const caja =
+        document.getElementById("resultadoCaja");
+
+    caja.className = "result correct";
+
+    caja.innerHTML = `
+        <h2>❌ No se pudo completar la revisión</h2>
+        <p>${escapeHTML(mensaje)}</p>
+        <p>
+            Corrige el problema e inténtalo nuevamente.
+        </p>
+    `;
+
+    document.getElementById("problemas")
+        .innerHTML = "";
 }
 
-function imprimirPDF(){
-    window.print();
+
+function escapeHTML(valor) {
+
+    return String(valor)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
-function add(fd,name,id){
- fd.append(name,$(id).value);
-}
-
-async function revisar(){
- const fd=new FormData();
- add(fd,"actor","actor");
- add(fd,"awb_numero","awb");
- add(fd,"origen","origen");
- add(fd,"destino","destino");
- add(fd,"vuelo","vuelo");
- add(fd,"aeronave","aeronave");
- add(fd,"posicion_carga","posicion_carga");
- add(fd,"tipo_uld","tipo_uld");
- add(fd,"categoria_mercancia","categoria_mercancia");
- add(fd,"doc_awb_tipo","doc_awb_tipo");
- add(fd,"doc_permisos","doc_permisos");
- add(fd,"doc_pagos","doc_pagos");
- add(fd,"descripcion","descripcion");
- fd.append("lang", currentLang);
-
- const modo = $("modo_medicion").value;
- fd.append("modo_medicion", modo);
-
- if(modo === "detalle"){
-  let piezasTotales = 0;
-  let pesoTotal = 0;
-  const filas = document.querySelectorAll("#tablaDetalle tr");
-  let detalleItems = [];
-  for(let i=1; i<filas.length; i++){
-   const desc = filas[i].querySelector(".d-desc").value;
-   const pz = parseFloat(filas[i].querySelector(".d-pz").value) || 0;
-   const l = parseFloat(filas[i].querySelector(".d-l").value) || 0;
-   const an = parseFloat(filas[i].querySelector(".d-an").value) || 0;
-   const al = parseFloat(filas[i].querySelector(".d-al").value) || 0;
-   const ps = parseFloat(filas[i].querySelector(".d-peso").value) || 0;
-   piezasTotales += pz;
-   pesoTotal += ps;
-   detalleItems.push(`${desc}: ${pz}pz (${l}x${an}x${al}cm, ${ps}kg)`);
-  }
-  fd.append("piezas", piezasTotales);
-  fd.append("peso_kg", pesoTotal);
-  fd.append("detalle_bultos", JSON.stringify(detalleItems));
- } else {
-  add(fd,"piezas","piezas");
-  add(fd,"peso_kg","peso");
-  add(fd,"largo_cm","largo");
-  add(fd,"ancho_cm","ancho");
-  add(fd,"alto_cm","alto");
- }
-
- for(const f of $("pdfs").files) fd.append("pdfs",f);
- for(const f of $("fotos").files) fd.append("fotos",f);
-
- $("result").style.display="block";
- $("busy").style.display="block";
- $("summary").innerHTML="";
- $("alerts").innerHTML="";
- $("checks").innerHTML="";
-
- try{
-  const r=await fetch("/api/smartcargo/resolver",{method:"POST",body:fd});
-  const d=await r.json();
-  if(!r.ok) throw new Error(d.detail||"Error en la revisión.");
-
-  const status=d.estatus_general||"HOLD";
-  let statusBg="#fff4f4", statusColor="#b00000";
-  if(status==="ACCEPT"){ statusBg="#f1f9f4"; statusColor="#16733a"; }
-  else if(status==="HOLD"){ statusBg="#fffcf0"; statusColor="#9a6400"; }
-  else if(status==="ESCALATE"){ statusBg="#f4f1f9"; statusColor="#5b21b6"; }
-
-  $("summary").style.background = statusBg;
-  $("summary").innerHTML=`
-   <div style="font-size:18px; font-weight:bold; color:${statusColor}; margin-bottom:5px;">
-      DIRECCIÓN TÉCNICA: ${esc(status)}
-   </div>
-   <p style="margin:0 0 8px 0; font-size:12px;"><b>Instrucción directa:</b> ${esc(d.solucion_directa||"")}</p>
-   <div class="chips">
-    <span class="chip">AWB: ${esc(d.awb)}</span>
-    <span class="chip">Aeronave/Posición: ${esc(d.aeronave)} (${esc(d.posicion_carga)})</span>
-    <span class="chip">Unidad/Embalaje: ${esc(d.tipo_uld)}</span>
-    <span class="chip">Categoría: ${esc(d.categoria_mercancia)}</span>
-    <span class="chip">Volumen: ${esc(d.volumen_m3)} m³</span>
-   </div>
-  `;
-
-  if((d.alertas||[]).length){
-   $("alerts").innerHTML=d.alertas.map(a=>`
-    <div class="alert" style="border-left-color:${statusColor}">
-     <b>${esc(a.item)}</b>: ${esc(a.detalle)}
-    </div>
-   `).join("");
-  }else{
-   $("alerts").innerHTML="<div style='color:#16733a; font-size:11px; margin-bottom:8px;'>✓ Sin observaciones críticas en documentación y perfil físico.</div>";
-  }
-
-  $("checks").innerHTML=`
-   <table>
-    <tr><th>Componente Verificado</th><th>Estado</th><th>Instrucción Operativa</th></tr>
-    ${(d.checks||[]).map(x=>`
-     <tr>
-      <td>${esc(x.item)}</td>
-      <td><b>${esc(x.status)}</b></td>
-      <td>${esc(x.note)}</td>
-     </tr>`).join("")}
-   </table>`;
-
- }catch(e){
-  $("summary").style.background="#fff4f4";
-  $("summary").innerHTML=`
-   <div style="font-size:16px; font-weight:bold; color:#b00000; margin-bottom:5px;">
-      ESTADO: HOLD / RECHAZO OPERATIVO
-   </div>
-   <p style="margin:0; font-size:12px; color:#b00000;"><b>Atención:</b> ${esc(e.message)}</p>
-  `;
- }finally{
-  $("busy").style.display="none";
- }
-}
-
-function esc(v){
- return String(v || "")
-  .replace(/&/g,"&amp;")
-  .replace(/</g,"&lt;")
-  .replace(/>/g,"&gt;")
-  .replace(/"/g,"&quot;")
-  .replace(/'/g,"&#039;");
-}
-
-function limpiar(){
- $("actor").value="counter";
- ["awb","origen","destino","vuelo","piezas","peso","largo","ancho","alto","descripcion","volumen_auto"]
- .forEach(id=>{ if($(id)) $(id).value=""; });
- $("aeronave").value="a320";
- actualizarLimitesAeronave();
- $("posicion_carga").value="belly";
- $("tipo_uld").value="ake";
- $("categoria_mercancia").value="general";
- $("doc_awb_tipo").value="original";
- $("doc_permisos").value="completos";
- $("doc_pagos").value="verificado";
- $("modo_medicion").value="general";
- cambiarModoMedicion();
- $("pdfs").value="";
- $("fotos").value="";
- $("pdfCount").textContent="0 documentos seleccionados";
- $("photoCount").textContent="0 fotos seleccionadas";
- $("photoPreview").innerHTML="";
- $("result").style.display="none";
- $("busy").style.display="none";
-}
 </script>
 
 </body>
