@@ -1,156 +1,595 @@
 import os
-import json
 import re
-from typing import List, Optional
+import json
+import math
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, Form, File, UploadFile, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi import FastAPI, Request, UploadFile, File, Form
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 # ============================================================
-# SMARTCARGO ADVISORY
+# SMARTCARGO — MOTOR PRINCIPAL
 # ============================================================
 
-app = FastAPI(title="SmartCargo Advisory")
+BASE_DIR = Path(__file__).resolve().parent
+TEMPLATES_DIR = BASE_DIR / "templates"
+STATIC_DIR = BASE_DIR / "static"
+RULES_FILE = BASE_DIR / "smartcargo_rules.json"
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
-RULES_FILE = os.path.join(BASE_DIR, "smartcargo_rules.json")
-STATIC_DIR = os.path.join(BASE_DIR, "static")
+app = FastAPI(title="SMARTCARGO", version="5.0.0")
 
-templates = Jinja2Templates(directory=TEMPLATES_DIR)
-templates.env.cache = None
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
-if os.path.isdir(STATIC_DIR):
-    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+if STATIC_DIR.exists():
+    app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 
 # ============================================================
-# CARGAR REGLAS
+# REGLAS
 # ============================================================
 
-def cargar_reglas():
+def cargar_reglas() -> Dict[str, Any]:
     try:
         with open(RULES_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        return data.get("smartcargo_advisory_engine", {})
+            return json.load(f)
     except Exception as e:
-        raise RuntimeError(f"No se pudo cargar smartcargo_rules.json: {e}")
+        print(f"[SMARTCARGO] Error cargando reglas: {e}")
+        return {}
 
 
 RULES = cargar_reglas()
 
 
 # ============================================================
-# FUNCIONES AUXILIARES
+# UTILIDADES
 # ============================================================
 
-def regla_por_condicion(**kwargs):
-    for regla in RULES.get("matriz_decision_operacional", []):
-        if all(regla.get(k) == v for k, v in kwargs.items()):
-            return regla
-    return None
+def texto(valor: Any) -> str:
+    if valor is None:
+        return ""
+    return str(valor).strip()
 
 
-def agregar_regla(alertas, checks, regla):
-    if not regla:
-        return
-
-    for p in regla.get("puntos_criticos", []):
-        checks.append({
-            "item": p.get("item", "Control"),
-            "status": p.get("status", "CHECK"),
-            "note": p.get("note", "")
-        })
-
-    mandato = regla.get("mandato", "HOLD")
-
-    if mandato != "ACCEPT":
-        alertas.append({
-            "item": "Regla Operacional",
-            "detalle": regla.get("instruccion_directa", "")
-        })
+def normalizar(valor: Any) -> str:
+    s = texto(valor).lower()
+    s = re.sub(r"\s+", " ", s)
+    return s.strip()
 
 
-def calcular_volumen_general(piezas, largo, ancho, alto):
-    if piezas > 0 and largo > 0 and ancho > 0 and alto > 0:
-        return (largo * ancho * alto * piezas) / 1000000.0
+def numero(valor: Any) -> float:
+    if valor is None:
+        return 0.0
+    s = str(valor).replace(",", ".")
+    m = re.search(r"-?\d+(?:\.\d+)?", s)
+    return float(m.group()) if m else 0.0
+
+
+def entero(valor: Any) -> int:
+    try:
+        return int(round(numero(valor)))
+    except Exception:
+        return 0
+
+
+def agregar(problemas: List[Dict[str, Any]], codigo: str,
+            estado: str, mensaje: str, accion: str = ""):
+    problemas.append({
+        "codigo": codigo,
+        "estado": estado,
+        "mensaje": mensaje,
+        "accion": accion
+    })
+
+
+def tiene_error(problemas: List[Dict[str, Any]]) -> bool:
+    return any(p["estado"] in ("ERROR", "BLOQUEADO") for p in problemas)
+
+
+def tiene_revision(problemas: List[Dict[str, Any]]) -> bool:
+    return any(p["estado"] == "REVISAR" for p in problemas)
+
+
+def resultado_final(problemas: List[Dict[str, Any]]) -> str:
+    if tiene_error(problemas):
+        return "CORREGIR"
+    if tiene_revision(problemas):
+        return "REVISAR"
+    return "LISTO"
+
+
+# ============================================================
+# PDF
+# ============================================================
+
+def extraer_pdf(archivo: UploadFile) -> Dict[str, Any]:
+    """
+    Lee un PDF real cuando existe un lector PDF disponible.
+    No inventa texto si el PDF no puede leerse.
+    """
+
+    nombre = texto(archivo.filename)
+
+    if not nombre.lower().endswith(".pdf"):
+        return {
+            "ok": False,
+            "estado": "ERROR",
+            "codigo": "DOC001",
+            "mensaje": "El archivo no es un PDF valido.",
+            "texto": "",
+            "paginas": 0
+        }
+
+    try:
+        contenido = archivo.file.read()
+    except Exception:
+        contenido = b""
+
+    if not contenido:
+        return {
+            "ok": False,
+            "estado": "ERROR",
+            "codigo": "DOC002",
+            "mensaje": "El archivo no contiene informacion util.",
+            "texto": "",
+            "paginas": 0
+        }
+
+    # Intentar PyPDF2
+    lector = None
+
+    try:
+        from pypdf import PdfReader
+        import io
+
+        lector = PdfReader(io.BytesIO(contenido))
+
+    except Exception:
+        try:
+            from PyPDF2 import PdfReader
+            import io
+
+            lector = PdfReader(io.BytesIO(contenido))
+
+        except Exception:
+            return {
+                "ok": False,
+                "estado": "REVISAR",
+                "codigo": "DOC007",
+                "mensaje": "No se pudo leer el PDF con el lector disponible.",
+                "texto": "",
+                "paginas": 0
+            }
+
+    textos = []
+    errores = []
+
+    try:
+        paginas = len(lector.pages)
+    except Exception:
+        paginas = 0
+
+    if paginas == 0:
+        return {
+            "ok": False,
+            "estado": "ERROR",
+            "codigo": "DOC002",
+            "mensaje": "El PDF no contiene paginas utilizables.",
+            "texto": "",
+            "paginas": 0
+        }
+
+    for i, pagina in enumerate(lector.pages, start=1):
+        try:
+            t = pagina.extract_text() or ""
+            t = t.strip()
+
+            if not t:
+                errores.append({
+                    "pagina": i,
+                    "codigo": "DOC003",
+                    "estado": "ERROR",
+                    "mensaje": f"La pagina {i} no contiene texto util.",
+                    "accion": "Revisa la pagina o sube una copia legible."
+                })
+                textos.append("")
+                continue
+
+            # Elimina espacios excesivos
+            limpio = re.sub(r"\s+", " ", t).strip()
+
+            # Detectar basura evidente de OCR/extraccion
+            caracteres = re.sub(r"\s", "", limpio)
+
+            if len(caracteres) < 3:
+                errores.append({
+                    "pagina": i,
+                    "codigo": "DOC005",
+                    "estado": "ERROR",
+                    "mensaje": f"La pagina {i} no contiene informacion suficiente.",
+                    "accion": "Sube una copia correcta."
+                })
+                textos.append("")
+                continue
+
+            # Proporcion de caracteres alfanumericos
+            alnum = sum(c.isalnum() for c in caracteres)
+            proporcion = alnum / max(len(caracteres), 1)
+
+            if proporcion < 0.25:
+                errores.append({
+                    "pagina": i,
+                    "codigo": "DOC005",
+                    "estado": "ERROR",
+                    "mensaje": f"La pagina {i} contiene caracteres que no pueden verificarse.",
+                    "accion": "Revisa el documento y sube una copia legible."
+                })
+                textos.append("")
+                continue
+
+            textos.append(limpio)
+
+        except Exception:
+            errores.append({
+                "pagina": i,
+                "codigo": "DOC004",
+                "estado": "ERROR",
+                "mensaje": f"No se pudo leer correctamente la pagina {i}.",
+                "accion": "Sube una copia mas clara."
+            })
+            textos.append("")
+
+    texto_total = "\n".join(t for t in textos if t)
+
+    return {
+        "ok": not errores,
+        "estado": "ERROR" if errores else "OK",
+        "codigo": "",
+        "mensaje": "",
+        "texto": texto_total,
+        "paginas": paginas,
+        "errores": errores
+    }
+
+
+# ============================================================
+# TEXTO DEL PDF
+# ============================================================
+
+def texto_pdf_contiene(texto_pdf: str, termino: str) -> bool:
+    return normalizar(termino) in normalizar(texto_pdf)
+
+
+def parece_documento_relacionado(texto_pdf: str, tipo_carga: str) -> bool:
+    """
+    Filtro conservador.
+    Si el PDF contiene vocabulario claramente relacionado,
+    se acepta para revisión.
+    Si no hay ninguna señal, se marca para revisión y no se inventa.
+    """
+
+    t = normalizar(texto_pdf)
+
+    palabras_generales = [
+        "awb",
+        "air waybill",
+        "shipper",
+        "consignee",
+        "cargo",
+        "freight",
+        "carga",
+        "peso",
+        "weight",
+        "pieces",
+        "pieces",
+        "piezas",
+        "description",
+        "descripcion",
+        "invoice",
+        "factura",
+        "packing",
+        "embalaje",
+        "permit",
+        "permiso",
+        "certificate",
+        "certificado",
+        "shipment",
+        "embarque",
+        "transport"
+    ]
+
+    especiales = {
+        "peligrosa": [
+            "dangerous goods",
+            "dangerous",
+            "hazmat",
+            "iata",
+            "un ",
+            "class",
+            "packing instruction",
+            "mercancia peligrosa"
+        ],
+        "perecedera": [
+            "perishable",
+            "perecedera",
+            "temperature",
+            "temperatura",
+            "fresh",
+            "frozen"
+        ],
+        "animal_vivo": [
+            "live animal",
+            "animal vivo",
+            "animal",
+            "veterinary",
+            "veterinario"
+        ],
+        "farmaceutica": [
+            "pharmaceutical",
+            "pharma",
+            "medicamento",
+            "medicine",
+            "temperature"
+        ]
+    }
+
+    if any(p in t for p in palabras_generales):
+        return True
+
+    for p in especiales.get(normalizar(tipo_carga), []):
+        if p in t:
+            return True
+
+    return False
+
+
+# ============================================================
+# EXTRAER CAMPOS SENCILLOS DEL TEXTO
+# ============================================================
+
+def extraer_numero_patron(texto_pdf: str, patrones: List[str]) -> float:
+    for patron in patrones:
+        m = re.search(patron, texto_pdf, re.I)
+        if m:
+            try:
+                return float(m.group(1).replace(",", "."))
+            except Exception:
+                pass
     return 0.0
 
 
-def calcular_volumen_detalle(detalle_bultos):
-    """
-    El frontend envía cada artículo como:
-    Descripción: 2pz (100x50x40cm, 20kg)
-    """
-    total = 0.0
-
-    if not detalle_bultos:
-        return total
-
-    try:
-        items = json.loads(detalle_bultos)
-    except Exception:
-        return total
-
-    patron = re.compile(
-        r":\s*(\d+(?:\.\d+)?)pz\s*"
-        r"\((\d+(?:\.\d+)?)x"
-        r"(\d+(?:\.\d+)?)x"
-        r"(\d+(?:\.\d+)?)cm",
-        re.I
-    )
-
-    for item in items:
-        if not isinstance(item, str):
-            continue
-
-        m = patron.search(item)
-        if not m:
-            continue
-
-        piezas = float(m.group(1))
-        largo = float(m.group(2))
-        ancho = float(m.group(3))
-        alto = float(m.group(4))
-
-        total += (largo * ancho * alto * piezas) / 1000000.0
-
-    return total
-
-
-def contiene_dano(texto):
-    texto = (texto or "").lower()
-
-    palabras = [
-        "humedo", "húmedo",
-        "humedad",
-        "mojado",
-        "mojada",
-        "wet",
-        "moisture",
-        "wetness",
-        "roto",
-        "rota",
-        "rotura",
-        "dañado",
-        "danado",
-        "damage",
-        "damaged",
-        "broken",
-        "abierto",
-        "abierta",
-        "open",
-        "leak",
-        "derrame"
-    ]
-
-    return any(p in texto for p in palabras)
+def extraer_datos_pdf(texto_pdf: str) -> Dict[str, Any]:
+    return {
+        "piezas": extraer_numero_patron(
+            texto_pdf,
+            [
+                r"(?:pieces|piezas|pcs)\s*[:\-]?\s*(\d+(?:[.,]\d+)?)"
+            ]
+        ),
+        "peso": extraer_numero_patron(
+            texto_pdf,
+            [
+                r"(?:weight|peso|gross weight|gross)\s*[:\-]?\s*(\d+(?:[.,]\d+)?)"
+            ]
+        )
+    }
 
 
 # ============================================================
-# RUTA PRINCIPAL
+# VALIDACION DE DATOS
+# ============================================================
+
+def validar_datos_carga(
+    problemas: List[Dict[str, Any]],
+    piezas: Any,
+    peso: Any,
+    largo: Any,
+    ancho: Any,
+    alto: Any
+):
+    p = entero(piezas)
+    w = numero(peso)
+    l = numero(largo)
+    a = numero(ancho)
+    h = numero(alto)
+
+    if p <= 0:
+        agregar(
+            problemas,
+            "CAR001",
+            "ERROR",
+            "La cantidad de piezas debe ser mayor que cero.",
+            "Corrige la cantidad de piezas."
+        )
+
+    if w <= 0:
+        agregar(
+            problemas,
+            "CAR002",
+            "ERROR",
+            "El peso debe ser mayor que cero.",
+            "Corrige el peso de la carga."
+        )
+
+    dimensiones = [l, a, h]
+
+    if any(x < 0 for x in dimensiones):
+        agregar(
+            problemas,
+            "CAR003",
+            "ERROR",
+            "Las dimensiones no pueden ser negativas.",
+            "Corrige las dimensiones."
+        )
+
+    if any(x == 0 for x in dimensiones):
+        agregar(
+            problemas,
+            "CAR004",
+            "REVISAR",
+            "Faltan una o mas dimensiones.",
+            "Completa las dimensiones antes de continuar."
+        )
+
+
+def calcular_volumen(largo: Any, ancho: Any, alto: Any, piezas: Any = 1) -> float:
+    l = numero(largo)
+    a = numero(ancho)
+    h = numero(alto)
+    p = max(entero(piezas), 1)
+
+    if l <= 0 or a <= 0 or h <= 0:
+        return 0.0
+
+    return round(l * a * h * p, 4)
+
+
+# ============================================================
+# CONSISTENCIA PDF VS DATOS DECLARADOS
+# ============================================================
+
+def comparar_pdf(
+    problemas: List[Dict[str, Any]],
+    datos_pdf: Dict[str, Any],
+    piezas: Any,
+    peso: Any
+):
+    piezas_pdf = numero(datos_pdf.get("piezas"))
+    peso_pdf = numero(datos_pdf.get("peso"))
+
+    piezas_form = entero(piezas)
+    peso_form = numero(peso)
+
+    if piezas_pdf > 0 and piezas_form > 0 and piezas_pdf != piezas_form:
+        agregar(
+            problemas,
+            "CON001",
+            "ERROR",
+            "La cantidad de piezas no coincide entre el documento y los datos declarados.",
+            "Corrige la cantidad antes de continuar."
+        )
+
+    if peso_pdf > 0 and peso_form > 0:
+        diferencia = abs(peso_pdf - peso_form)
+
+        # No se considera diferencia por pequeños decimales.
+        tolerancia = max(0.01, peso_form * 0.001)
+
+        if diferencia > tolerancia:
+            agregar(
+                problemas,
+                "CON002",
+                "ERROR",
+                "El peso no coincide entre el documento y los datos declarados.",
+                "Verifica el peso y corrige la informacion."
+            )
+
+
+# ============================================================
+# REGLAS DE CARGA
+# ============================================================
+
+def revisar_tipo_carga(
+    problemas: List[Dict[str, Any]],
+    tipo_carga: str,
+    descripcion: str
+):
+    tipo = normalizar(tipo_carga)
+    desc = normalizar(descripcion)
+
+    if not tipo:
+        agregar(
+            problemas,
+            "CAR005",
+            "ERROR",
+            "No se ha indicado el tipo de carga.",
+            "Selecciona el tipo de carga."
+        )
+        return
+
+    especiales = {
+        "peligrosa": ["dangerous", "hazmat", "mercancia peligrosa"],
+        "perecedera": ["perishable", "perecedera", "frozen", "fresh"],
+        "animal_vivo": ["animal", "live animal", "animal vivo"],
+        "farmaceutica": ["pharma", "pharmaceutical", "medicine", "medicamento"],
+        "valiosa": ["valuable", "valiosa"]
+    }
+
+    if tipo in especiales and not desc:
+        agregar(
+            problemas,
+            "ESP001",
+            "REVISAR",
+            "Esta carga necesita una descripcion antes de continuar.",
+            "Escribe una descripcion clara de la mercancia."
+        )
+
+
+def revisar_embalaje(
+    problemas: List[Dict[str, Any]],
+    embalaje: str
+):
+    e = normalizar(embalaje)
+
+    if not e:
+        agregar(
+            problemas,
+            "EMB001",
+            "REVISAR",
+            "No se ha indicado la condicion del embalaje.",
+            "Indica como se encuentra el embalaje."
+        )
+        return
+
+    if e in ("danado", "dañado", "roto", "humedo", "húmedo", "deformado"):
+        agregar(
+            problemas,
+            "EMB002",
+            "REVISAR",
+            "El embalaje presenta una condicion que debe revisarse antes de continuar.",
+            "Corrige o revisa la condicion del embalaje."
+        )
+
+
+# ============================================================
+# FOTOS
+# ============================================================
+
+def revisar_fotos(
+    problemas: List[Dict[str, Any]],
+    archivos: List[UploadFile]
+):
+    archivos_validos = [
+        f for f in archivos
+        if f and texto(f.filename)
+    ]
+
+    if len(archivos_validos) > 3:
+        agregar(
+            problemas,
+            "FOTO001",
+            "REVISAR",
+            "Se han agregado mas de 3 fotografias.",
+            "Usa las fotografias mas utiles para la revision."
+        )
+
+    for archivo in archivos_validos:
+        ext = Path(archivo.filename).suffix.lower()
+
+        if ext not in {".jpg", ".jpeg", ".png", ".webp"}:
+            agregar(
+                problemas,
+                "FOTO002",
+                "ERROR",
+                f"La fotografia '{archivo.filename}' no tiene un formato permitido.",
+                "Sube una fotografia JPG, PNG o WEBP."
+            )
+
+
+# ============================================================
+# ENDPOINT PRINCIPAL
 # ============================================================
 
 @app.get("/")
@@ -161,313 +600,311 @@ async def home(request: Request):
         context={}
     )
 
-# ============================================================
-# MOTOR PRINCIPAL
-# ============================================================
+
+@app.get("/health")
+async def health():
+    return {
+        "status": "ok",
+        "app": "SMARTCARGO",
+        "version": "5.0.0",
+        "rules_loaded": bool(RULES)
+    }
+
 
 @app.post("/api/smartcargo/resolver")
-async def resolver_carga(
-    actor: str = Form("counter"),
-    awb_numero: str = Form(""),
-    origen: str = Form("MIA"),
-    destino: str = Form("BOG"),
-    vuelo: str = Form(""),
-    aeronave: str = Form("a320"),
-    posicion_carga: str = Form("belly"),
-    tipo_uld: str = Form("ake"),
-    categoria_mercancia: str = Form("general"),
-    doc_awb_tipo: str = Form("original"),
-    doc_permisos: str = Form("completos"),
-    doc_pagos: str = Form("verificado"),
-    modo_medicion: str = Form("general"),
-    piezas: float = Form(0),
-    peso_kg: float = Form(0),
-    largo_cm: float = Form(0),
-    ancho_cm: float = Form(0),
-    alto_cm: float = Form(0),
-    detalle_bultos: Optional[str] = Form(None),
+async def resolver(
+    request: Request,
+    rol: str = Form(""),
+    tipo_carga: str = Form("general"),
     descripcion: str = Form(""),
-    pdfs: List[UploadFile] = File([]),
-    fotos: List[UploadFile] = File([])
+    piezas: str = Form("0"),
+    peso: str = Form("0"),
+    largo: str = Form("0"),
+    ancho: str = Form("0"),
+    alto: str = Form("0"),
+    embalaje: str = Form(""),
+    shipper: str = Form(""),
+    consignee: str = Form(""),
+    origen: str = Form(""),
+    destino: str = Form(""),
+    awb: str = Form(""),
+    documentos: List[UploadFile] = File(default=[]),
+    fotos: List[UploadFile] = File(default=[])
 ):
-    try:
-        alertas = []
-        checks = []
+    problemas: List[Dict[str, Any]] = []
 
-        estatus_general = "ACCEPT"
-        solucion_directa = (
-            "Carga conforme. Proceder a etiquetado, estiba en "
-            "posición asignada y despacho a rampa."
+    rol = normalizar(rol)
+    tipo_carga = normalizar(tipo_carga)
+
+    # --------------------------------------------------------
+    # ROL
+    # --------------------------------------------------------
+
+    roles_validos = {
+        "camionero",
+        "dueno",
+        "dueño",
+        "forwarder",
+        "counter"
+    }
+
+    if rol not in roles_validos:
+        agregar(
+            problemas,
+            "ROL001",
+            "ERROR",
+            "Selecciona un rol para comenzar.",
+            "Selecciona camionero, dueño, forwarder o agente de counter."
         )
 
-        # ====================================================
-        # 1. DOCUMENTACIÓN
-        # ====================================================
+    # --------------------------------------------------------
+    # DATOS BASICOS
+    # --------------------------------------------------------
 
-        if doc_awb_tipo == "copia":
-            alertas.append({
-                "item": "Control de Documentación (AWB)",
-                "detalle": (
-                    "Se está utilizando una copia o archivo operativo. "
-                    "Verificar respaldo documental y requisitos aplicables."
-                )
-            })
-            checks.append({
-                "item": "Air Waybill (AWB)",
-                "status": "REVISIÓN",
-                "note": (
-                    "Verificar correspondencia entre AWB, sistema, "
-                    "documentos físicos y pouch."
-                )
-            })
-        else:
-            checks.append({
-                "item": "Air Waybill (AWB)",
-                "status": "OK",
-                "note": "Tipo de documentación registrado para revisión."
-            })
+    validar_datos_carga(
+        problemas,
+        piezas,
+        peso,
+        largo,
+        ancho,
+        alto
+    )
 
-        if doc_permisos == "pendientes":
-            estatus_general = "HOLD"
-            solucion_directa = (
-                "Detener la liberación. Verificar y completar los "
-                "permisos o autorizaciones requeridos antes de continuar."
-            )
-            alertas.append({
-                "item": "Permisos Gubernamentales / OGA",
-                "detalle": (
-                    "Existen permisos pendientes. La operación requiere "
-                    "verificación documental antes de continuar."
-                )
-            })
-            checks.append({
-                "item": "Permisos Gubernamentales",
-                "status": "HOLD",
-                "note": "Retener hasta verificar la documentación requerida."
-            })
-        else:
-            checks.append({
-                "item": "Permisos Gubernamentales",
-                "status": "OK",
-                "note": "No se registraron permisos pendientes."
-            })
+    revisar_tipo_carga(
+        problemas,
+        tipo_carga,
+        descripcion
+    )
 
-        if doc_pagos == "pendiente":
-            estatus_general = "HOLD"
-            solucion_directa = (
-                "Detener la liberación hasta verificar el pago, voucher "
-                "o autorización financiera correspondiente."
-            )
-            alertas.append({
-                "item": "Control Financiero",
-                "detalle": "Falta confirmación financiera para continuar."
-            })
-            checks.append({
-                "item": "Finanzas / Vouchers",
-                "status": "HOLD",
-                "note": "Verificar comprobante o autorización antes de liberar."
-            })
-        else:
-            checks.append({
-                "item": "Finanzas / Vouchers",
-                "status": "OK",
-                "note": "No se registró pago pendiente."
-            })
+    revisar_embalaje(
+        problemas,
+        embalaje
+    )
 
-        # ====================================================
-        # 2. MEDIDAS Y VOLUMEN
-        # ====================================================
+    # --------------------------------------------------------
+    # DATOS IDENTIFICATIVOS
+    # --------------------------------------------------------
 
-        if modo_medicion == "detalle":
-            volumen_m3 = calcular_volumen_detalle(detalle_bultos)
+    if not descripcion.strip():
+        agregar(
+            problemas,
+            "DAT001",
+            "ERROR",
+            "Falta la descripcion de la mercancia.",
+            "Escribe una descripcion clara."
+        )
 
-            try:
-                items_lista = json.loads(detalle_bultos or "[]")
-            except Exception:
-                items_lista = []
-
-            checks.append({
-                "item": "Desglose por Artículo",
-                "status": "OK" if items_lista else "CHECK",
-                "note": (
-                    f"Se registraron {len(items_lista)} grupos de artículos."
-                    if items_lista
-                    else "No se recibió un desglose válido."
-                )
-            })
-        else:
-            volumen_m3 = calcular_volumen_general(
-                piezas,
-                largo_cm,
-                ancho_cm,
-                alto_cm
+    # Para forwarder y counter la consistencia documental
+    # es mas importante.
+    if rol in ("forwarder", "counter"):
+        if not shipper.strip():
+            agregar(
+                problemas,
+                "DAT002",
+                "REVISAR",
+                "Falta el remitente.",
+                "Completa el remitente."
             )
 
-        # ====================================================
-        # 3. DENSIDAD / VOLUMEN ANÓMALO
-        # Regla del smartcargo_rules.json
-        # ====================================================
-
-        if volumen_m3 > 50 and peso_kg < 1500:
-            regla = regla_por_condicion(
-                condicion_volumetrica="anomala_baja_densidad"
+        if not consignee.strip():
+            agregar(
+                problemas,
+                "DAT003",
+                "REVISAR",
+                "Falta el destinatario.",
+                "Completa el destinatario."
             )
 
-            if regla:
-                estatus_general = regla.get("mandato", "HOLD")
-                solucion_directa = regla.get(
-                    "instruccion_directa",
-                    "Detener proceso y verificar peso y cubicaje."
-                )
-                agregar_regla(alertas, checks, regla)
-
-        # ====================================================
-        # 4. CARGA GENERAL + DAÑO FÍSICO
-        # ====================================================
-
-        if categoria_mercancia == "general":
-
-            if contiene_dano(descripcion):
-                regla = regla_por_condicion(
-                    tipo_carga="general",
-                    envoltura="humedo_o_roto"
-                )
-
-                if regla:
-                    estatus_general = regla.get("mandato", "REJECT")
-                    solucion_directa = regla.get(
-                        "instruccion_directa",
-                        "Detener y verificar la condición del embalaje."
-                    )
-                    agregar_regla(alertas, checks, regla)
-
-            else:
-                regla = regla_por_condicion(
-                    tipo_carga="general",
-                    envoltura="intacto"
-                )
-
-                if regla:
-                    agregar_regla(alertas, checks, regla)
-
-        # ====================================================
-        # 5. MERCANCÍAS PELIGROSAS
-        # ====================================================
-
-        if categoria_mercancia == "dg":
-            regla = regla_por_condicion(tipo_carga="dg")
-
-            if regla:
-                estatus_general = regla.get("mandato", "ESCALATE")
-                solucion_directa = regla.get(
-                    "instruccion_directa",
-                    "Detener recepción y escalar a personal competente."
-                )
-                agregar_regla(alertas, checks, regla)
-
-        # ====================================================
-        # 6. AERONAVE / ULD
-        # ====================================================
-
-        if aeronave == "a320" and tipo_uld in ["pmc", "pag"]:
-            estatus_general = "HOLD"
-            solucion_directa = (
-                "Detener la operación y verificar la compatibilidad de "
-                "la unidad con la aeronave seleccionada."
+        if not origen.strip():
+            agregar(
+                problemas,
+                "DAT004",
+                "REVISAR",
+                "Falta el origen.",
+                "Completa el origen."
             )
 
-            alertas.append({
-                "item": "Compatibilidad Aeronave / ULD",
-                "detalle": (
-                    "La combinación seleccionada requiere verificación "
-                    "de compatibilidad antes de continuar."
-                )
-            })
-
-            checks.append({
-                "item": "Compatibilidad Aeronave / ULD",
-                "status": "HOLD",
-                "note": "Verificar contorno, posición y limitaciones aplicables."
-            })
-
-        # ====================================================
-        # 7. PESO AKE
-        # ====================================================
-
-        if peso_kg > 1588 and tipo_uld == "ake":
-            estatus_general = "HOLD"
-            solucion_directa = (
-                "Detener la operación y verificar el peso permitido "
-                "para la configuración y posición seleccionadas."
+        if not destino.strip():
+            agregar(
+                problemas,
+                "DAT005",
+                "REVISAR",
+                "Falta el destino.",
+                "Completa el destino."
             )
 
-            alertas.append({
-                "item": "Peso ULD",
-                "detalle": (
-                    "El peso registrado supera el parámetro configurado "
-                    "para esta revisión del ULD AKE."
+    # --------------------------------------------------------
+    # AWB
+    # --------------------------------------------------------
+
+    if awb.strip():
+        awb_limpio = re.sub(r"[\s\-]", "", awb)
+
+        # Si se proporciona un AWB de 11 digitos,
+        # comprobamos el prefijo 134.
+        if len(awb_limpio) >= 3 and awb_limpio[:3].isdigit():
+            if awb_limpio[:3] != "134":
+                agregar(
+                    problemas,
+                    "AWB001",
+                    "REVISAR",
+                    "El numero de AWB indicado no comienza con el prefijo esperado para esta aplicacion.",
+                    "Verifica el numero de AWB antes de continuar."
                 )
-            })
 
-            checks.append({
-                "item": "Peso ULD",
-                "status": "HOLD",
-                "note": "Verificar peso, configuración, posición y límites vigentes."
-            })
+    # --------------------------------------------------------
+    # FOTOS
+    # --------------------------------------------------------
 
-        # ====================================================
-        # 8. VALIDACIÓN FINAL
-        # ====================================================
+    revisar_fotos(problemas, fotos)
 
-        if estatus_general == "ACCEPT" and alertas:
-            estatus_general = "HOLD"
-            solucion_directa = (
-                "Resolver las observaciones identificadas antes de "
-                "la aceptación final."
-            )
+    # --------------------------------------------------------
+    # DOCUMENTOS PDF
+    # --------------------------------------------------------
 
-        # ====================================================
-        # 9. RESPUESTA
-        # ====================================================
+    documentos_resultado = []
 
-        return JSONResponse({
-            "estatus_general": estatus_general,
-            "solucion_directa": solucion_directa,
-            "awb": awb_numero or "N/D",
-            "origen": origen.upper(),
-            "destino": destino.upper(),
-            "vuelo": vuelo.upper(),
-            "actor": actor,
-            "piezas": piezas,
-            "peso_kg": peso_kg,
-            "volumen_m3": round(volumen_m3, 4),
-            "aeronave": aeronave.upper(),
-            "posicion_carga": posicion_carga.upper(),
-            "tipo_uld": tipo_uld.upper(),
-            "categoria_mercancia": categoria_mercancia.upper(),
-            "modo_medicion": modo_medicion,
-            "pdfs_recibidos": len(pdfs),
-            "fotos_recibidas": len(fotos),
-            "alertas": alertas,
-            "checks": checks,
-            "regla_de_oro": RULES.get("regla_de_oro", "")
+    for archivo in documentos:
+        if not archivo or not archivo.filename:
+            continue
+
+        resultado_pdf = extraer_pdf(archivo)
+
+        documentos_resultado.append({
+            "nombre": archivo.filename,
+            "paginas": resultado_pdf.get("paginas", 0),
+            "texto": resultado_pdf.get("texto", ""),
+            "estado": resultado_pdf.get("estado", ""),
+            "errores": resultado_pdf.get("errores", [])
         })
 
-    except Exception as e:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Error en SmartCargo Advisory: {str(e)}"
+        # Errores encontrados en paginas
+        for error in resultado_pdf.get("errores", []):
+            agregar(
+                problemas,
+                error["codigo"],
+                error["estado"],
+                error["mensaje"],
+                error["accion"]
+            )
+
+        texto_documento = resultado_pdf.get("texto", "")
+
+        if texto_documento:
+            # Si no parece relacionado, no lo aceptamos
+            # silenciosamente.
+            if not parece_documento_relacionado(
+                texto_documento,
+                tipo_carga
+            ):
+                agregar(
+                    problemas,
+                    "DOC006",
+                    "ERROR",
+                    f"El documento '{archivo.filename}' no parece corresponder con la operacion de carga.",
+                    "Sube el documento correcto."
+                )
+
+            datos_pdf = extraer_datos_pdf(texto_documento)
+
+            comparar_pdf(
+                problemas,
+                datos_pdf,
+                piezas,
+                peso
+            )
+
+    # Para forwarder/counter, la ausencia total de documentos
+    # merece revision.
+    if rol in ("forwarder", "counter") and not documentos:
+        agregar(
+            problemas,
+            "DOC008",
+            "REVISAR",
+            "No se ha cargado ningun documento para revisar.",
+            "Carga los documentos disponibles antes de continuar."
         )
+
+    # --------------------------------------------------------
+    # CALCULO DE VOLUMEN
+    # --------------------------------------------------------
+
+    volumen = calcular_volumen(
+        largo,
+        ancho,
+        alto,
+        piezas
+    )
+
+    peso_num = numero(peso)
+
+    densidad = 0.0
+
+    if volumen > 0 and peso_num > 0:
+        densidad = round(peso_num / volumen, 4)
+
+    # No rechazamos por densidad solamente.
+    # Si es inusual, se marca para comprobacion.
+    if volumen > 0 and peso_num > 0 and densidad < 0.01:
+        agregar(
+            problemas,
+            "CAR006",
+            "REVISAR",
+            "La relacion entre peso y volumen parece inusual.",
+            "Verifica nuevamente peso y dimensiones."
+        )
+
+    # --------------------------------------------------------
+    # RESULTADO
+    # --------------------------------------------------------
+
+    estado = resultado_final(problemas)
+
+    resumen = {
+        "LISTO": "La revision previa no encontro problemas pendientes.",
+        "CORREGIR": "Hay informacion o documentos que deben corregirse antes de continuar.",
+        "REVISAR": "Hay informacion que no puede confirmarse y debe revisarse antes de continuar."
+    }[estado]
+
+    return JSONResponse({
+        "ok": estado == "LISTO",
+        "estado": estado,
+        "puede_continuar": estado == "LISTO",
+        "rol": rol,
+        "tipo_carga": tipo_carga,
+        "descripcion": descripcion,
+        "piezas": entero(piezas),
+        "peso": peso_num,
+        "dimensiones": {
+            "largo": numero(largo),
+            "ancho": numero(ancho),
+            "alto": numero(alto)
+        },
+        "volumen": volumen,
+        "densidad": densidad,
+        "awb": awb,
+        "documentos": documentos_resultado,
+        "cantidad_documentos": len(documentos_resultado),
+        "cantidad_fotos": len([f for f in fotos if f and f.filename]),
+        "problemas": problemas,
+        "total_problemas": len(problemas),
+        "resumen": resumen,
+        "regla_de_oro": (
+            "NO ADIVINAR. Si algo no puede verificarse, "
+            "debe revisarse o corregirse antes de continuar."
+        )
+    })
 
 
 # ============================================================
-# EJECUCIÓN LOCAL
+# EJECUCION LOCAL
 # ============================================================
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
-        app,
+        "main:app",
         host="0.0.0.0",
         port=int(os.environ.get("PORT", 8000))
     )
