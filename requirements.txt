@@ -8,3 +8,4 @@ pypdf
 jinja2
 starlette
 gunicorn
+APScheduler>=3.10,<4
