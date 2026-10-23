@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCargo SafetyHub | Air Cargo Operational Safety & Control Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                            950: '#082f49',
+                        },
+                        safety: {
+                            amber: '#f59e0b',
+                            orange: '#f97316',
+                            red: '#ef4444',
+                            green: '#10b981'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Alpine.js Core -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        @keyframes breathePulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.35); opacity: 1; }
+        }
+        .animate-breathe {
+            animation: breathePulse 8s ease-in-out infinite;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans antialiased bg-slate-950 text-slate-100 selection:bg-brand-500 selection:text-white"
+      x-data="safetyApp()"
+      x-init="initApp()">
+    <!-- TOP GLOBAL HEADER -->
+    <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <!-- Logo & Corporate Branding -->
+            <div class="flex items-center space-x-3">
+                <div class="p-2 bg-gradient-to-tr from-brand-600 via-blue-600 to-amber-500 rounded-xl shadow-lg shadow-brand-500/20 text-white">
+                    <i data-lucide="plane-takeoff" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-black text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">SMARTCARGO</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold tracking-widest uppercase">SAFETYHUB</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 font-medium hidden sm:block" x-text="t('appSubtitle')"></p>
+                </div>
+            </div>
+            <!-- Controls (Lang & View Mode Switcher) -->
+            <div class="flex items-center flex-wrap gap-2 sm:gap-3">
+                <!-- Language Toggle -->
+                <div class="bg-slate-800 p-1 rounded-lg border border-slate-700 flex items-center">
+                    <button @click="setLang('es')" 
+                            :class="lang === 'es' ? 'bg-brand-600 text-white font-bold shadow' : 'text-slate-400 hover:text-white'"
+                            class="px-2.5 py-1 text-xs rounded-md transition-all">
+                        ES
+                    </button>
+                    <button @click="setLang('en')" 
+                            :class="lang === 'en' ? 'bg-brand-600 text-white font-bold shadow' : 'text-slate-400 hover:text-white'"
+                            class="px-2.5 py-1 text-xs rounded-md transition-all">
+                        EN
+                    </button>
+                </div>
+                <!-- View Mode Switcher (Worker vs Puesto de Mando) -->
+                <div class="bg-slate-800/80 p-1 rounded-lg border border-slate-700 flex items-center">
+                    <button @click="viewMode = 'worker'" 
+                            :class="viewMode === 'worker' ? 'bg-slate-700 text-white font-semibold' : 'text-slate-400 hover:text-white'"
+                            class="px-3 py-1.5 text-xs rounded-md flex items-center gap-1.5 transition-all">
+                        <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                        <span x-text="t('workerMode')"></span>
+                    </button>
+                    <button @click="toggleAdminView()" 
+                            :class="viewMode === 'admin' ? 'bg-amber-600 text-white font-semibold shadow-lg shadow-amber-600/20' : 'text-slate-400 hover:text-white'"
+                            class="px-3 py-1.5 text-xs rounded-md flex items-center gap-1.5 transition-all">
+                        <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+                        <span x-text="t('adminMode')"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Group Switcher Bar for Workers -->
+        <template x-if="viewMode === 'worker'">
+            <div class="max-w-7xl mx-auto mt-3 pt-2 border-t border-slate-800 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
+                    <i data-lucide="users" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span x-text="t('selectGroupLabel') + ':'"></span>
+                </span>
+                <template x-for="group in groups" :key="group.id">
+                    <button @click="switchWorkerGroup(group.id)" 
+                            :class="currentGroupId === group.id ? 'bg-brand-500/20 border-brand-500 text-brand-300 font-bold shadow' : 'bg-slate-800/60 border-slate-700/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200'"
+                            class="px-3 py-1 text-xs rounded-full border transition-all shrink-0 flex items-center gap-1.5">
+                        <i :data-lucide="group.icon" class="w-3.5 h-3.5"></i>
+                        <span x-text="group.name[lang]"></span>
+                    </button>
+                </template>
+            </div>
+        </template>
+    </header>
+    <!-- MAIN CONTAINER -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-8">
+        <!-- COMPLIANCE & PRIVACY WARNING BANNER -->
+        <div class="bg-gradient-to-r from-amber-950/50 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+            <div class="flex items-start gap-3">
+                <div class="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl shrink-0 mt-0.5 border border-amber-500/20">
+                    <i data-lucide="shield-ban" class="w-5 h-5"></i>
+                </div>
+                <div class="text-xs text-slate-300 space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="font-extrabold text-amber-400 tracking-wide uppercase" x-text="t('complianceTitle')"></span>
+                        <span class="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.2 rounded font-mono">CONFIDENTIALITY RULE</span>
+                    </div>
+                    <p x-text="t('complianceWarning')"></p>
+                    <p class="text-slate-400 italic text-[11px]" x-text="t('complianceDisclaimer')"></p>
+                </div>
+            </div>
+            <div class="shrink-0 text-right">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-[11px] text-slate-300 font-mono">
+                    <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span x-text="t('dataProtected')"></span>
+                </span>
+            </div>
+        </div>
+        <!-- VISTA DE TRABAJADOR (WORKER VIEW) -->
+        <template x-if="viewMode === 'worker'">
+            <div class="space-y-8">
+                <!-- INVALID LINK ERROR SCREEN (IF TOKEN IS REVOKED) -->
+                <template x-if="isCurrentLinkRevoked()">
+                    <div class="bg-rose-950/40 border-2 border-rose-600 rounded-2xl p-8 text-center space-y-4 max-w-xl mx-auto shadow-2xl">
+                        <div class="w-16 h-16 bg-rose-600/20 text-rose-400 rounded-full flex items-center justify-center mx-auto border border-rose-500/30">
+                            <i data-lucide="link-2-off" class="w-8 h-8"></i>
+                        </div>
+                        <h2 class="text-2xl font-black text-white" x-text="t('linkRevokedTitle')"></h2>
+                        <p class="text-sm text-slate-300" x-text="t('linkRevokedDesc')"></p>
+                        <div class="p-3 bg-slate-900 rounded-xl text-xs text-slate-400 font-mono border border-slate-800">
+                            Token: <span class="text-rose-400 font-bold" x-text="getGroupToken(currentGroupId)"></span> (Revoked / Expired)
+                        </div>
+                    </div>
+                </template>
+                <!-- ACTIVE WORKER DISPLAY -->
+                <template x-if="!isCurrentLinkRevoked()">
+                    <div class="space-y-8">
+                        <!-- CURRENT GROUP HEADER BANNER -->
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                            <div class="absolute right-0 top-0 bottom-0 w-64 bg-gradient-to-l from-brand-600/10 via-brand-500/5 to-transparent pointer-events-none"></div>
+                            <div class="flex items-center gap-4 z-10">
+                                <div class="p-4 bg-brand-500/10 border border-brand-500/30 text-brand-400 rounded-2xl shadow-inner">
+                                    <i :data-lucide="getCurrentGroup().icon" class="w-8 h-8"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-amber-400 uppercase tracking-widest" x-text="t('groupStation')"></span>
+                                        <span class="text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono border border-slate-700" x-text="todayDateStr"></span>
+                                    </div>
+                                    <h1 class="text-2xl sm:text-3xl font-black text-white tracking-tight mt-0.5" x-text="getCurrentGroup().name[lang]"></h1>
+                                </div>
+                            </div>
+                            <div class="mt-4 sm:mt-0 text-xs text-slate-300 flex items-center gap-2 bg-slate-950/80 px-3.5 py-2 rounded-xl border border-slate-800 z-10 shadow">
+                                <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                                <span x-text="t('activeBriefingSession')"></span>
+                            </div>
+                        </div>
+                        <!-- SECTION 1: TRES PILARES PERMANENTES DE SEGURIDAD -->
+                        <section class="space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="shield" class="w-5 h-5 text-brand-400"></i>
+                                    <h2 class="text-base font-extrabold text-white uppercase tracking-wider" x-text="t('pillarsHeader')"></h2>
+                                </div>
+                                <span class="text-[11px] bg-brand-900/60 text-brand-300 border border-brand-700/50 px-2.5 py-0.5 rounded-full font-mono">Standard SMS</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div class="bg-gradient-to-b from-slate-900 to-slate-900/90 border-l-4 border-l-blue-500 border-t border-r border-b border-slate-800 rounded-xl p-5 shadow-lg relative">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest font-mono">PILAR 01</span>
+                                        <i data-lucide="user-shield" class="w-5 h-5 text-blue-400"></i>
+                                    </div>
+                                    <h3 class="text-base font-black text-white mb-2" x-text="pillars.p1.title[lang]"></h3>
+                                    <p class="text-xs text-slate-300 leading-relaxed" x-text="pillars.p1.desc[lang]"></p>
+                                </div>
+                                <div class="bg-gradient-to-b from-slate-900 to-slate-900/90 border-l-4 border-l-amber-500 border-t border-r border-b border-slate-800 rounded-xl p-5 shadow-lg relative">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-widest font-mono">PILAR 02</span>
+                                        <i data-lucide="eye" class="w-5 h-5 text-amber-400"></i>
+                                    </div>
+                                    <h3 class="text-base font-black text-white mb-2" x-text="pillars.p2.title[lang]"></h3>
+                                    <p class="text-xs text-slate-300 leading-relaxed" x-text="pillars.p2.desc[lang]"></p>
+                                </div>
+                                <div class="bg-gradient-to-b from-slate-900 to-slate-900/90 border-l-4 border-l-emerald-500 border-t border-r border-b border-slate-800 rounded-xl p-5 shadow-lg relative">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-mono">PILAR 03</span>
+                                        <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i>
+                                    </div>
+                                    <h3 class="text-base font-black text-white mb-2" x-text="pillars.p3.title[lang]"></h3>
+                                    <p class="text-xs text-slate-300 leading-relaxed" x-text="pillars.p3.desc[lang]"></p>
+                                </div>
+                            </div>
+                        </section>
+                        <!-- SECTION 2: TRES RECORDATORIOS DIARIOS ESPECÍFICOS -->
+                        <section class="space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="calendar-check" class="w-5 h-5 text-amber-400"></i>
+                                    <h2 class="text-base font-extrabold text-white uppercase tracking-wider" x-text="t('remindersHeader')"></h2>
+                                </div>
+                                <span class="text-xs text-amber-400/90 flex items-center gap-1 font-mono font-bold bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20">
+                                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i>
+                                    <span x-text="t('dailyRotationLabel')"></span>
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <template x-for="(rem, idx) in getDailyRotatedReminders()" :key="rem.id">
+                                    <div class="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-3 relative group">
+                                        <div class="space-y-2">
+                                            <div class="flex items-center justify-between text-xs">
+                                                <span class="font-mono text-amber-400 font-bold" x-text="'#' + (idx + 1) + ' ' + getCurrentGroup().name[lang].toUpperCase()"></span>
+                                                <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                                            </div>
+                                            <h4 class="font-bold text-white text-sm" x-text="rem.title[lang]"></h4>
+                                            <p class="text-xs text-slate-300 leading-relaxed" x-text="rem.desc[lang]"></p>
+                                        </div>
+                                        <div class="pt-2 border-t border-slate-800 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                                            <span x-text="t('verifiedStandard')"></span>
+                                            <span class="text-slate-500" x-text="'ID: ' + rem.id"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </section>
+                        <!-- SECTION 3: AVISOS ESPECIALES Y COMUNICADOS OFICIALES -->
+                        <section class="space-y-4">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="megaphone" class="w-5 h-5 text-rose-400"></i>
+                                    <h2 class="text-base font-extrabold text-white uppercase tracking-wider" x-text="t('announcementsHeader')"></h2>
+                                </div>
+                                <span class="text-xs text-slate-400" x-text="getActiveAnnouncements().length + ' ' + t('activeNotices')"></span>
+                            </div>
+                            <div class="space-y-4">
+                                <template x-if="getActiveAnnouncements().length === 0">
+                                    <div class="bg-slate-900/40 border border-dashed border-slate-800 rounded-2xl p-8 text-center text-slate-400 space-y-2">
+                                        <i data-lucide="check-check" class="w-8 h-8 mx-auto text-emerald-500"></i>
+                                        <p class="text-sm font-semibold text-slate-300" x-text="t('noActiveNotices')"></p>
+                                    </div>
+                                </template>
+                                <template x-for="item in getActiveAnnouncements()" :key="item.id">
+                                    <div :class="{
+                                            'border-l-rose-500 bg-rose-950/20': item.priority === 'High',
+                                            'border-l-brand-500 bg-slate-900': item.priority === 'Normal'
+                                         }" 
+                                         class="border-l-4 border-t border-r border-b border-slate-800 rounded-2xl p-5 shadow-xl space-y-3">
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <div class="flex items-center gap-2">
+                                                <span :class="item.priority === 'High' ? 'bg-rose-500/20 text-rose-300 border-rose-500/30' : 'bg-brand-500/20 text-brand-300 border-brand-500/30'" 
+                                                      class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border"
+                                                      x-text="item.type[lang]"></span>
+                                                <template x-if="item.priority === 'High'">
+                                                    <span class="px-2 py-0.5 rounded bg-rose-600 text-white font-bold text-[10px] tracking-widest uppercase flex items-center gap-1 animate-pulse">
+                                                        <i data-lucide="alert-triangle" class="w-3 h-3"></i> URGENTE / URGENT
+                                                    </span>
+                                                </template>
+                                            </div>
+                                            <div class="text-[11px] text-slate-400 flex items-center gap-3 font-mono">
+                                                <span><i data-lucide="user" class="w-3 h-3 inline mr-1"></i><span x-text="item.author"></span></span>
+                                                <span><i data-lucide="clock" class="w-3 h-3 inline mr-1"></i><span x-text="formatDate(item.createdAt)"></span></span>
+                                            </div>
+                                        </div>
+                                        <h3 class="text-lg font-black text-white" x-text="item.title[lang]"></h3>
+                                        <!-- AI/Smart High-Impact Summarized Bullets -->
+                                        <div class="bg-slate-950/70 border border-slate-800/80 rounded-xl p-3.5 space-y-2">
+                                            <span class="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-1">
+                                                <i data-lucide="zap" class="w-3 h-3"></i> PUNTOS CLAVE PARA EL TURNO / KEY SHIFT TAKEAWAYS:
+                                            </span>
+                                            <ul class="space-y-1.5 text-xs text-slate-200">
+                                                <template x-for="(bullet, bIdx) in item.summaryBullets[lang]" :key="bIdx">
+                                                    <li class="flex items-start gap-2">
+                                                        <span class="text-brand-400 font-bold">•</span>
+                                                        <span x-text="bullet"></span>
+                                                    </li>
+                                                </template>
+                                            </ul>
+                                        </div>
+                                        <div class="pt-2 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+                                            <span x-text="t('targetGroup') + ': ' + getTargetDisplay(item.targetGroup)"></span>
+                                            <span x-text="'Valid until: ' + item.validUntil"></span>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </section>
+                        <!-- SECTION 4: EJERCICIO DE RESPIRACIÓN Y PREPARACIÓN OPERATIVA (45 SEGUNDOS TRABAJADOR) -->
+                        <section class="bg-gradient-to-br from-slate-900 via-slate-900 to-brand-950/50 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="heart-pulse" class="w-5 h-5 text-cyan-400"></i>
+                                        <h2 class="text-base font-extrabold text-white uppercase tracking-wider" x-text="t('breathingTitleWorker')"></h2>
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-1" x-text="t('breathingSubtitleWorker')"></p>
+                                </div>
+                                <div class="flex items-center gap-3 bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-xl">
+                                    <span class="text-xs text-slate-300 font-medium flex items-center gap-1.5">
+                                        <i :data-lucide="voiceEnabled ? 'volume-2' : 'volume-x'" :class="voiceEnabled ? 'text-cyan-400' : 'text-slate-500'" class="w-4 h-4"></i>
+                                        <span x-text="t('voiceGuidance')"></span>
+                                    </span>
+                                    <button @click="voiceEnabled = !voiceEnabled" 
+                                            :class="voiceEnabled ? 'bg-cyan-500' : 'bg-slate-700'"
+                                            class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200">
+                                        <span :class="voiceEnabled ? 'translate-x-4' : 'translate-x-0'"
+                                              class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow transition duration-200"></span>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- DYNAMIC FOCUS THEME CARD FOR WORKER -->
+                            <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2.5 bg-cyan-500/10 text-cyan-400 rounded-xl border border-cyan-500/20">
+                                        <i :data-lucide="getWorkerBreathingTheme().icon" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest font-mono">TEMA DEL DÍA / TODAY'S FOCUS</span>
+                                        <h4 class="text-sm font-bold text-white" x-text="getWorkerBreathingTheme().title[lang]"></h4>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-slate-400 italic hidden sm:block" x-text="getWorkerBreathingTheme().subtitle[lang]"></span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center py-4 space-y-6">
+                                <!-- Breathing Visual Meter -->
+                                <div class="relative flex items-center justify-center w-48 h-48">
+                                    <div :class="{ 'animate-breathe bg-cyan-500/20 border-cyan-400/50': workerBreathingActive, 'bg-slate-800/30 border-slate-700': !workerBreathingActive }"
+                                         class="absolute inset-0 rounded-full border-2 transition-all duration-1000"></div>
+                                    <div class="z-10 text-center space-y-1">
+                                        <span class="text-4xl font-black font-mono text-white tracking-tight" x-text="workerBreathingTimeLeft + 's'"></span>
+                                        <p class="text-xs font-extrabold uppercase tracking-widest text-cyan-300" x-text="workerBreathingPhaseText"></p>
+                                    </div>
+                                </div>
+                                <p class="text-xs sm:text-sm text-slate-200 max-w-md text-center h-8 font-medium" x-text="workerBreathingInstruction"></p>
+                                <div class="flex items-center gap-4">
+                                    <template x-if="!workerBreathingActive">
+                                        <button @click="startWorkerBreathing()" 
+                                                class="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/20 flex items-center gap-2 transition-all active:scale-95">
+                                            <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                                            <span x-text="t('startWorkerBreathingBtn')"></span>
+                                        </button>
+                                    </template>
+                                    <template x-if="workerBreathingActive">
+                                        <button @click="stopWorkerBreathing()" 
+                                                class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-rose-600/20 flex items-center gap-2 transition-all active:scale-95">
+                                            <i data-lucide="square" class="w-4 h-4 fill-current"></i>
+                                            <span x-text="t('stopBreathing')"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                            <!-- POSITIVE REINFORCEMENT / VICTORY AFFIRMATION BOX -->
+                            <template x-if="showVictoryReward">
+                                <div class="bg-gradient-to-r from-amber-500/20 via-emerald-500/20 to-brand-500/20 border border-emerald-500/40 rounded-xl p-4 text-center space-y-2 animate-bounce">
+                                    <div class="inline-flex items-center justify-center p-2 bg-emerald-500 text-slate-950 rounded-full font-bold text-xs">
+                                        <i data-lucide="trophy" class="w-4 h-4"></i>
+                                    </div>
+                                    <h4 class="text-sm font-black text-emerald-300 uppercase tracking-wide" x-text="t('victoryTitle')"></h4>
+                                    <p class="text-xs text-white font-semibold" x-text="getDailyVictoryAffirmation()[lang]"></p>
+                                </div>
+                            </template>
+                        </section>
+                    </div>
+                </template>
+            </div>
+        </template>
+        <!-- CENTRO DE MANDO (JEFATURA / SUPERVISIÓN CONTROL CENTER) -->
+        <template x-if="viewMode === 'admin'">
+            <div class="space-y-8">
+                <!-- LOGIN / PASSCODE CHECK -->
+                <template x-if="!adminAuthenticated">
+                    <div class="max-w-md mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
+                        <div class="text-center space-y-2">
+                            <div class="w-12 h-12 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto border border-amber-500/20">
+                                <i data-lucide="lock" class="w-6 h-6"></i>
+                            </div>
+                            <h2 class="text-lg font-bold text-white" x-text="t('adminAccessTitle')"></h2>
+                            <p class="text-xs text-slate-400" x-text="t('adminAccessSubtitle')"></p>
+                        </div>
+                        <form @submit.prevent="authenticateAdmin()" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 uppercase mb-1" x-text="t('enterPasscode')"></label>
+                                <input type="password" x-model="adminPasscode" placeholder="••••••••" 
+                                       class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                            </div>
+                            <template x-if="adminError">
+                                <p class="text-xs text-rose-400 font-medium" x-text="adminError"></p>
+                            </template>
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition-all">
+                                <span x-text="t('loginBtn')"></span>
+                            </button>
+                        </form>
+                    </div>
+                </template>
+                <!-- MASTER COMMAND CENTER DASHBOARD -->
+                <template x-if="adminAuthenticated">
+                    <div class="space-y-8">
+                        <!-- Header & Auto-Play Switcher ONLY FOR COMMAND CENTER -->
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono text-[10px] font-bold border border-amber-500/30">JEFATURA & SUPERVISIÓN CONTROL</span>
+                                    <span class="text-xs text-slate-400" x-text="currentAdminUser.name + ' (' + currentAdminUser.role + ')'"></span>
+                                </div>
+                                <h1 class="text-2xl font-black text-white mt-1" x-text="t('adminDashboardTitle')"></h1>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <!-- AUTO-MODE EXCLUSIVE TO COMMAND CENTER -->
+                                <button @click="toggleAdminAutoMode()" 
+                                        :class="adminAutoModeActive ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-300' : 'bg-slate-800 border-slate-700 text-slate-400 hover:text-white'"
+                                        class="px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-2 transition-all shadow">
+                                    <i :data-lucide="adminAutoModeActive ? 'cpu' : 'power'" class="w-4 h-4 text-amber-400"></i>
+                                    <span x-text="adminAutoModeActive ? t('adminAutoActive') : t('adminAutoInactive')"></span>
+                                </button>
+                                <button @click="adminAuthenticated = false" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 flex items-center gap-1.5">
+                                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                                    <span x-text="t('logout')"></span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- AUTO-MODE STATUS INDICATOR BANNER IN ADMIN -->
+                        <template x-if="adminAutoModeActive">
+                            <div class="bg-gradient-to-r from-emerald-950/60 via-slate-900 to-slate-900 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between gap-4 text-xs font-mono">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                    <span class="text-emerald-300 font-bold" x-text="t('adminAutoModeRunning')"></span>
+                                </div>
+                                <span class="text-slate-400" x-text="t('adminAutoModeAction')"></span>
+                            </div>
+                        </template>
+                        <!-- SPECIAL LEADERSHIP & MANAGEMENT MENTAL FOCUS SESSION (60 SECONDS - NON-REPEATING) -->
+                        <section class="bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/40 border border-amber-500/30 rounded-2xl p-6 shadow-xl space-y-6">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <i data-lucide="brain-circuit" class="w-5 h-5 text-amber-400"></i>
+                                        <h2 class="text-base font-extrabold text-white uppercase tracking-wider" x-text="t('leadershipBreathingTitle')"></h2>
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-1" x-text="t('leadershipBreathingSubtitle')"></p>
+                                </div>
+                                <span class="text-xs bg-amber-500/10 text-amber-300 font-mono font-bold px-3 py-1 rounded-lg border border-amber-500/30 shrink-0">
+                                    1 MINUTE LEADERSHIP SESSION
+                                </span>
+                            </div>
+                            <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+                                        <i :data-lucide="currentLeadershipAnchor.icon" class="w-5 h-5"></i>
+                                    </div>
+                                    <div>
+                                        <span class="text-[10px] text-amber-400 font-bold uppercase tracking-widest font-mono">ENFOQUE DE LIDERAZGO DEL DÍA / EXECUTIVE ANCHOR</span>
+                                        <h4 class="text-sm font-bold text-white" x-text="currentLeadershipAnchor.title[lang]"></h4>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-slate-400 italic hidden sm:block" x-text="currentLeadershipAnchor.subtitle[lang]"></span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center py-4 space-y-6">
+                                <div class="relative flex items-center justify-center w-48 h-48">
+                                    <div :class="{ 'animate-breathe bg-amber-500/20 border-amber-400/50': leadershipBreathingActive, 'bg-slate-800/30 border-slate-700': !leadershipBreathingActive }"
+                                         class="absolute inset-0 rounded-full border-2 transition-all duration-1000"></div>
+                                    <div class="z-10 text-center space-y-1">
+                                        <span class="text-4xl font-black font-mono text-amber-400 tracking-tight" x-text="leadershipTimeLeft + 's'"></span>
+                                        <p class="text-xs font-extrabold uppercase tracking-widest text-slate-200" x-text="leadershipPhaseText"></p>
+                                    </div>
+                                </div>
+                                <p class="text-xs sm:text-sm text-amber-100 max-w-lg text-center h-10 font-medium leading-relaxed" x-text="leadershipInstruction"></p>
+                                <div class="flex items-center gap-4">
+                                    <template x-if="!leadershipBreathingActive">
+                                        <button @click="startLeadershipBreathing()" 
+                                                class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 flex items-center gap-2 transition-all active:scale-95">
+                                            <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                                            <span x-text="t('startLeadershipBreathingBtn')"></span>
+                                        </button>
+                                    </template>
+                                    <template x-if="leadershipBreathingActive">
+                                        <button @click="stopLeadershipBreathing()" 
+                                                class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-rose-600/20 flex items-center gap-2 transition-all active:scale-95">
+                                            <i data-lucide="square" class="w-4 h-4 fill-current"></i>
+                                            <span x-text="t('stopBreathing')"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </section>
+                        <!-- 1. DYNAMIC GROUP LINKS MANAGEMENT -->
+                        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                            <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div>
+                                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                        <i data-lucide="link" class="w-4 h-4 text-brand-400"></i>
+                                        <span x-text="t('shareableLinksTitle')"></span>
+                                    </h3>
+                                    <p class="text-xs text-slate-400" x-text="t('shareableLinksSub')"></p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <template x-for="grp in groups" :key="grp.id">
+                                    <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 flex flex-col justify-between space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2.5">
+                                                <div class="p-2 bg-brand-500/10 text-brand-400 rounded-lg">
+                                                    <i :data-lucide="grp.icon" class="w-4 h-4"></i>
+                                                </div>
+                                                <div>
+                                                    <h4 class="font-bold text-white text-xs" x-text="grp.name[lang]"></h4>
+                                                    <span class="text-[10px] text-slate-500 font-mono" x-text="'Token: ' + getGroupToken(grp.id)"></span>
+                                                </div>
+                                            </div>
+                                            <template x-if="isGroupLinkRevoked(grp.id)">
+                                                <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 text-[10px] font-bold">REVOKED</span>
+                                            </template>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <button @click="copyGroupLink(grp.id)" 
+                                                    :disabled="isGroupLinkRevoked(grp.id)"
+                                                    class="flex-1 py-1.5 px-2.5 rounded-lg bg-brand-600/20 hover:bg-brand-600/30 disabled:opacity-40 text-xs font-semibold text-brand-300 border border-brand-500/30 flex items-center justify-center gap-1 transition-colors">
+                                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                                <span x-text="t('copyLink')"></span>
+                                            </button>
+                                            <button @click="revokeAndRegenerateLink(grp.id)" 
+                                                    class="py-1.5 px-2.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-xs font-semibold text-rose-300 border border-rose-500/30 flex items-center gap-1 transition-colors"
+                                                    title="Revoke access when worker leaves">
+                                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                                                <span x-text="t('revokeBtn')"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </section>
+                        <!-- 2. PUBLISH NEW ANNOUNCEMENT FORM -->
+                        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                            <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <div>
+                                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                        <i data-lucide="edit-3" class="w-4 h-4 text-emerald-400"></i>
+                                        <span x-text="t('createNoticeTitle')"></span>
+                                    </h3>
+                                    <p class="text-xs text-slate-400" x-text="t('pastedTextNote')"></p>
+                                </div>
+                                <button @click="clearFormWithWarning()" 
+                                        class="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 font-bold text-xs flex items-center gap-1.5 self-start sm:self-auto">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    <span x-text="t('clearOldContentBtn')"></span>
+                                </button>
+                            </div>
+                            <form @submit.prevent="publishAnnouncement()" class="space-y-6">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-300 uppercase mb-1" x-text="t('targetGroupLabel')"></label>
+                                        <select x-model="newNotice.targetGroup" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none">
+                                            <option value="ALL" x-text="t('allGroups')"></option>
+                                            <template x-for="g in groups" :key="g.id">
+                                                <option :value="g.id" x-text="g.name[lang]"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-300 uppercase mb-1" x-text="t('priorityLabel')"></label>
+                                        <select x-model="newNotice.priority" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none">
+                                            <option value="Normal">Normal</option>
+                                            <option value="High">Alta / High (Urgent Alert)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-300 uppercase mb-1" x-text="t('validityLabel')"></label>
+                                        <input type="date" x-model="newNotice.validUntil" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none">
+                                    </div>
+                                </div>
+                                <!-- Dual Language Text Areas -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div class="space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                                        <span class="text-xs font-bold text-brand-400 uppercase tracking-wider block">TEXTO EN ESPAÑOL</span>
+                                        <div>
+                                            <label class="block text-[11px] text-slate-400 mb-1">Título</label>
+                                            <input type="text" x-model="newNotice.titleEs" placeholder="Ej: Precaución por Operaciones en Pista" required
+                                                   class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[11px] text-slate-400 mb-1">Mensaje Completo (Copia y pega cualquier longitud)</label>
+                                            <textarea x-model="newNotice.contentEs" rows="4" placeholder="Pega el texto de la alerta aquí..." required
+                                                      class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none"></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                                        <span class="text-xs font-bold text-brand-400 uppercase tracking-wider block">ENGLISH TEXT</span>
+                                        <div>
+                                            <label class="block text-[11px] text-slate-400 mb-1">Title</label>
+                                            <input type="text" x-model="newNotice.titleEn" placeholder="E.g.: Caution Ramp Area Operations" required
+                                                   class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-[11px] text-slate-400 mb-1">Full Message (Paste any text length)</label>
+                                            <textarea x-model="newNotice.contentEn" rows="4" placeholder="Paste alert text here..." required
+                                                      class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-end gap-3">
+                                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/20 transition-all">
+                                        <span x-text="t('publishNow')"></span>
+                                    </button>
+                                </div>
+                            </form>
+                        </section>
+                        <!-- 3. AUDIT LOG & HISTORY -->
+                        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                            <div class="border-b border-slate-800 pb-3">
+                                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                                    <i data-lucide="history" class="w-4 h-4 text-amber-400"></i>
+                                    <span x-text="t('auditLogTitle')"></span>
+                                </h3>
+                                <p class="text-xs text-slate-400" x-text="t('auditLogSub')"></p>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left text-xs text-slate-300">
+                                    <thead class="bg-slate-950 text-slate-400 font-mono uppercase text-[10px]">
+                                        <tr>
+                                            <th class="p-3">ID / Date</th>
+                                            <th class="p-3">Title (ES / EN)</th>
+                                            <th class="p-3">Target</th>
+                                            <th class="p-3">Author</th>
+                                            <th class="p-3">Status</th>
+                                            <th class="p-3 text-right">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-800/60 font-medium">
+                                        <template x-for="item in announcements" :key="item.id">
+                                            <tr class="hover:bg-slate-950/40">
+                                                <td class="p-3 font-mono text-[11px]">
+                                                    <div class="text-white font-bold" x-text="item.id"></div>
+                                                    <div class="text-slate-500" x-text="formatDate(item.createdAt)"></div>
+                                                </td>
+                                                <td class="p-3 max-w-xs">
+                                                    <div class="text-white font-semibold truncate" x-text="item.title.es"></div>
+                                                    <div class="text-slate-400 italic text-[11px] truncate" x-text="item.title.en"></div>
+                                                </td>
+                                                <td class="p-3 font-mono text-[11px]" x-text="getTargetDisplay(item.targetGroup)"></td>
+                                                <td class="p-3">
+                                                    <div x-text="item.author"></div>
+                                                </td>
+                                                <td class="p-3">
+                                                    <span :class="item.status === 'Active' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30'"
+                                                          class="px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase"
+                                                          x-text="item.status"></span>
+                                                </td>
+                                                <td class="p-3 text-right">
+                                                    <template x-if="item.status === 'Active'">
+                                                        <button @click="withdrawNotice(item.id)" 
+                                                                class="px-2.5 py-1 rounded bg-rose-600/20 hover:bg-rose-600/40 text-rose-300 border border-rose-500/30 text-[11px]">
+                                                            <span x-text="t('withdrawBtn')"></span>
+                                                        </button>
+                                                    </template>
+                                                    <template x-if="item.status === 'Withdrawn'">
+                                                        <span class="text-[11px] text-slate-500 italic" x-text="t('archivedInLog')"></span>
+                                                    </template>
+                                                </td>
+                                            </tr>
+                                        </template>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </main>
+    <!-- FOOTER -->
+    <footer class="mt-auto border-t border-slate-800/80 bg-slate-900/60 py-4 px-4 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p>© 2026 SmartCargo SafetyHub. Operational Safety Portal (Avianca Cargo / LATAM Cargo Standards).</p>
+            <div class="flex items-center gap-4">
+                <span>SMS / QMS Compliant</span>
+                <span>•</span>
+                <span class="text-slate-400 font-mono">v3.1-Leadership Master</span>
+            </div>
+        </div>
+    </footer>
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        function safetyApp() {
+            return {
+                lang: 'es',
+                viewMode: 'worker',
+                currentGroupId: 'COUNTER',
+                todayDateStr: '',
+                // Admin Exclusive Auto Mode Logic (Command Center Only)
+                adminAutoModeActive: false,
+                adminAutoTimer: null,
+                // Admin Authentication State
+                adminAuthenticated: false,
+                adminPasscode: '',
+                adminError: '',
+                currentAdminUser: { name: 'Jefatura SMS / Cargo', role: 'Chief Operational Safety' },
+                // Revoked Tokens Tracking
+                groupTokens: {
+                    COUNTER: 'TOK-CNT-2026',
+                    SCALE: 'TOK-SCL-2026',
+                    CARGO: 'TOK-CRG-2026',
+                    FORKLIFT: 'TOK-FLT-2026',
+                    OFFICE: 'TOK-OFF-2026',
+                    SUPERVISION: 'TOK-SUP-2026'
+                },
+                revokedTokens: [],
+                // Worker Breathing Exercise (45 Seconds)
+                workerBreathingActive: false,
+                workerBreathingTimeLeft: 45,
+                workerBreathingPhaseText: 'Inhala',
+                workerBreathingInstruction: 'Inhala profundamente...',
+                workerBreathingTimer: null,
+                voiceEnabled: true,
+                showVictoryReward: false,
+                // Leadership & Supervision Breathing Exercise (60 Seconds - Non-Repeating Dynamic Anchors)
+                leadershipBreathingActive: false,
+                leadershipTimeLeft: 60,
+                leadershipPhaseText: 'Enfoque',
+                leadershipInstruction: 'Inhala calmadamente. Mantén el control táctico...',
+                leadershipTimer: null,
+                // 6 Operational Groups
+                groups: [
+                    { id: 'COUNTER', name: { es: 'COUNTER', en: 'COUNTER' }, icon: 'clipboard-list' },
+                    { id: 'SCALE', name: { es: 'Báscula y recepción', en: 'Scale & Reception' }, icon: 'scale' },
+                    { id: 'CARGO', name: { es: 'Manipulación de carga', en: 'Cargo Handling' }, icon: 'package' },
+                    { id: 'FORKLIFT', name: { es: 'Montacargas', en: 'Forklift Operators' }, icon: 'truck' },
+                    { id: 'OFFICE', name: { es: 'Oficina y administración', en: 'Office & Admin' }, icon: 'building-2' },
+                    { id: 'SUPERVISION', name: { es: 'Supervisión y jefatura', en: 'Supervision & Leadership' }, icon: 'shield-check' }
+                ],
+                // Permanent Safety Pillars
+                pillars: {
+                    p1: {
+                        title: { es: 'PROTÉGETE', en: 'PROTECT YOURSELF' },
+                        desc: { 
+                            es: 'Sigue los procedimientos, utiliza correctamente los equipos autorizados y nunca tomes atajos inseguros.',
+                            en: 'Follow procedures, use authorized equipment correctly, and never take unsafe shortcuts.'
+                        }
+                    },
+                    p2: {
+                        title: { es: 'PRESTA ATENCIÓN', en: 'PAY ATTENTION' },
+                        desc: {
+                            es: 'Observa tu entorno, verifica la información y comunica cualquier riesgo o condición insegura.',
+                            en: 'Observe your environment, verify information, and communicate any risk or unsafe condition.'
+                        }
+                    },
+                    p3: {
+                        title: { es: 'PROTEGE A LOS DEMÁS', en: 'PROTECT OTHERS' },
+                        desc: {
+                            es: 'Respeta a tus compañeros, comunica los peligros y contribuye a un entorno de trabajo seguro.',
+                            en: 'Respect your colleagues, report hazards, and contribute to a safe work environment.'
+                        }
+                    }
+                },
+                // Pool of Specific Reminders per group
+                remindersPool: {
+                    COUNTER: [
+                        { id: 'C01', title: { es: 'Verificación de DG', en: 'DG Verification' }, desc: { es: 'Revisa cuidadosamente las etiquetas de Mercancías Peligrosas antes del ingreso.', en: 'Carefully review Dangerous Goods labels before acceptance.' } },
+                        { id: 'C02', title: { es: 'Atención al Cliente', en: 'Customer Focus' }, desc: { es: 'Mantén una distancia segura y verifica la identidad del conductor.', en: 'Maintain safe distance and verify driver credentials.' } },
+                        { id: 'C03', title: { es: 'Ergonomía en Ventanilla', en: 'Counter Ergonomics' }, desc: { es: 'Ajusta tu monitor para evitar fatiga cervical.', en: 'Adjust monitor to avoid neck strain.' } },
+                        { id: 'C04', title: { es: 'Revisión de Sellos', en: 'Seal Inspection' }, desc: { es: 'Verifica la integridad de sellos de seguridad en envíos especiales.', en: 'Check security seals integrity on high-value shipments.' } },
+                        { id: 'C05', title: { es: 'Documentación Clara', en: 'Clear Documentation' }, desc: { es: 'No aceptes guías aéreas con enmiendas sin autorizar.', en: 'Do not accept air waybills with unauthorized amendments.' } }
+                    ],
+                    SCALE: [
+                        { id: 'S01', title: { es: 'Calibración de Báscula', en: 'Scale Zeroing' }, desc: { es: 'Verifica el cero antes de pesar pallets pesados.', en: 'Check scale zero status before weighing heavy pallets.' } },
+                        { id: 'S02', title: { es: 'Calzado de Seguridad', en: 'Safety Footwear' }, desc: { es: 'Botas con puntera de acero obligatorias en recepción.', en: 'Steel-toe boots mandatory in reception area.' } },
+                        { id: 'S03', title: { es: 'Registro Exacto', en: 'Accurate Weight' }, desc: { es: 'Registra el peso bruto exacto para el manifiesto de vuelo.', en: 'Record exact gross weight for flight manifest.' } },
+                        { id: 'S04', title: { es: 'Despeje de Plataforma', en: 'Clear Platform' }, desc: { es: 'Mantén la superficie de la báscula libre de residuos.', en: 'Keep scale surface clean and free of debris.' } }
+                    ],
+                    CARGO: [
+                        { id: 'H01', title: { es: 'Levantamiento Seguro', en: 'Safe Lifting' }, desc: { es: 'Dobla rodillas y mantén la espalda recta con bultos pesados.', en: 'Bend knees and keep back straight with heavy packages.' } },
+                        { id: 'H02', title: { es: 'Aseguramiento de ULDs', en: 'ULD Latching' }, desc: { es: 'Verifica los seguros en las camas de rodillos.', en: 'Check locks and latches on roller beds.' } },
+                        { id: 'H03', title: { es: 'Uso de Guantes', en: 'Use of Gloves' }, desc: { es: 'Guantes antideslizantes para madera o zunchos.', en: 'Anti-slip gloves for wooden crates or banding.' } },
+                        { id: 'H04', title: { es: 'Redes de Pallets', en: 'Pallet Netting' }, desc: { es: 'Asegura la red de carga sin holguras antes del carreteo.', en: 'Tighten pallet netting without slack prior to transfer.' } }
+                    ],
+                    FORKLIFT: [
+                        { id: 'F01', title: { es: 'Límite de Velocidad', en: 'Speed Limits' }, desc: { es: 'Máximo 10 km/h dentro del almacén; toca bocina en cruces.', en: 'Max 10 km/h inside warehouse; horn at intersections.' } },
+                        { id: 'F02', title: { es: 'Cinturón Obligatorio', en: 'Seatbelt Policy' }, desc: { es: 'Uso de cinturón obligatorio en todo momento.', en: 'Seatbelts mandatory at all times.' } },
+                        { id: 'F03', title: { es: 'Inspección Pre-Uso', en: 'Pre-use Inspection' }, desc: { es: 'Verifica frenos y fugas hidráulicas antes de la jornada.', en: 'Check brakes and hydraulic leaks before shift.' } },
+                        { id: 'F04', title: { es: 'Carga Bautizada', en: 'Centered Load' }, desc: { es: 'Centra las horquillas para evitar volcamientos de carga.', en: 'Center forks to prevent load tipping.' } }
+                    ],
+                    OFFICE: [
+                        { id: 'O01', title: { es: 'Pausas Activas', en: 'Active Breaks' }, desc: { es: 'Realiza estiramientos cada 2 horas.', en: 'Perform stretches every 2 hours.' } },
+                        { id: 'O02', title: { es: 'Cables Despejados', en: 'Clear Cables' }, desc: { es: 'Sin cables en pasillos para evitar tropiezos.', en: 'Keep cords off walkways to avoid tripping.' } },
+                        { id: 'O03', title: { es: 'Pasillos Libres', en: 'Clear Aisles' }, desc: { es: 'Mantén libres las rutas de evacuación.', en: 'Keep evacuation corridors unobstructed.' } }
+                    ],
+                    SUPERVISION: [
+                        { id: 'J01', title: { es: 'Caminata Gemba', en: 'Gemba Walk' }, desc: { es: 'Realiza rondas visuales para corregir actos inseguros.', en: 'Conduct visual walks to correct unsafe acts.' } },
+                        { id: 'J02', title: { es: 'Briefing Operativo', en: 'Operational Briefing' }, desc: { es: 'Verifica que tu personal conozca los avisos del día.', en: 'Ensure team knows daily active notices.' } },
+                        { id: 'J03', title: { es: 'Reporte No Punitivo', en: 'Near Miss Report' }, desc: { es: 'Promueve el reporte voluntario de casi-accidentes.', en: 'Promote voluntary near-miss reporting.' } }
+                    ]
+                },
+                // Active Announcements
+                announcements: [
+                    {
+                        id: 'N-2026-001',
+                        type: { es: 'Aviso Especial', en: 'Special Notice' },
+                        priority: 'High',
+                        title: { es: 'Precaución por Humedad en Plataforma 3', en: 'Wet Floor Hazard Platform 3' },
+                        summaryBullets: {
+                            es: [
+                                'Reducir velocidad de montacargas a 5 km/h en zona 3.',
+                                'Verificar tracción de botas de seguridad.',
+                                'Mantener distancia de frenado ampliada.'
+                            ],
+                            en: [
+                                'Reduce forklift speed to 5 km/h in zone 3.',
+                                'Verify safety boot traction.',
+                                'Maintain increased braking distance.'
+                            ]
+                        },
+                        author: 'Jefatura SMS',
+                        targetGroup: 'ALL',
+                        status: 'Active',
+                        createdAt: '2026-10-23T08:00:00Z',
+                        validUntil: '2026-10-25'
+                    }
+                ],
+                // New Notice Form State
+                newNotice: {
+                    targetGroup: 'ALL',
+                    priority: 'Normal',
+                    validUntil: '',
+                    titleEs: '',
+                    contentEs: '',
+                    titleEn: '',
+                    contentEn: ''
+                },
+                // Dynamic Daily Themes for Worker Breathing (45 Seconds)
+                workerBreathingThemes: [
+                    { icon: 'brain', title: { es: 'Enfoque Operativo y Agilidad', en: 'Operational Focus & Agility' }, subtitle: { es: 'Prepara tu cuerpo y mente para una jornada segura', en: 'Prepare body & mind for a safe shift' } },
+                    { icon: 'battery-charging', title: { es: 'Energía Limpia y Actitud de Vencedor', en: 'Clean Energy & Winning Spirit' }, subtitle: { es: 'Mantén la calma bajo alta exigencia operacional', en: 'Stay cool under high load' } },
+                    { icon: 'shield-check', title: { es: 'Conciencia Situacional Total', en: 'Total Situational Awareness' }, subtitle: { es: 'Reduce el riesgo observando con claridad', en: 'Reduce risk by observing clearly' } }
+                ],
+                // Non-Repeating Leadership Mental Focus Anchors (60 Seconds)
+                leadershipAnchorsPool: [
+                    { icon: 'compass', title: { es: 'Claridad Táctica bajo Presión', en: 'Tactical Clarity Under Pressure' }, subtitle: { es: 'Toma decisiones objetivas y transmite serenidad a tu equipo.', en: 'Make objective choices and project composure.' } },
+                    { icon: 'zap', title: { es: 'Resiliencia y Liderazgo Firme', en: 'Resilience & Firm Leadership' }, subtitle: { es: 'Descarga la fatiga mental y recarga visión estratégica.', en: 'Offload mental fatigue and reload strategic vision.' } },
+                    { icon: 'target', title: { es: 'Enfoque Prioritario en la Operación', en: 'Priority Shift Control' }, subtitle: { es: 'Filtra el ruido externo y enfócate en la seguridad de la rampa.', en: 'Filter noise and protect ramp safety.' } }
+                ],
+                currentLeadershipAnchor: {},
+                // Victory Affirmations
+                victoryAffirmations: [
+                    { es: '¡Eres un profesional de excelencia! Tu compromiso con la seguridad nos protege a todos. ¡A ganar en este turno!', en: 'You are an excellent professional! Your commitment to safety protects us all. Win this shift!' },
+                    { es: '¡Hoy vas con todo, con mente clara y actitud de vencedor! Trabaja seguro y regresa bien a casa.', en: 'Today you go all in, with a clear mind and winning spirit! Work safe and return home well.' }
+                ],
+                // Translations
+                translations: {
+                    appSubtitle: { es: 'Portal Operativo de Seguridad, Difusión y Preparación Diaria', en: 'Daily Safety & Operational Readiness Portal' },
+                    workerMode: { es: 'Vista Trabajador', en: 'Worker View' },
+                    adminMode: { es: 'Puesto de Mando (Jefatura)', en: 'Command Center' },
+                    selectGroupLabel: { es: 'Área Operativa', en: 'Operational Area' },
+                    complianceTitle: { es: 'ADVERTENCIA DE SEGURIDAD Y PRIVACIDAD DE DATOS', en: 'SAFETY & DATA PRIVACY WARNING' },
+                    complianceWarning: { es: 'NO INTRODUCIR datos personales, médicos, manifiestos de vuelo, credenciales ni información confidencial de clientes o carga.', en: 'DO NOT ENTER personal, medical, flight manifest, credentials, or confidential customer/cargo data.' },
+                    complianceDisclaimer: { es: 'Esta aplicación no sustituye los procedimientos oficiales ni los manuales de la aerolínea.', en: 'This application does not replace official airline operational manuals.' },
+                    dataProtected: { es: 'SMS / QMS Protegido', en: 'SMS / QMS Protected' },
+                    groupStation: { es: 'ESTACIÓN DE TRABAJO', en: 'WORKSTATION' },
+                    activeBriefingSession: { es: 'Briefing Activo del Día', en: 'Active Daily Briefing' },
+                    pillarsHeader: { es: '1. Tres Pilares Permanentes de Seguridad', en: '1. Three Permanent Pillars of Safety' },
+                    remindersHeader: { es: '2. Recordatorios Diarios del Grupo', en: '2. Daily Group Specific Reminders' },
+                    dailyRotationLabel: { es: 'Rotación Dinámica por Fecha', en: 'Daily Rotated' },
+                    verifiedStandard: { es: 'Estándar Autorizado', en: 'Authorized Standard' },
+                    announcementsHeader: { es: '3. Avisos y Órdenes de Jefatura (Resumidas)', en: '3. Leadership Notices (Summarized Takeaways)' },
+                    activeNotices: { es: 'Vigentes', en: 'Active' },
+                    noActiveNotices: { es: 'No hay alertas ni instrucciones urgentes activas para este turno.', en: 'No active urgent alerts or instructions for this shift.' },
+                    targetGroup: { es: 'Grupo Objetivo', en: 'Target Group' },
+                    breathingTitleWorker: { es: '4. Pausa de Respiración Operativa y Preparación (45s)', en: '4. Operational Breathing & Readiness Pause (45s)' },
+                    breathingSubtitleWorker: { es: 'Libera la tensión acumulada, recarga energía física y entra enfocado a tu puesto.', en: 'Release tension, boost physical energy, and step into shift ready.' },
+                    leadershipBreathingTitle: { es: 'Sesión de Despresurización Mental para Líderes y Jefatura (60s)', en: 'Executive Mental De-stressing Session for Leaders (60s)' },
+                    leadershipBreathingSubtitle: { es: 'Diseñada exclusivamente para supervisores con alta carga de decisiones y estrés mental.', en: 'Exclusively designed for high-mental-load decision makers.' },
+                    voiceGuidance: { es: 'Guía por Voz', en: 'Voice Guidance' },
+                    startWorkerBreathingBtn: { es: 'Iniciar Preparación Operativa (45s)', en: 'Start Operational Pause (45s)' },
+                    startLeadershipBreathingBtn: { es: 'Iniciar Enfoque de Liderazgo (60s)', en: 'Start Executive Focus (60s)' },
+                    stopBreathing: { es: 'Detener', en: 'Stop' },
+                    victoryTitle: { es: '¡EXCELENTE TRABAJO! MENTALIDAD DE VENDEDOR', en: 'GREAT JOB! WINNING MINDSET' },
+                    adminAccessTitle: { es: 'Acceso Exclusivo de Jefatura y Supervisión', en: 'Exclusive Leadership Access' },
+                    adminAccessSubtitle: { es: 'Ingrese la clave de autorización de la estación', en: 'Enter station authorization code' },
+                    enterPasscode: { es: 'Clave de Seguridad', en: 'Security Code' },
+                    loginBtn: { es: 'Ingresar al Centro de Mando', en: 'Access Command Center' },
+                    adminDashboardTitle: { es: 'Centro de Mando de Jefatura', en: 'Leadership Control Center' },
+                    logout: { es: 'Cerrar Sesión', en: 'Log Out' },
+                    adminAutoActive: { es: 'Modo Auto Puesto Mando: ACTIVADO', en: 'Command Auto-Mode: ON' },
+                    adminAutoInactive: { es: 'Modo Auto Puesto Mando: DESACTIVADO', en: 'Command Auto-Mode: OFF' },
+                    adminAutoModeRunning: { es: 'Modo Auto Operando:', en: 'Auto-Mode Running:' },
+                    adminAutoModeAction: { es: 'Supervisando alertas, actualizando briefs e inspeccionando logs en segundo plano.', en: 'Monitoring alerts, updating briefs, and reviewing logs automatically.' },
+                    shareableLinksTitle: { es: 'Enlaces Dinámicos a Grupos (Revocación por Seguridad)', en: 'Dynamic Group Links (Access Revocation)' },
+                    shareableLinksSub: { es: 'Envía estos enlaces a los grupos de trabajadores. Si un empleado se retira, revoca el enlace aquí.', en: 'Send these links to worker groups. If an employee leaves, revoke the link here.' },
+                    copyLink: { es: 'Copiar Enlace', en: 'Copy Link' },
+                    revokeBtn: { es: 'Revocar Link', en: 'Revoke Link' },
+                    createNoticeTitle: { es: 'Publicar Nuevo Mensaje u Órden de Trabajo', en: 'Publish New Message or Work Order' },
+                    pastedTextNote: { es: 'Puedes pegar cualquier longitud de texto. La app reducirá la información a los puntos clave.', en: 'You can paste any text length. The app condenses information into key bullet points.' },
+                    clearOldContentBtn: { es: 'Borrar Contenido Antiguo para Continuar', en: 'Clear Old Content to Continue' },
+                    targetGroupLabel: { es: 'Grupo Destinatario', en: 'Target Group' },
+                    allGroups: { es: 'TODOS LOS GRUPOS DE TRABAJO', en: 'ALL WORK GROUPS' },
+                    priorityLabel: { es: 'Prioridad', en: 'Priority' },
+                    validityLabel: { es: 'Fecha de Expiración', en: 'Expiration Date' },
+                    publishNow: { es: 'Publicar Aviso', en: 'Publish Notice' },
+                    auditLogTitle: { es: 'Trazabilidad y Auditoría de Comunicados', en: 'Announcement Audit Log' },
+                    auditLogSub: { es: 'Historial inalterable con autor, fecha, estado y retiradas.', en: 'Immutable history with author, date, status, and withdrawals.' },
+                    withdrawBtn: { es: 'Retirar', en: 'Withdraw' },
+                    archivedInLog: { es: 'Retirado (Auditado)', en: 'Withdrawn (Audited)' },
+                    linkRevokedTitle: { es: 'ENLACE INACTIVADO / CADUCADO', en: 'LINK REVOKED / EXPIRED' },
+                    linkRevokedDesc: { es: 'Este enlace ha sido inactivado por Jefatura. Solicita el nuevo enlace oficial a tu supervisor.', en: 'This link has been revoked by Leadership. Request the new official link from your supervisor.' }
+                },
+                t(k) { return this.translations[k] ? this.translations[k][this.lang] : k; },
+                setLang(l) { 
+                    this.lang = l; 
+                    if (this.workerBreathingActive) this.stopWorkerBreathing();
+                    if (this.leadershipBreathingActive) this.stopLeadershipBreathing();
+                },
+                initApp() {
+                    const today = new Date();
+                    this.todayDateStr = today.toISOString().split('T')[0];
+                    const params = new URLSearchParams(window.location.search);
+                    const grp = params.get('group');
+                    if (grp && this.groups.some(g => g.id === grp)) {
+                        this.currentGroupId = grp;
+                    }
+                    const expiry = new Date();
+                    expiry.setDate(expiry.getDate() + 3);
+                    this.newNotice.validUntil = expiry.toISOString().split('T')[0];
+                    this.pickNonRepeatingLeadershipAnchor();
+                    this.$nextTick(() => lucide.createIcons());
+                },
+                // EXCLUSIVE COMMAND CENTER AUTOMATION (JEFATURA ONLY)
+                toggleAdminAutoMode() {
+                    this.adminAutoModeActive = !this.adminAutoModeActive;
+                    if (this.adminAutoModeActive) {
+                        this.startAdminAutoRoutine();
+                        this.showNoticeMessage(this.lang === 'es' ? 'Modo Auto de Puesto de Mando Activado.' : 'Command Center Auto Mode Activated.');
+                    } else {
+                        clearInterval(this.adminAutoTimer);
+                        this.showNoticeMessage(this.lang === 'es' ? 'Modo Auto de Puesto de Mando Desactivado.' : 'Command Center Auto Mode Deactivated.');
+                    }
+                },
+                startAdminAutoRoutine() {
+                    clearInterval(this.adminAutoTimer);
+                    this.adminAutoTimer = setInterval(() => {
+                        if (!this.adminAutoModeActive || !this.adminAuthenticated) return;
+                        // Automated supervisory task simulation (checking expired notices and logging station health)
+                        const now = new Date();
+                        this.announcements.forEach(a => {
+                            if (a.validUntil && new Date(a.validUntil) < now && a.status === 'Active') {
+                                a.status = 'Withdrawn';
+                            }
+                        });
+                    }, 10000);
+                },
+                switchWorkerGroup(grpId) {
+                    this.currentGroupId = grpId;
+                    this.showVictoryReward = false;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+                getCurrentGroup() {
+                    return this.groups.find(g => g.id === this.currentGroupId) || this.groups[0];
+                },
+                getDailyRotatedReminders() {
+                    const pool = this.remindersPool[this.currentGroupId] || [];
+                    if (pool.length <= 3) return pool;
+                    let dateSeed = 0;
+                    for (let i = 0; i < this.todayDateStr.length; i++) {
+                        dateSeed += this.todayDateStr.charCodeAt(i);
+                    }
+                    const rotated = [];
+                    for (let i = 0; i < 3; i++) {
+                        const index = (dateSeed + i * 2) % pool.length;
+                        rotated.push(pool[index]);
+                    }
+                    return rotated;
+                },
+                getActiveAnnouncements() {
+                    return this.announcements.filter(a => {
+                        const isTarget = a.targetGroup === 'ALL' || a.targetGroup === this.currentGroupId;
+                        return a.status === 'Active' && isTarget;
+                    });
+                },
+                getTargetDisplay(grpCode) {
+                    if (grpCode === 'ALL') return this.lang === 'es' ? 'TODOS' : 'ALL';
+                    const g = this.groups.find(x => x.id === grpCode);
+                    return g ? g.name[this.lang] : grpCode;
+                },
+                formatDate(isoStr) {
+                    if (!isoStr) return '';
+                    const d = new Date(isoStr);
+                    return d.toLocaleDateString(this.lang === 'es' ? 'es-ES' : 'en-US', {
+                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                },
+                getWorkerBreathingTheme() {
+                    let seed = 0;
+                    for (let i = 0; i < this.todayDateStr.length; i++) seed += this.todayDateStr.charCodeAt(i);
+                    return this.workerBreathingThemes[seed % this.workerBreathingThemes.length];
+                },
+                getDailyVictoryAffirmation() {
+                    let seed = 0;
+                    for (let i = 0; i < this.todayDateStr.length; i++) seed += this.todayDateStr.charCodeAt(i);
+                    return this.victoryAffirmations[seed % this.victoryAffirmations.length];
+                },
+                // WORKER BREATHING (45 SECONDS)
+                startWorkerBreathing() {
+                    this.workerBreathingActive = true;
+                    this.workerBreathingTimeLeft = 45;
+                    this.showVictoryReward = false;
+                    this.updateWorkerBreathingPhase();
+                    this.workerBreathingTimer = setInterval(() => {
+                        this.workerBreathingTimeLeft--;
+                        if (this.workerBreathingTimeLeft % 5 === 0) {
+                            this.updateWorkerBreathingPhase();
+                        }
+                        if (this.workerBreathingTimeLeft <= 0) {
+                            this.finishWorkerBreathing();
+                        }
+                    }, 1000);
+                },
+                updateWorkerBreathingPhase() {
+                    const cycle = this.workerBreathingTimeLeft % 10;
+                    if (cycle >= 5) {
+                        this.workerBreathingPhaseText = this.lang === 'es' ? 'INHALA Y ENFÓCATE' : 'INHALE & FOCUS';
+                        this.workerBreathingInstruction = this.lang === 'es' 
+                            ? 'Inhala profundo. Llena tus pulmones de oxígeno, energía y serenidad...' 
+                            : 'Inhale deeply. Fill your lungs with oxygen and clarity...';
+                        if (this.voiceEnabled) this.speakVoice(this.lang === 'es' ? 'Inhala' : 'Inhale');
+                    } else {
+                        this.workerBreathingPhaseText = this.lang === 'es' ? 'EXHALA TENSIONES' : 'EXHALE TENSION';
+                        this.workerBreathingInstruction = this.lang === 'es' 
+                            ? 'Exhala suavemente. Suelta la fatiga física y cualquier distracción...' 
+                            : 'Exhale slowly. Release physical strain and stress...';
+                        if (this.voiceEnabled) this.speakVoice(this.lang === 'es' ? 'Exhala' : 'Exhale');
+                    }
+                },
+                stopWorkerBreathing() {
+                    this.workerBreathingActive = false;
+                    clearInterval(this.workerBreathingTimer);
+                    this.workerBreathingTimeLeft = 45;
+                    this.workerBreathingPhaseText = 'Pausa';
+                    this.workerBreathingInstruction = this.lang === 'es' ? 'Ejercicio pausado.' : 'Exercise paused.';
+                },
+                finishWorkerBreathing() {
+                    this.stopWorkerBreathing();
+                    this.showVictoryReward = true;
+                    const aff = this.getDailyVictoryAffirmation()[this.lang];
+                    if (this.voiceEnabled) {
+                        this.speakVoice(this.lang === 'es' ? '¡Excelente trabajo! ' + aff : 'Great job! ' + aff);
+                    }
+                },
+                // LEADERSHIP BREATHING (60 SECONDS - NON-REPEATING DYNAMIC ANCHORS)
+                pickNonRepeatingLeadershipAnchor() {
+                    const lastIdx = parseInt(localStorage.getItem('smartcargo_last_lead_anchor') || '-1');
+                    let nextIdx = (lastIdx + 1) % this.leadershipAnchorsPool.length;
+                    localStorage.setItem('smartcargo_last_lead_anchor', nextIdx.toString());
+                    this.currentLeadershipAnchor = this.leadershipAnchorsPool[nextIdx];
+                },
+                startLeadershipBreathing() {
+                    this.pickNonRepeatingLeadershipAnchor();
+                    this.leadershipBreathingActive = true;
+                    this.leadershipTimeLeft = 60;
+                    this.updateLeadershipBreathingPhase();
+                    this.leadershipTimer = setInterval(() => {
+                        this.leadershipTimeLeft--;
+                        if (this.leadershipTimeLeft % 6 === 0) {
+                            this.updateLeadershipBreathingPhase();
+                        }
+                        if (this.leadershipTimeLeft <= 0) {
+                            this.finishLeadershipBreathing();
+                        }
+                    }, 1000);
+                },
+                updateLeadershipBreathingPhase() {
+                    const cycle = this.leadershipTimeLeft % 12;
+                    if (cycle >= 6) {
+                        this.leadershipPhaseText = this.lang === 'es' ? 'INHALA Y CONTROLA' : 'INHALE & CONTROL';
+                        this.leadershipInstruction = this.lang === 'es' 
+                            ? 'Inhala con solidez. Estabiliza tu ritmo mental y aclara tus prioridades de mando...' 
+                            : 'Inhale steadily. Stabilize your mind and clarify leadership priorities...';
+                    } else {
+                        this.leadershipPhaseText = this.lang === 'es' ? 'EXHALA PRESIÓN' : 'EXHALE PRESSURE';
+                        this.leadershipInstruction = this.lang === 'es' 
+                            ? 'Exhala suavemente. Libera la tensión acumulada por decisiones operativas...' 
+                            : 'Exhale smoothly. Offload executive stress and pressure...';
+                    }
+                },
+                stopLeadershipBreathing() {
+                    this.leadershipBreathingActive = false;
+                    clearInterval(this.leadershipTimer);
+                    this.leadershipTimeLeft = 60;
+                    this.leadershipPhaseText = 'Pausa';
+                    this.leadershipInstruction = this.lang === 'es' ? 'Sesión finalizada.' : 'Session ended.';
+                },
+                finishLeadershipBreathing() {
+                    this.stopLeadershipBreathing();
+                    this.showNoticeMessage(this.lang === 'es' ? '¡Sesión de Liderazgo completada! Mente despejada para el control operativo.' : 'Leadership session completed! Clear mind for operations.');
+                },
+                speakVoice(text) {
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        utterance.lang = this.lang === 'es' ? 'es-ES' : 'en-US';
+                        utterance.rate = 0.95;
+                        window.speechSynthesis.speak(utterance);
+                    }
+                },
+                toggleAdminView() {
+                    this.viewMode = 'admin';
+                    this.$nextTick(() => lucide.createIcons());
+                },
+                authenticateAdmin() {
+                    if (this.adminPasscode === '1234' || this.adminPasscode === 'jefatura2026') {
+                        this.adminAuthenticated = true;
+                        this.adminError = '';
+                    } else {
+                        this.adminError = this.lang === 'es' ? 'Clave incorrecta. Use "1234" para demo.' : 'Invalid code. Use "1234" for demo.';
+                    }
+                    this.$nextTick(() => lucide.createIcons());
+                },
+                getGroupToken(grpId) {
+                    return this.groupTokens[grpId] || 'TOK-DEFAULT';
+                },
+                isGroupLinkRevoked(grpId) {
+                    const tok = this.getGroupToken(grpId);
+                    return this.revokedTokens.includes(tok);
+                },
+                isCurrentLinkRevoked() {
+                    return this.isGroupLinkRevoked(this.currentGroupId);
+                },
+                revokeAndRegenerateLink(grpId) {
+                    const oldToken = this.getGroupToken(grpId);
+                    this.revokedTokens.push(oldToken);
+                    const newToken = 'TOK-' + grpId + '-' + Math.floor(1000 + Math.random() * 9000);
+                    this.groupTokens[grpId] = newToken;
+                    this.showNoticeMessage(this.lang === 'es' 
+                        ? '¡Enlace anterior inactivado! El trabajador saliente no podrá volver a acceder. Nuevo token generado: ' + newToken
+                        : 'Old link revoked! Departing worker loses access immediately. New token generated: ' + newToken);
+                },
+                copyGroupLink(grpId) {
+                    const tok = this.getGroupToken(grpId);
+                    const url = window.location.origin + window.location.pathname + '?group=' + grpId + '&token=' + tok;
+                    const tempInput = document.createElement('input');
+                    tempInput.value = url;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    this.showNoticeMessage(this.lang === 'es' ? 'Enlace oficial copiado para ' + grpId + ':\n' + url : 'Official link copied for ' + grpId + ':\n' + url);
+                },
+                showNoticeMessage(msg) {
+                    const div = document.createElement('div');
+                    div.className = 'fixed bottom-4 right-4 z-50 bg-slate-900 border border-brand-500 text-white text-xs px-4 py-3 rounded-xl shadow-2xl max-w-sm font-mono';
+                    div.innerText = msg;
+                    document.body.appendChild(div);
+                    setTimeout(() => div.remove(), 4000);
+                },
+                clearFormWithWarning() {
+                    this.newNotice.titleEs = '';
+                    this.newNotice.contentEs = '';
+                    this.newNotice.titleEn = '';
+                    this.newNotice.contentEn = '';
+                },
+                generateSmartBullets(rawText, language) {
+                    if (!rawText) return language === 'es' ? ['Seguir instrucciones operativas estándar.'] : ['Follow standard operational instructions.'];
+                    const cleanSentences = rawText
+                        .split(/[.\n]/)
+                        .map(s => s.trim())
+                        .filter(s => s.length > 5);
+                    if (cleanSentences.length === 0) {
+                        return [rawText.substring(0, 80) + '...'];
+                    }
+                    return cleanSentences.slice(0, 3);
+                },
+                publishAnnouncement() {
+                    if (!this.newNotice.titleEs || !this.newNotice.titleEn) return;
+                    const smartBulletsEs = this.generateSmartBullets(this.newNotice.contentEs, 'es');
+                    const smartBulletsEn = this.generateSmartBullets(this.newNotice.contentEn, 'en');
+                    const newObj = {
+                        id: 'N-2026-00' + (this.announcements.length + 1),
+                        type: { 
+                            es: this.newNotice.priority === 'High' ? 'Aviso Especial' : 'Comunicado Oficial',
+                            en: this.newNotice.priority === 'High' ? 'Special Notice' : 'Official Announcement'
+                        },
+                        priority: this.newNotice.priority,
+                        title: { es: this.newNotice.titleEs, en: this.newNotice.titleEn },
+                        summaryBullets: { es: smartBulletsEs, en: smartBulletsEn },
+                        author: this.currentAdminUser.name,
+                        targetGroup: this.newNotice.targetGroup,
+                        status: 'Active',
+                        createdAt: new Date().toISOString(),
+                        validUntil: this.newNotice.validUntil || '2026-12-31'
+                    };
+                    this.announcements.unshift(newObj);
+                    this.newNotice.titleEs = '';
+                    this.newNotice.contentEs = '';
+                    this.newNotice.titleEn = '';
+                    this.newNotice.contentEn = '';
+                    this.showNoticeMessage(this.lang === 'es' ? 'Mensaje procesado y publicado.' : 'Message processed and published.');
+                    this.$nextTick(() => lucide.createIcons());
+                },
+                withdrawNotice(id) {
+                    const item = this.announcements.find(x => x.id === id);
+                    if (item) {
+                        item.status = 'Withdrawn';
+                        this.showNoticeMessage(this.lang === 'es' ? 'Aviso retirado de la vista pública.' : 'Notice withdrawn from public view.');
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>
