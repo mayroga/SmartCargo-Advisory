@@ -1,5 +1,5 @@
-fastapi
-uvicorn
+fastapi>=0.100.0
+uvicorn>=0.22.0
 pydantic
 pydantic-core
 python-multipart
@@ -7,3 +7,4 @@ requests
 pypdf
 jinja2
 starlette
+gunicorn>=21.2.0
