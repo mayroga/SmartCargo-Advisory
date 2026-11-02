@@ -1137,7 +1137,6 @@ async revokeAndRegenerateLink(grpId) {
             : 'Link revoked on server! Worker access cut off immediately.');
     } catch(err) {
         this.showNoticeMessage('Error al revocar en servidor: ' + err.message);
-    }
 },
                 copyGroupLink(grpId) {
                     const tok = this.getGroupToken(grpId);
