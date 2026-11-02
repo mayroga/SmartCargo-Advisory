@@ -1117,27 +1117,27 @@
                 getGroupToken(grpId) { return this.groupTokens[grpId] || 'TOK-DEFAULT'; },
                 isGroupLinkRevoked(grpId) { return this.revokedTokens.includes(this.getGroupToken(grpId)); },
                 isCurrentLinkRevoked() { return this.isGroupLinkRevoked(this.currentGroupId); },
-// ... funciones anteriores como copyGroupLink o getGroupToken ...
+// funciones anteriores como copyGroupLink o getGroupToken
 
 async revokeAndRegenerateLink(grpId) {
-    const oldToken = this.getGroupToken(grpId);
-    try {
-        // Envia el token al servidor para que lo ponga en lista negra global
-        await this.apiRequest('/api/admin/revoke-token', {
-            method: 'POST',
-            body: JSON.stringify({ token: oldToken, group: grpId })
-        });
-        
-        const newToken = 'TOK-' + grpId + '-' + Math.floor(1000 + Math.random() * 9000);
-        this.groupTokens[grpId] = newToken;
-        this.revokedTokens.push(oldToken);
-        
-        this.showNoticeMessage(this.lang === 'es' 
-            ? '¡Enlace inactivado en el servidor! El trabajador perderá acceso inmediatamente.' 
-            : 'Link revoked on server! Worker access cut off immediately.');
-    } catch(err) {
-        this.showNoticeMessage('Error al revocar en servidor: ' + err.message);
-},
+                    const oldToken = this.getGroupToken(grpId);
+                    try {
+                        await this.apiRequest('/api/admin/revoke-token', {
+                            method: 'POST',
+                            body: JSON.stringify({ token: oldToken, group: grpId })
+                        });
+                        
+                        const newToken = 'TOK-' + grpId + '-' + Math.floor(1000 + Math.random() * 9000);
+                        this.groupTokens[grpId] = newToken;
+                        this.revokedTokens.push(oldToken);
+                        
+                        this.showNoticeMessage(this.lang === 'es' 
+                            ? '¡Enlace inactivado en el servidor! El trabajador perderá acceso inmediatamente.' 
+                            : 'Link revoked on server! Worker access cut off immediately.');
+                    } catch(err) {
+                        this.showNoticeMessage('Error al revocar en servidor: ' + err.message);
+                    }
+                },
                 copyGroupLink(grpId) {
                     const tok = this.getGroupToken(grpId);
                     const url = window.location.origin + window.location.pathname + '?group=' + grpId + '&token=' + tok;
