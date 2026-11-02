@@ -665,7 +665,7 @@
         </template>
     </main>
 
-    <!-- VENTANA MODAL / PANEL DE RESPALDOS TÉCNICOS -->
+ <!-- VENTANA MODAL / PANEL DE RESPALDOS TÉCNICOS -->
     <div x-show="openTechRefModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div @click.away="openTechRefModal = false" class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-6 relative">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -681,21 +681,21 @@
             <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
                 <p class="font-bold text-amber-300" x-text="t('techRefModalIntro')"></p>
                 <ul class="space-y-2 bg-slate-950/80 p-4 rounded-xl border border-slate-800 font-mono text-[11px]">
-                    <li class="flex items-center gap-2 text-slate-200 hover:text-amber-300 transition-colors">
-                        <i data-lucide="external-link" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-                        <a href="https://www.osha.gov/publications/bytopic/warehousing" target="_blank" rel="noopener noreferrer" class="underline hover:text-amber-400">OSHA – Warehousing: Hazards and Solutions.</a>
+                    <li class="flex items-center gap-2 text-slate-200">
+                        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                        <span>OSHA – Warehousing: Hazards and Solutions.</span>
                     </li>
-                    <li class="flex items-center gap-2 text-slate-200 hover:text-amber-300 transition-colors">
-                        <i data-lucide="external-link" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-                        <a href="https://www.faa.gov/about/initiatives/hazmat_safety" target="_blank" rel="noopener noreferrer" class="underline hover:text-amber-400">FAA – Cargo Safety.</a>
+                    <li class="flex items-center gap-2 text-slate-200">
+                        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                        <span>FAA – Cargo Safety.</span>
                     </li>
-                    <li class="flex items-center gap-2 text-slate-200 hover:text-amber-300 transition-colors">
-                        <i data-lucide="external-link" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-                        <a href="https://www.faa.gov/hazmat" target="_blank" rel="noopener noreferrer" class="underline hover:text-amber-400">FAA – Common Cargo Hazards.</a>
+                    <li class="flex items-center gap-2 text-slate-200">
+                        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                        <span>FAA – Common Cargo Hazards.</span>
                     </li>
-                    <li class="flex items-center gap-2 text-slate-200 hover:text-amber-300 transition-colors">
-                        <i data-lucide="external-link" class="w-4 h-4 text-emerald-400 shrink-0"></i>
-                        <a href="https://www.miami-airport.com/operational_directives.asp" target="_blank" rel="noopener noreferrer" class="underline hover:text-amber-400">Miami International Airport – Operational Directives.</a>
+                    <li class="flex items-center gap-2 text-slate-200">
+                        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                        <span>Miami International Airport – Operational Directives.</span>
                     </li>
                 </ul>
                 <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 italic text-[11px]">
