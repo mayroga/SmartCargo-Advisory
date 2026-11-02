@@ -6,7 +6,6 @@ from copy import deepcopy
 from datetime import datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
-
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import HTMLResponse
@@ -16,11 +15,11 @@ BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_DATA_FILE = BASE_DIR / "safety_data.json"
 DATA_FILE = Path(os.environ.get("SAFETY_DATA_PATH", str(DEFAULT_DATA_FILE)))
 TIME_ZONE = os.environ.get("SAFETY_TIME_ZONE", "America/New_York")
-ADMIN_ACCESS_CODE = os.environ.get("ADMIN_ACCESS_CODE", "").strip()  # Set a private value in Render; no insecure public default.
+ADMIN_ACCESS_CODE = os.environ.get("ADMIN_ACCESS_CODE", "").strip()
 LOCK = threading.RLock()
 SCHEDULER = BackgroundScheduler(timezone=ZoneInfo(TIME_ZONE))
 
-app = FastAPI(title="SmartCargo SafetyHub", description="Servidor Web de producción para SmartCargo SafetyHub", version="1.1.0")
+app = FastAPI(title="SmartCargo SafetyHub", description="Servidor Web de producción para SmartCargo SafetyHub", version="1.2.0")
 
 class LoginPayload(BaseModel):
     code: str = Field(min_length=1, max_length=200)
@@ -43,10 +42,8 @@ class AnnouncementPayload(BaseModel):
     authorRole: str = Field(min_length=2, max_length=160)
     generalAutoApproved: bool = False
 
-
 def now_local():
     return datetime.now(ZoneInfo(TIME_ZONE))
-
 
 def _default_state():
     if DEFAULT_DATA_FILE.exists():
@@ -54,8 +51,7 @@ def _default_state():
             return json.loads(DEFAULT_DATA_FILE.read_text(encoding="utf-8"))
         except Exception:
             pass
-    return {"version": 1, "time_zone": TIME_ZONE, "sources": {}, "source_disclaimer": "", "groups": {}, "worker_breathing_exercises": [], "leadership_breathing_exercises": [], "announcements": [], "schedules": [], "settings": {"auto_mode_enabled": False, "auto_publish_general_notices": False}, "audit_log": []}
-
+    return {"version": 1, "time_zone": TIME_ZONE, "sources": {}, "source_disclaimer": "", "groups": {}, "worker_breathing_exercises": [], "leadership_breathing_exercises": [], "announcements": [], "schedules": [], "settings": {"auto_mode_enabled": False, "auto_publish_general_notices": False}, "audit_log": [], "revoked_tokens": []}
 
 def load_state():
     if DATA_FILE.exists():
@@ -66,7 +62,6 @@ def load_state():
                 loaded.setdefault(key, value)
             return loaded
         except Exception:
-            # Preserve a corrupt file for recovery instead of silently overwriting it.
             backup = DATA_FILE.with_suffix(DATA_FILE.suffix + ".corrupt")
             try:
                 DATA_FILE.replace(backup)
@@ -76,7 +71,6 @@ def load_state():
     save_state(state)
     return state
 
-
 def save_state(state):
     DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
     temp = DATA_FILE.with_suffix(DATA_FILE.suffix + ".tmp")
@@ -85,13 +79,11 @@ def save_state(state):
 
 STATE = load_state()
 
-
 def require_admin(x_admin_code: str | None):
     if not ADMIN_ACCESS_CODE:
         raise HTTPException(status_code=503, detail="Configura ADMIN_ACCESS_CODE en Render antes de habilitar el Puesto de Mando")
     if not x_admin_code or x_admin_code != ADMIN_ACCESS_CODE:
         raise HTTPException(status_code=401, detail="Autorización de jefatura requerida / Admin authorization required")
-
 
 def normalize_bilingual(title_es, content_es, title_en, content_en):
     has_es = bool(title_es.strip() and content_es.strip())
@@ -99,7 +91,6 @@ def normalize_bilingual(title_es, content_es, title_en, content_en):
     if not has_es and not has_en:
         raise HTTPException(status_code=400, detail="Complete título y mensaje en español o inglés / Enter a title and message in Spanish or English")
     if has_es:
-        # Ignore a partially filled second-language panel; one complete language is sufficient.
         if not has_en:
             title_en, content_en = "", ""
     elif has_en:
@@ -108,15 +99,18 @@ def normalize_bilingual(title_es, content_es, title_en, content_en):
     content = {"es": content_es.strip(), "en": content_en.strip()}
     return title, content
 
-
-def bullets_from_content(content):
-    lines = [part.strip(" \t-•") for part in content.replace("\r", "").replace(".", ".\n").splitlines()]
-    lines = [line for line in lines if len(line) > 5]
-    return lines[:3] if lines else [content[:240]]
-
+def validate_sentences(text):
+    if not text:
+        return []
+    sentences = [s.strip() for s in text.replace("\r", "").split('.') if s.strip()]
+    if len(sentences) > 10:
+        raise HTTPException(status_code=400, detail="El texto excede el límite máximo de 10 oraciones / Text exceeds the 10-sentence limit")
+    return sentences
 
 def create_announcement(payload, scheduled=False):
     title, content = normalize_bilingual(payload.titleEs, payload.contentEs, payload.titleEn, payload.contentEn)
+    validate_sentences(payload.contentEs)
+    validate_sentences(payload.contentEn)
     now = now_local()
     valid_until = payload.validUntil or (now.date() + timedelta(days=7)).isoformat()
     try:
@@ -150,14 +144,13 @@ def create_announcement(payload, scheduled=False):
             raise HTTPException(status_code=400, detail="Fecha y hora inválidas")
         if scheduled_at <= now:
             raise HTTPException(status_code=400, detail="La fecha programada debe estar en el futuro")
-    if payload.recurrence != "once" and not payload.generalAutoApproved:
-        raise HTTPException(status_code=400, detail="La repetición automática requiere autorización explícita")
+    
     announcement = {
         "id": "N-" + now.strftime("%Y%m%d-") + uuid.uuid4().hex[:8].upper(),
         "type": {"es": "Aviso urgente" if payload.priority == "High" else "Comunicado general", "en": "Urgent notice" if payload.priority == "High" else "General notice"},
         "priority": payload.priority,
         "title": title,
-        "summaryBullets": {lang: bullets_from_content(text) if text else [] for lang, text in content.items()},
+        "summaryBullets": {lang: [text] if text else [] for lang, text in content.items()},
         "content": content,
         "author": payload.authorName.strip(),
         "authorRole": payload.authorRole.strip(),
@@ -183,9 +176,7 @@ def create_announcement(payload, scheduled=False):
         save_state(STATE)
     return announcement
 
-
 def process_schedules():
-    """Publishes due approved messages. Runs inside the Render web-service process."""
     now = now_local()
     with LOCK:
         changed = False
@@ -227,7 +218,6 @@ def process_schedules():
                         continue
                 except ValueError:
                     pass
-            # A future one-time message remains in schedules until due; recurring messages clone the approved general notice.
             if original.get("status") == "Scheduled":
                 original["status"] = "Active"
                 original["createdAt"] = now.isoformat()
@@ -255,12 +245,10 @@ def process_schedules():
         if changed:
             save_state(STATE)
 
-
 def daily_reminders_for(group_id, today):
     bank = STATE.get("groups", {}).get(group_id, [])
     if not bank:
         return []
-    # Deterministic server-side rotation: all devices see the same 3 for the same station/date.
     seed = sum(ord(ch) for ch in f"{today}:{group_id}")
     start = seed % len(bank)
     step = max(1, len(bank) // 3)
@@ -304,7 +292,9 @@ def admin_login(payload: LoginPayload):
     return {"ok": True}
 
 @app.get("/api/bootstrap")
-def bootstrap(group: str = "COUNTER"):
+def bootstrap(group: str = "COUNTER", token: str = None):
+    if token and token in STATE.get("revoked_tokens", []):
+        raise HTTPException(status_code=403, detail="LINK_REVOKED")
     if group not in STATE.get("groups", {}):
         group = "COUNTER"
     today = now_local().date().isoformat()
@@ -328,6 +318,18 @@ def set_auto_mode(payload: AutoModePayload, x_admin_code: str | None = Header(de
         STATE.setdefault("settings", {})["auto_mode_enabled"] = payload.enabled
         save_state(STATE)
     return {"enabled": payload.enabled}
+
+@app.post("/api/admin/revoke-token")
+def revoke_token(payload: dict, x_admin_code: str | None = Header(default=None)):
+    require_admin(x_admin_code)
+    token = payload.get("token")
+    if token:
+        with LOCK:
+            revoked = STATE.setdefault("revoked_tokens", [])
+            if token not in revoked:
+                revoked.append(token)
+            save_state(STATE)
+    return {"status": "ok"}
 
 @app.post("/api/admin/announcements")
 def publish_announcement(payload: AnnouncementPayload, x_admin_code: str | None = Header(default=None)):
@@ -355,6 +357,22 @@ def withdraw_announcement(notice_id: str, request: Request, x_admin_code: str | 
     if not found:
         raise HTTPException(status_code=404, detail="Aviso no encontrado / Notice not found")
     return {"ok": True}
+
+@app.delete("/api/admin/announcements/{notice_id}")
+def delete_announcement_permanently(notice_id: str, x_admin_code: str | None = Header(default=None)):
+    require_admin(x_admin_code)
+    with LOCK:
+        announcements = STATE.get("announcements", [])
+        original_len = len(announcements)
+        STATE["announcements"] = [a for a in announcements if a.get("id") != notice_id]
+        if len(STATE["announcements"]) == original_len:
+            raise HTTPException(status_code=404, detail="Aviso no encontrado / Notice not found")
+        for schedule in STATE.get("schedules", []):
+            if schedule.get("announcementId") == notice_id:
+                schedule["enabled"] = False
+        STATE.setdefault("audit_log", []).append({"action": "deleted", "id": notice_id, "at": now_local().isoformat()})
+        save_state(STATE)
+    return {"ok": True, "message": "Aviso eliminado definitivamente de la auditoría"}
 
 @app.get("/api/admin/status")
 def admin_status(x_admin_code: str | None = Header(default=None)):
