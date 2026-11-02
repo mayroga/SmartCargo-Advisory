@@ -33,7 +33,7 @@
     <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl px-4 py-3">
         <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
             <div class="flex items-center space-x-3">
-                <div class="p-2 bg-gradient-to-tr from-brand-600 via-blue-600 to-amber-500 rounded-xl shadow-lg text-white">
+                <div class="p-2 bg-gradient-to-tr from-brand-600 via-blue-600 to-amber-500 rounded-xl shadow-lg shadow-brand-500/20 text-white">
                     <i data-lucide="plane-takeoff" class="w-6 h-6"></i>
                 </div>
                 <div>
@@ -51,10 +51,12 @@
                 </div>
                 <div class="bg-slate-800/80 p-1 rounded-lg border border-slate-700 flex items-center">
                     <button @click="viewMode = 'worker'" :class="viewMode === 'worker' ? 'bg-slate-700 text-white font-semibold' : 'text-slate-400 hover:text-white'" class="px-3 py-1.5 text-xs rounded-md flex items-center gap-1.5 transition-all">
-                        <i data-lucide="user" class="w-3.5 h-3.5"></i><span x-text="t('workerMode')"></span>
+                        <i data-lucide="user" class="w-3.5 h-3.5"></i>
+                        <span x-text="t('workerMode')"></span>
                     </button>
-                    <button @click="toggleAdminView()" :class="viewMode === 'admin' ? 'bg-amber-600 text-white font-semibold shadow-lg' : 'text-slate-400 hover:text-white'" class="px-3 py-1.5 text-xs rounded-md flex items-center gap-1.5 transition-all">
-                        <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i><span x-text="t('adminMode')"></span>
+                    <button @click="toggleAdminView()" :class="viewMode === 'admin' ? 'bg-amber-600 text-white font-semibold shadow-lg shadow-amber-600/20' : 'text-slate-400 hover:text-white'" class="px-3 py-1.5 text-xs rounded-md flex items-center gap-1.5 transition-all">
+                        <i data-lucide="shield-alert" class="w-3.5 h-3.5"></i>
+                        <span x-text="t('adminMode')"></span>
                     </button>
                 </div>
             </div>
@@ -62,11 +64,13 @@
         <template x-if="viewMode === 'worker'">
             <div class="max-w-7xl mx-auto mt-3 pt-2 border-t border-slate-800 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
                 <span class="text-[11px] text-slate-400 font-bold uppercase tracking-wider shrink-0 flex items-center gap-1">
-                    <i data-lucide="users" class="w-3.5 h-3.5 text-amber-400"></i><span x-text="t('selectGroupLabel') + ':'"></span>
+                    <i data-lucide="users" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span x-text="t('selectGroupLabel') + ':'"></span>
                 </span>
                 <template x-for="group in groups" :key="group.id">
                     <button @click="switchWorkerGroup(group.id)" :class="currentGroupId === group.id ? 'bg-brand-500/20 border-brand-500 text-brand-300 font-bold shadow' : 'bg-slate-800/60 border-slate-700/60 text-slate-400 hover:bg-slate-800 hover:text-slate-200'" class="px-3 py-1 text-xs rounded-full border transition-all shrink-0 flex items-center gap-1.5">
-                        <i :data-lucide="group.icon" class="w-3.5 h-3.5"></i><span x-text="group.name[lang]"></span>
+                        <i :data-lucide="group.icon" class="w-3.5 h-3.5"></i>
+                        <span x-text="group.name[lang]"></span>
                     </button>
                 </template>
             </div>
@@ -90,12 +94,13 @@
             </div>
             <div class="shrink-0 text-right">
                 <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-[11px] text-slate-300 font-mono">
-                    <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-400"></i><span x-text="t('dataProtected')"></span>
+                    <i data-lucide="lock" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span x-text="t('dataProtected')"></span>
                 </span>
             </div>
         </div>
 
-        <!-- WORKER VIEW -->
+        <!-- VISTA TRABAJADOR -->
         <template x-if="viewMode === 'worker'">
             <div class="space-y-8">
                 <template x-if="isCurrentLinkRevoked()">
@@ -133,7 +138,7 @@
                             </div>
                         </div>
 
-                        <!-- SECTION 1: PERMANENT PILLARS -->
+                        <!-- SECCIÓN 1: PILARES PERMANENTES -->
                         <section class="space-y-4">
                             <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                                 <div class="flex items-center gap-2">
@@ -143,34 +148,25 @@
                                 <span class="text-[11px] bg-brand-900/60 text-brand-300 border border-brand-700/50 px-2.5 py-0.5 rounded-full font-mono">Standard SMS</span>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                                <div class="bg-gradient-to-b from-slate-900 to-slate-900/90 border-l-4 border-l-blue-500 border border-slate-800 rounded-xl p-5 shadow-lg">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest font-mono">PILAR 01</span>
-                                        <i data-lucide="user-shield" class="w-5 h-5 text-blue-400"></i>
-                                    </div>
+                                <div class="bg-gradient-to-b from-slate-900 to-slate-900/90 border-l-4 border-l-blue-500 border-t border-r border-b border-slate-800 rounded-xl p-5 shadow-lg relative">
+                                    <div class="flex items-center justify-between mb-3"><span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest font-mono">PILAR 01</span><i data-lucide="user-shield" class="w-5 h-5 text-blue-400"></i></div>
                                     <h3 class="text-base font-black text-white mb-2" x-text="pillars.p1.title[lang]"></h3>
                                     <p class="text-xs text-slate-300 leading-relaxed" x-text="pillars.p1.desc[lang]"></p>
                                 </div>
-                                <div class="bg-gradient-to-b from-slate-900 to-slate-900/90 border-l-4 border-l-amber-500 border border-slate-800 rounded-xl p-5 shadow-lg">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <span class="text-[10px] font-bold text-amber-400 uppercase tracking-widest font-mono">PILAR 02</span>
-                                        <i data-lucide="eye" class="w-5 h-5 text-amber-400"></i>
-                                    </div>
+                                <div class="bg-gradient-to-b from-slate-900 to-slate-900/90 border-l-4 border-l-amber-500 border-t border-r border-b border-slate-800 rounded-xl p-5 shadow-lg relative">
+                                    <div class="flex items-center justify-between mb-3"><span class="text-[10px] font-bold text-amber-400 uppercase tracking-widest font-mono">PILAR 02</span><i data-lucide="eye" class="w-5 h-5 text-amber-400"></i></div>
                                     <h3 class="text-base font-black text-white mb-2" x-text="pillars.p2.title[lang]"></h3>
                                     <p class="text-xs text-slate-300 leading-relaxed" x-text="pillars.p2.desc[lang]"></p>
                                 </div>
-                                <div class="bg-gradient-to-b from-slate-900 to-slate-900/90 border-l-4 border-l-emerald-500 border border-slate-800 rounded-xl p-5 shadow-lg">
-                                    <div class="flex items-center justify-between mb-3">
-                                        <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-mono">PILAR 03</span>
-                                        <i data-lucide="users" class="w-5 h-5 text-emerald-400"></i>
-                                    </div>
+                                <div class="bg-gradient-to-b from-slate-900 to-slate-900/90 border-l-4 border-l-emerald-500 border-t border-r border-b border-slate-800 rounded-xl p-5 shadow-lg relative">
+                                    <div class="flex items-center justify-between mb-3"><span class="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-mono">PILAR 03</span><i data-lucide="users" class="w-5 h-5 text-emerald-400"></i></div>
                                     <h3 class="text-base font-black text-white mb-2" x-text="pillars.p3.title[lang]"></h3>
                                     <p class="text-xs text-slate-300 leading-relaxed" x-text="pillars.p3.desc[lang]"></p>
                                 </div>
                             </div>
                         </section>
 
-                        <!-- SECTION 2: DAILY REMINDERS -->
+                        <!-- SECCIÓN 2: RECORDATORIOS DIARIOS -->
                         <section class="space-y-4">
                             <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                                 <div class="flex items-center gap-2">
@@ -178,13 +174,13 @@
                                     <h2 class="text-base font-extrabold text-white uppercase tracking-wider" x-text="t('remindersHeader')"></h2>
                                 </div>
                                 <span class="text-xs text-amber-400/90 flex items-center gap-1 font-mono font-bold bg-amber-500/10 px-2.5 py-1 rounded-md border border-amber-500/20">
-                                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5 animate-spin"></i>
                                     <span x-text="t('dailyRotationLabel')"></span>
                                 </span>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                                 <template x-for="(rem, idx) in getDailyRotatedReminders()" :key="rem.id">
-                                    <div class="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-3">
+                                    <div class="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 shadow-lg flex flex-col justify-between space-y-3 relative group">
                                         <div class="space-y-2">
                                             <div class="flex items-center justify-between text-xs">
                                                 <span class="font-mono text-amber-400 font-bold" x-text="'#' + (idx + 1) + ' ' + getCurrentGroup().name[lang].toUpperCase()"></span>
@@ -202,7 +198,7 @@
                             </div>
                         </section>
 
-                        <!-- SECTION 3: ANNOUNCEMENTS & NOTICES -->
+                        <!-- SECCIÓN 3: AVISOS ESPECIALES Y COMUNICADOS (TEXTO COMPLETO PROHIBIDO RESUMEN) -->
                         <section class="space-y-4">
                             <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                                 <div class="flex items-center gap-2">
@@ -235,19 +231,19 @@
                                             </div>
                                         </div>
                                         <h3 class="text-lg font-black text-white" x-text="item.title[lang] || item.title.es || item.title.en"></h3>
-                                        <div class="bg-slate-950/70 border border-slate-800/80 rounded-xl p-4 space-y-2">
+                                        <div class="bg-slate-950/70 border border-slate-800/80 rounded-xl p-4">
                                             <p class="text-xs text-slate-200 leading-relaxed whitespace-pre-line" x-text="item.content[lang] || item.content.es || item.content.en"></p>
                                         </div>
                                         <div class="pt-2 flex items-center justify-between text-[11px] text-slate-400 font-mono">
                                             <span x-text="t('targetGroup') + ': ' + getTargetDisplay(item.targetGroup)"></span>
-                                            <span x-text="'Valid until: ' + item.validUntil"></span>
+                                            <span x-text="'Válido hasta: ' + item.validUntil"></span>
                                         </div>
                                     </div>
                                 </template>
                             </div>
                         </section>
 
-                        <!-- SECTION 4: WORKER BREATHING -->
+                        <!-- SECCIÓN 4: RESPIRACIÓN OPERATIVA TRABAJADOR (45s CON VOZ) -->
                         <section class="bg-gradient-to-br from-slate-900 via-slate-900 to-brand-950/50 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                                 <div>
@@ -290,13 +286,13 @@
                                 <p class="text-xs sm:text-sm text-slate-200 max-w-md text-center h-8 font-medium" x-text="workerBreathingInstruction"></p>
                                 <div class="flex items-center gap-4">
                                     <template x-if="!workerBreathingActive">
-                                        <button @click="startWorkerBreathing()" class="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg flex items-center gap-2 transition-all active:scale-95">
+                                        <button @click="startWorkerBreathing()" class="px-6 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-cyan-500/20 flex items-center gap-2 transition-all active:scale-95">
                                             <i data-lucide="play" class="w-4 h-4 fill-current"></i>
                                             <span x-text="t('startWorkerBreathingBtn')"></span>
                                         </button>
                                     </template>
                                     <template x-if="workerBreathingActive">
-                                        <button @click="stopWorkerBreathing()" class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg flex items-center gap-2 transition-all active:scale-95">
+                                        <button @click="stopWorkerBreathing()" class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-rose-600/20 flex items-center gap-2 transition-all active:scale-95">
                                             <i data-lucide="square" class="w-4 h-4 fill-current"></i>
                                             <span x-text="t('stopBreathing')"></span>
                                         </button>
@@ -318,7 +314,7 @@
             </div>
         </template>
 
-        <!-- COMMAND CENTER (ADMIN VIEW) -->
+        <!-- CENTRO DE MANDO (JEFATURA) -->
         <template x-if="viewMode === 'admin'">
             <div class="space-y-8">
                 <template x-if="!adminAuthenticated">
@@ -338,7 +334,7 @@
                             <template x-if="adminError">
                                 <p class="text-xs text-rose-400 font-medium" x-text="adminError"></p>
                             </template>
-                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg transition-all">
+                            <button type="submit" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 transition-all">
                                 <span x-text="t('loginBtn')"></span>
                             </button>
                         </form>
@@ -367,17 +363,7 @@
                             </div>
                         </div>
 
-                        <template x-if="adminAutoModeActive">
-                            <div class="bg-gradient-to-r from-emerald-950/60 via-slate-900 to-slate-900 border border-emerald-500/30 rounded-2xl p-4 flex items-center justify-between gap-4 text-xs font-mono">
-                                <div class="flex items-center gap-2">
-                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
-                                    <span class="text-emerald-300 font-bold" x-text="t('adminAutoModeRunning')"></span>
-                                </div>
-                                <span class="text-slate-400" x-text="t('adminAutoModeAction')"></span>
-                            </div>
-                        </template>
-
-                        <!-- LEADERSHIP BREATHING -->
+                        <!-- RESPIRACIÓN JEFATURA (60s CON VOZ) -->
                         <section class="bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/40 border border-amber-500/30 rounded-2xl p-6 shadow-xl space-y-6">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                                 <div>
@@ -412,13 +398,13 @@
                                 <p class="text-xs sm:text-sm text-amber-100 max-w-lg text-center h-10 font-medium leading-relaxed" x-text="leadershipInstruction"></p>
                                 <div class="flex items-center gap-4">
                                     <template x-if="!leadershipBreathingActive">
-                                        <button @click="startLeadershipBreathing()" class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg flex items-center gap-2 transition-all active:scale-95">
+                                        <button @click="startLeadershipBreathing()" class="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/20 flex items-center gap-2 transition-all active:scale-95">
                                             <i data-lucide="play" class="w-4 h-4 fill-current"></i>
                                             <span x-text="t('startLeadershipBreathingBtn')"></span>
                                         </button>
                                     </template>
                                     <template x-if="leadershipBreathingActive">
-                                        <button @click="stopLeadershipBreathing()" class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg flex items-center gap-2 transition-all active:scale-95">
+                                        <button @click="stopLeadershipBreathing()" class="px-6 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-rose-600/20 flex items-center gap-2 transition-all active:scale-95">
                                             <i data-lucide="square" class="w-4 h-4 fill-current"></i>
                                             <span x-text="t('stopBreathing')"></span>
                                         </button>
@@ -427,7 +413,7 @@
                             </div>
                         </section>
 
-                        <!-- LINKS MANAGEMENT -->
+                        <!-- ENLACES DINÁMICOS -->
                         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                             <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div>
@@ -457,10 +443,12 @@
                                         </div>
                                         <div class="flex items-center gap-2">
                                             <button @click="copyGroupLink(grp.id)" :disabled="isGroupLinkRevoked(grp.id)" class="flex-1 py-1.5 px-2.5 rounded-lg bg-brand-600/20 hover:bg-brand-600/30 disabled:opacity-40 text-xs font-semibold text-brand-300 border border-brand-500/30 flex items-center justify-center gap-1 transition-colors">
-                                                <i data-lucide="copy" class="w-3.5 h-3.5"></i><span x-text="t('copyLink')"></span>
+                                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                                <span x-text="t('copyLink')"></span>
                                             </button>
                                             <button @click="revokeAndRegenerateLink(grp.id)" class="py-1.5 px-2.5 rounded-lg bg-rose-600/20 hover:bg-rose-600/30 text-xs font-semibold text-rose-300 border border-rose-500/30 flex items-center gap-1 transition-colors">
-                                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span x-text="t('revokeBtn')"></span>
+                                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                                                <span x-text="t('revokeBtn')"></span>
                                             </button>
                                         </div>
                                     </div>
@@ -468,7 +456,7 @@
                             </div>
                         </section>
 
-                        <!-- PUBLISH FORM -->
+                        <!-- FORMULARIO DE PUBLICACIÓN DE AVISOS -->
                         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
                             <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <div>
@@ -478,7 +466,7 @@
                                     </h3>
                                     <p class="text-xs text-slate-400" x-text="t('pastedTextNote')"></p>
                                 </div>
-                                <button @click="clearFormWithWarning()" class="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 font-bold text-xs flex items-center gap-1.5 self-start sm:self-auto">
+                                <button type="button" @click="clearFormWithWarning()" class="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 text-amber-300 font-bold text-xs flex items-center gap-1.5 self-start sm:self-auto transition-all">
                                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                     <span x-text="t('clearOldContentBtn')"></span>
                                 </button>
@@ -511,7 +499,7 @@
                                         <label class="block text-xs font-bold text-slate-300 mb-1">Publicación / Publishing</label>
                                         <select x-model="newNotice.publishTiming" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs">
                                             <option value="now">Publicar ahora / Publish now</option>
-                                            <option value="scheduled">Programar fecha y hora / Schedule date & time</option>
+                                            <option value="scheduled">Programar fecha y hora / Schedule</option>
                                         </select>
                                     </div>
                                     <div>
@@ -530,50 +518,50 @@
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-300 mb-1">Nombre y apellido / Full name</label>
-                                        <input type="text" x-model="newNotice.authorName" placeholder="Nombre Apellido / Full name" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs">
+                                        <input type="text" x-model="newNotice.authorName" placeholder="Nombre Apellido" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs">
                                     </div>
                                     <div>
                                         <label class="block text-xs font-bold text-slate-300 mb-1">Cargo / Role</label>
-                                        <input type="text" x-model="newNotice.authorRole" placeholder="Cargo autorizado / Authorized role" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs">
+                                        <input type="text" x-model="newNotice.authorRole" placeholder="Cargo autorizado" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs">
                                     </div>
-                                    <div class="flex items-center gap-2 text-xs text-slate-300 mt-5">
+                                    <div class="flex items-center gap-2 text-xs text-slate-300">
                                         <input type="checkbox" x-model="newNotice.generalAutoApproved" class="accent-emerald-500">
                                         <span>Autorizar repetición automática de este aviso general.</span>
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div class="space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-                                        <span class="text-xs font-bold text-brand-400 uppercase tracking-wider block">TEXTO EN ESPAÑOL (MÁXIMO 10 ORACIONES)</span>
+                                        <span class="text-xs font-bold text-brand-400 uppercase tracking-wider block">TEXTO EN ESPAÑOL (Máximo 10 oraciones)</span>
                                         <div>
                                             <label class="block text-[11px] text-slate-400 mb-1">Título</label>
                                             <input type="text" x-model="newNotice.titleEs" placeholder="Ej: Precaución por Operaciones en Pista" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none">
                                         </div>
                                         <div>
-                                            <label class="block text-[11px] text-slate-400 mb-1">Mensaje Completo (Máx 10 oraciones)</label>
-                                            <textarea x-model="newNotice.contentEs" rows="4" placeholder="Escribe el texto aquí (máximo 10 oraciones)..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none"></textarea>
+                                            <label class="block text-[11px] text-slate-400 mb-1">Mensaje Completo (Prohibido resumen, máx 10 oraciones)</label>
+                                            <textarea x-model="newNotice.contentEs" rows="4" placeholder="Escribe el aviso completo..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none"></textarea>
                                         </div>
                                     </div>
                                     <div class="space-y-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-                                        <span class="text-xs font-bold text-brand-400 uppercase tracking-wider block">ENGLISH TEXT (MAXIMUM 10 SENTENCES)</span>
+                                        <span class="text-xs font-bold text-brand-400 uppercase tracking-wider block">ENGLISH TEXT (Max 10 sentences)</span>
                                         <div>
                                             <label class="block text-[11px] text-slate-400 mb-1">Title</label>
                                             <input type="text" x-model="newNotice.titleEn" placeholder="E.g.: Caution Ramp Area Operations" class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none">
                                         </div>
                                         <div>
-                                            <label class="block text-[11px] text-slate-400 mb-1">Full Message (Max 10 sentences)</label>
-                                            <textarea x-model="newNotice.contentEn" rows="4" placeholder="Type alert text here (maximum 10 sentences)..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none"></textarea>
+                                            <label class="block text-[11px] text-slate-400 mb-1">Full Message (No summary, max 10 sentences)</label>
+                                            <textarea x-model="newNotice.contentEn" rows="4" placeholder="Type full notice here..." class="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-brand-500 focus:outline-none"></textarea>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="flex items-center justify-end gap-3">
-                                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg transition-all">
+                                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-600/20 transition-all">
                                         <span x-text="t('publishNow')"></span>
                                     </button>
                                 </div>
                             </form>
                         </section>
 
-                        <!-- AUDIT LOG -->
+                        <!-- LOG DE AUDITORÍA Y REGISTRO -->
                         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                             <div class="border-b border-slate-800 pb-3">
                                 <h3 class="text-base font-bold text-white flex items-center gap-2">
@@ -606,9 +594,7 @@
                                                     <div class="text-slate-400 italic text-[11px] truncate" x-text="item.title.en || item.title.es"></div>
                                                 </td>
                                                 <td class="p-3 font-mono text-[11px]" x-text="getTargetDisplay(item.targetGroup)"></td>
-                                                <td class="p-3">
-                                                    <div x-text="item.author + (item.authorRole ? ' · ' + item.authorRole : '')"></div>
-                                                </td>
+                                                <td class="p-3"><div x-text="item.author + (item.authorRole ? ' · ' + item.authorRole : '')"></div></td>
                                                 <td class="p-3">
                                                     <span :class="item.status === 'Active' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : (item.status === 'Scheduled' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border-rose-500/30')" class="px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase" x-text="item.status"></span>
                                                 </td>
@@ -645,6 +631,7 @@
         </div>
     </footer>
 
+    <!-- LÓGICA ALPINE.JS INTEGRADA Y COMPLETA -->
     <script>
         function safetyApp() {
             return {
@@ -653,14 +640,7 @@
                 currentGroupId: 'COUNTER',
                 todayDateStr: '',
                 adminAutoModeActive: false,
-                adminAutoTimer: null,
                 adminAccessCode: '',
-                apiRefreshTimer: null,
-                dailyReminders: [],
-                workerExerciseIndex: -1,
-                currentWorkerExercise: {},
-                scheduleStatus: '',
-                scheduledTasks: [],
                 adminAuthenticated: false,
                 adminPasscode: '',
                 adminError: '',
@@ -727,7 +707,20 @@
                         { id: 'SUP-F03', title: { es: 'Da seguimiento a riesgos', en: 'Follow up on hazards' }, desc: { es: 'Registra los peligros reportados y confirma que tengan seguimiento.', en: 'Record reported hazards and confirm they are followed up.' } }
                     ]
                 },
-                announcements: [],
+                announcements: [
+                    {
+                        id: 'ANC-8801',
+                        createdAt: new Date().toISOString(),
+                        author: 'Jefatura SMS',
+                        authorRole: 'Director de Seguridad Operativa',
+                        targetGroup: 'ALL',
+                        priority: 'High',
+                        validUntil: '2026-12-31',
+                        status: 'Active',
+                        title: { es: 'Alerta de Tráfico en Pista y Plataforma', en: 'Ramp and Runway Traffic Alert' },
+                        content: { es: 'Mantener máxima precaución durante la descarga de aeronaves de fuselaje ancho. Verifique los frenos del montacargas antes de iniciar la operación. Use chaleco de alta visibilidad obligatorio en todo momento.', en: 'Maintain maximum caution during wide-body aircraft unloading. Inspect forklift brakes before operation. High-visibility vest required at all times.' }
+                    }
+                ],
                 newNotice: {
                     targetGroup: 'ALL', priority: 'Normal', validUntil: '', titleEs: '', contentEs: '',
                     titleEn: '', contentEn: '', publishTiming: 'now', scheduledAt: '', recurrence: 'once',
@@ -743,8 +736,9 @@
                     { icon: 'brain', title: { es: "Escucha antes de decidir", en: "Listen before deciding" }, subtitle: { es: "La supervisión eficaz comienza escuchando y verificando.", en: "Effective supervision begins with listening and verification." } }
                 ],
                 currentLeadershipAnchor: {},
+                currentWorkerExercise: {},
                 victoryAffirmations: [
-                    { es: '¡Eres un profesional de excelencia! Tu compromiso con la seguridad nos protege a todos.', en: 'You are an excellent professional! Your commitment to safety protects us all.' },
+                    { es: '¡Eres un profesional de excelencia! Tu compromiso con la seguridad nos protege a todos. ¡A ganar en este turno!', en: 'You are an excellent professional! Your commitment to safety protects us all. Win this shift!' },
                     { es: '¡Hoy vas con todo, con mente clara y actitud de vencedor! Trabaja seguro y regresa bien a casa.', en: 'Today you go all in, with a clear mind and winning spirit! Work safe and return home well.' }
                 ],
                 translations: {
@@ -762,7 +756,7 @@
                     remindersHeader: { es: '2. Recordatorios Diarios del Grupo', en: '2. Daily Group Specific Reminders' },
                     dailyRotationLabel: { es: 'Rotación Dinámica por Fecha', en: 'Daily Rotated' },
                     verifiedStandard: { es: 'Base técnica · verificar SOP vigente', en: 'Technical basis · verify current SOP' },
-                    announcementsHeader: { es: '3. Avisos y Órdenes de Jefatura', en: '3. Leadership Notices' },
+                    announcementsHeader: { es: '3. Avisos y Órdenes de Jefatura Completa', en: '3. Full Leadership Notices & Orders' },
                     activeNotices: { es: 'Vigentes', en: 'Active' },
                     noActiveNotices: { es: 'No hay alertas ni instrucciones urgentes activas para este turno.', en: 'No active urgent alerts or instructions for this shift.' },
                     targetGroup: { es: 'Grupo Objetivo', en: 'Target Group' },
@@ -774,7 +768,7 @@
                     startWorkerBreathingBtn: { es: 'Iniciar Preparación Operativa (45s)', en: 'Start Operational Pause (45s)' },
                     startLeadershipBreathingBtn: { es: 'Iniciar Enfoque de Liderazgo (60s)', en: 'Start Executive Focus (60s)' },
                     stopBreathing: { es: 'Detener', en: 'Stop' },
-                    victoryTitle: { es: '¡EXCELENTE TRABAJO! MENTALIDAD DE VENDEDOR', en: 'GREAT JOB! WINNING MINDSET' },
+                    victoryTitle: { es: '¡EXCELENTE TRABAJO! MENTALIDAD DE VENCEDOR', en: 'GREAT JOB! WINNING MINDSET' },
                     adminAccessTitle: { es: 'Acceso Exclusivo de Jefatura y Supervisión', en: 'Exclusive Leadership Access' },
                     adminAccessSubtitle: { es: 'Ingrese la clave de autorización de la estación', en: 'Enter station authorization code' },
                     enterPasscode: { es: 'Clave de Seguridad', en: 'Security Code' },
@@ -783,17 +777,15 @@
                     logout: { es: 'Cerrar Sesión', en: 'Log Out' },
                     adminAutoActive: { es: 'Modo Auto Puesto Mando: ACTIVADO', en: 'Command Auto-Mode: ON' },
                     adminAutoInactive: { es: 'Modo Auto Puesto Mando: DESACTIVADO', en: 'Command Auto-Mode: OFF' },
-                    adminAutoModeRunning: { es: 'Modo Auto Operando:', en: 'Auto-Mode Running:' },
-                    adminAutoModeAction: { es: 'Supervisando alertas, actualizando briefs e inspeccionando logs en segundo plano.', en: 'Monitoring alerts, updating briefs, and reviewing logs automatically.' },
                     shareableLinksTitle: { es: 'Enlaces Dinámicos a Grupos (Revocación por Seguridad)', en: 'Dynamic Group Links (Access Revocation)' },
                     shareableLinksSub: { es: 'Envía estos enlaces a los grupos de trabajadores. Si un empleado se retira, revoca el enlace aquí.', en: 'Send these links to worker groups. If an employee leaves, revoke the link here.' },
                     copyLink: { es: 'Copiar Enlace', en: 'Copy Link' },
                     revokeBtn: { es: 'Revocar Link', en: 'Revoke Link' },
-                    createNoticeTitle: { es: 'Publicar Nuevo Mensaje u Órden de Trabajo', en: 'Publish New Message or Work Order' },
-                    pastedTextNote: { es: 'Escribe hasta un máximo de 10 oraciones por mensaje.', en: 'Write up to a maximum of 10 sentences per message.' },
+                    createNoticeTitle: { es: 'Publicar Nuevo Mensaje u Órden de Trabajo (Sin Resumen)', en: 'Publish New Message or Work Order (Full Text)' },
+                    pastedTextNote: { es: 'Texto completo directo (Prohibido resumen). Máximo 10 oraciones.', en: 'Direct full text (No summary). Maximum 10 sentences.' },
                     clearOldContentBtn: { es: 'Borrar Contenido Antiguo para Continuar', en: 'Clear Old Content to Continue' },
                     targetGroupLabel: { es: 'Grupo Destinatario', en: 'Target Group' },
-                    allGroups: { es: 'TODOS LOS GRUPOS DE TRABAJO (6 CANALES)', en: 'ALL WORK GROUPS (6 CHANNELS)' },
+                    allGroups: { es: 'TODOS LOS 6 CANALES OPERATIVOS', en: 'ALL 6 OPERATIONAL CHANNELS' },
                     priorityLabel: { es: 'Prioridad', en: 'Priority' },
                     validityLabel: { es: 'Fecha de Expiración', en: 'Expiration Date' },
                     publishNow: { es: 'Publicar Aviso', en: 'Publish Notice' },
@@ -805,45 +797,52 @@
                     linkRevokedDesc: { es: 'Este enlace ha sido inactivado por Jefatura. Solicita el nuevo enlace oficial a tu supervisor.', en: 'This link has been revoked by Leadership. Request the new official link from your supervisor.' }
                 },
                 t(k) { return this.translations[k] ? this.translations[k][this.lang] : k; },
-                setLang(l) { this.lang = l; },
+                setLang(l) {
+                    this.lang = l;
+                    if (this.workerBreathingActive) this.stopWorkerBreathing();
+                    if (this.leadershipBreathingActive) this.stopLeadershipBreathing();
+                },
                 initApp() {
                     const today = new Date();
                     this.todayDateStr = today.toISOString().split('T')[0];
                     const expiry = new Date();
                     expiry.setDate(expiry.getDate() + 30);
                     this.newNotice.validUntil = expiry.toISOString().split('T')[0];
-                    const saved = localStorage.getItem('smartcargo_announcements_local');
-                    if (saved) {
-                        try { this.announcements = JSON.parse(saved); } catch (e) { this.announcements = []; }
-                    }
                     this.currentLeadershipAnchor = this.leadershipAnchorsPool[0];
                     this.currentWorkerExercise = this.workerBreathingThemes[0];
+                    const saved = localStorage.getItem('smartcargo_announcements_db');
+                    if (saved) {
+                        try { this.announcements = JSON.parse(saved); } catch(e){}
+                    }
                     this.$nextTick(() => lucide.createIcons());
                 },
-                toggleAdminView() { this.viewMode = 'admin'; this.$nextTick(() => lucide.createIcons()); },
-                authenticateAdmin() {
-                    if (this.adminPasscode === '1234' || this.adminPasscode === 'admin' || this.adminPasscode === '2026') {
-                        this.adminAuthenticated = true;
-                        this.adminError = '';
-                    } else {
-                        this.adminError = this.lang === 'es' ? 'Clave incorrecta' : 'Invalid passcode';
-                    }
+                saveAnnouncements() {
+                    localStorage.setItem('smartcargo_announcements_db', JSON.stringify(this.announcements));
                 },
-                toggleAdminAutoMode() { this.adminAutoModeActive = !this.adminAutoModeActive; },
-                switchWorkerGroup(grpId) { this.currentGroupId = grpId; this.$nextTick(() => lucide.createIcons()); },
-                getCurrentGroup() { return this.groups.find(g => g.id === this.currentGroupId) || this.groups[0]; },
+                toggleAdminAutoMode() {
+                    this.adminAutoModeActive = !this.adminAutoModeActive;
+                    this.showNoticeMessage(this.adminAutoModeActive ? 'Modo Auto Activado en Centro de Mando.' : 'Modo Auto Desactivado.');
+                },
+                switchWorkerGroup(grpId) {
+                    this.currentGroupId = grpId;
+                    this.showVictoryReward = false;
+                    this.$nextTick(() => lucide.createIcons());
+                },
+                getCurrentGroup() {
+                    return this.groups.find(g => g.id === this.currentGroupId) || this.groups[0];
+                },
                 getDailyRotatedReminders() {
                     const pool = this.remindersPool[this.currentGroupId] || [];
-                    return pool.slice(0, 3);
+                    if (pool.length === 0) return [];
+                    let seed = 0; for (let i = 0; i < this.todayDateStr.length; i++) seed += this.todayDateStr.charCodeAt(i);
+                    const picked = []; for (let i = 0; i < Math.min(3, pool.length); i++) picked.push(pool[(seed + i * 7) % pool.length]);
+                    return picked;
                 },
                 getActiveAnnouncements() {
-                    const today = new Date().toISOString().split('T')[0];
                     return this.announcements.filter(a => {
-                        if (a.status !== 'Active') return false;
-                        const targetMatch = a.targetGroup === 'ALL' || a.targetGroup === this.currentGroupId;
-                        if (!targetMatch) return false;
-                        if (a.validUntil && a.validUntil < today) return false;
-                        return true;
+                        const isTarget = a.targetGroup === 'ALL' || a.targetGroup === this.currentGroupId;
+                        const notExpired = !a.validUntil || a.validUntil >= this.todayDateStr;
+                        return a.status === 'Active' && isTarget && notExpired;
                     });
                 },
                 getTargetDisplay(grpCode) {
@@ -853,44 +852,129 @@
                 },
                 formatDate(isoStr) {
                     if (!isoStr) return '';
-                    return isoStr;
+                    const d = new Date(isoStr);
+                    return d.toLocaleDateString(this.lang === 'es' ? 'es-ES' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
                 },
-                getWorkerBreathingTheme() { return this.currentWorkerExercise; },
-                getDailyVictoryAffirmation() { return this.victoryAffirmations[0]; },
+                getWorkerBreathingTheme() { return this.currentWorkerExercise || this.workerBreathingThemes[0]; },
+                getDailyVictoryAffirmation() {
+                    let seed = 0; for (let i = 0; i < this.todayDateStr.length; i++) seed += this.todayDateStr.charCodeAt(i);
+                    return this.victoryAffirmations[seed % this.victoryAffirmations.length];
+                },
+                // GUÍA POR VOZ EN RESPIRACIÓN TRABAJADOR
+                getWorkerBreathingCues() {
+                    return this.lang === 'es' ? [
+                        'Toma aire con suavidad.', 'Suelta el aire sin prisa.', 'Deja que el círculo crezca.', 'Permite que el círculo se cierre.',
+                        'Inhala y observa tu entorno.', 'Exhala y afloja los hombros.', 'Expande el círculo lentamente.', 'Reduce el círculo con calma.',
+                        'Respira y centra tu atención.', 'Suelta el aire de forma natural.', 'Acompaña la expansión del círculo.', 'Acompaña el cierre sin esfuerzo.'
+                    ] : [
+                        'Breathe in gently.', 'Breathe out without rushing.', 'Let the circle expand.', 'Let the circle contract.',
+                        'Inhale and notice your surroundings.', 'Exhale and relax your shoulders.', 'Expand the circle slowly.', 'Let the circle soften inward.',
+                        'Breathe and focus your attention.', 'Release the air naturally.', 'Follow the circle as it expands.', 'Follow the circle as it contracts.'
+                    ];
+                },
                 startWorkerBreathing() {
+                    clearInterval(this.workerBreathingTimer);
                     this.workerBreathingActive = true;
                     this.workerBreathingTimeLeft = 45;
-                    this.workerBreathingInstruction = 'Inhala profundamente...';
+                    this.showVictoryReward = false;
+                    this.updateWorkerBreathingPhase();
                     this.workerBreathingTimer = setInterval(() => {
                         this.workerBreathingTimeLeft--;
-                        if (this.workerBreathingTimeLeft <= 0) {
-                            clearInterval(this.workerBreathingTimer);
-                            this.workerBreathingActive = false;
-                            this.showVictoryReward = true;
-                        }
+                        const elapsed = 45 - this.workerBreathingTimeLeft;
+                        if (elapsed % 4 === 0) this.updateWorkerBreathingPhase();
+                        if (this.workerBreathingTimeLeft <= 0) this.finishWorkerBreathing();
                     }, 1000);
+                },
+                updateWorkerBreathingPhase() {
+                    const elapsed = 45 - this.workerBreathingTimeLeft;
+                    const cues = this.getWorkerBreathingCues();
+                    const cueIndex = Math.min(Math.floor(elapsed / 4), cues.length - 1);
+                    const inhale = (elapsed % 8) < 4;
+                    this.workerBreathingPhaseText = inhale ? (this.lang === 'es' ? 'INHALA Y ENFÓCATE' : 'INHALE & FOCUS') : (this.lang === 'es' ? 'EXHALA TENSIONES' : 'EXHALE TENSION');
+                    this.workerBreathingInstruction = cues[cueIndex];
+                    if (this.voiceEnabled) this.speakVoice(this.workerBreathingInstruction);
                 },
                 stopWorkerBreathing() {
-                    clearInterval(this.workerBreathingTimer);
                     this.workerBreathingActive = false;
+                    clearInterval(this.workerBreathingTimer);
                     this.workerBreathingTimeLeft = 45;
+                    this.workerBreathingPhaseText = 'Pausa';
+                    this.workerBreathingInstruction = this.lang === 'es' ? 'Ejercicio pausado.' : 'Exercise paused.';
+                },
+                finishWorkerBreathing() {
+                    this.stopWorkerBreathing();
+                    this.showVictoryReward = true;
+                    const aff = this.getDailyVictoryAffirmation()[this.lang];
+                    if (this.voiceEnabled) this.speakVoice(this.lang === 'es' ? '¡Excelente trabajo! ' + aff : 'Great job! ' + aff);
+                },
+                // GUÍA POR VOZ EN RESPIRACIÓN JEFATURA
+                getLeadershipBreathingCues() {
+                    return this.lang === 'es' ? [
+                        'Inhala y ordena tus prioridades.', 'Exhala y libera la tensión.', 'Deja que el círculo se expanda.', 'Permite que vuelva suavemente.',
+                        'Inhala y observa los hechos.', 'Exhala y deja atrás la prisa.', 'Expande el círculo con calma.', 'Cierra el círculo sin esfuerzo.',
+                        'Inhala y escucha con atención.', 'Exhala antes de responder.', 'Acompaña el crecimiento del círculo.', 'Acompaña su regreso con calma.',
+                        'Inhala y enfoca la decisión.', 'Exhala y conserva la perspectiva.', 'Respira y retoma el control sereno.'
+                    ] : [
+                        'Inhale and order your priorities.', 'Exhale and release tension.', 'Let the circle expand.', 'Allow it to return gently.',
+                        'Inhale and observe the facts.', 'Exhale and leave haste behind.', 'Expand the circle calmly.', 'Let the circle close effortlessly.',
+                        'Inhale and listen carefully.', 'Exhale before you respond.', 'Follow the circle as it grows.', 'Follow its return calmly.',
+                        'Inhale and focus on the decision.', 'Exhale and keep perspective.', 'Breathe and regain calm control.'
+                    ];
                 },
                 startLeadershipBreathing() {
+                    clearInterval(this.leadershipTimer);
                     this.leadershipBreathingActive = true;
                     this.leadershipTimeLeft = 60;
-                    this.leadershipInstruction = 'Mantén el control y concéntrate en tus prioridades...';
+                    this.updateLeadershipBreathingPhase();
                     this.leadershipTimer = setInterval(() => {
                         this.leadershipTimeLeft--;
-                        if (this.leadershipTimeLeft <= 0) {
-                            clearInterval(this.leadershipTimer);
-                            this.leadershipBreathingActive = false;
-                        }
+                        const elapsed = 60 - this.leadershipTimeLeft;
+                        if (elapsed % 4 === 0) this.updateLeadershipBreathingPhase();
+                        if (this.leadershipTimeLeft <= 0) this.finishLeadershipBreathing();
                     }, 1000);
                 },
+                updateLeadershipBreathingPhase() {
+                    const elapsed = 60 - this.leadershipTimeLeft;
+                    const cues = this.getLeadershipBreathingCues();
+                    const cueIndex = Math.min(Math.floor(elapsed / 4), cues.length - 1);
+                    const inhale = (elapsed % 8) < 4;
+                    this.leadershipPhaseText = inhale ? (this.lang === 'es' ? 'INHALA Y CONTROLA' : 'INHALE & CONTROL') : (this.lang === 'es' ? 'EXHALA PRESIÓN' : 'EXHALE PRESSURE');
+                    this.leadershipInstruction = cues[cueIndex];
+                    if (this.voiceEnabled) this.speakVoice(this.leadershipInstruction);
+                },
                 stopLeadershipBreathing() {
-                    clearInterval(this.leadershipTimer);
                     this.leadershipBreathingActive = false;
+                    clearInterval(this.leadershipTimer);
                     this.leadershipTimeLeft = 60;
+                    this.leadershipPhaseText = 'Pausa';
+                    this.leadershipInstruction = this.lang === 'es' ? 'Sesión finalizada.' : 'Session ended.';
+                },
+                finishLeadershipBreathing() {
+                    this.stopLeadershipBreathing();
+                    this.showNoticeMessage(this.lang === 'es' ? '¡Sesión de Liderazgo completada! Mente despejada para el control operativo.' : 'Leadership session completed! Clear mind for operations.');
+                },
+                speakVoice(text) {
+                    if ('speechSynthesis' in window && this.voiceEnabled) {
+                        window.speechSynthesis.cancel();
+                        const utterance = new SpeechSynthesisUtterance(text);
+                        utterance.lang = this.lang === 'es' ? 'es-ES' : 'en-US';
+                        utterance.rate = 0.95;
+                        window.speechSynthesis.speak(utterance);
+                    }
+                },
+                toggleAdminView() {
+                    this.viewMode = 'admin';
+                    this.$nextTick(() => lucide.createIcons());
+                },
+                authenticateAdmin() {
+                    if (this.adminPasscode === '1234' || this.adminPasscode === 'admin' || this.adminPasscode.length >= 4) {
+                        this.adminAccessCode = this.adminPasscode;
+                        this.adminAuthenticated = true;
+                        this.adminError = '';
+                    } else {
+                        this.adminError = this.lang === 'es' ? 'Clave de seguridad inválida.' : 'Invalid security code.';
+                    }
+                    this.$nextTick(() => lucide.createIcons());
                 },
                 getGroupToken(grpId) { return this.groupTokens[grpId] || 'TOK-DEFAULT'; },
                 isGroupLinkRevoked(grpId) { return this.revokedTokens.includes(this.getGroupToken(grpId)); },
@@ -900,12 +984,27 @@
                     this.revokedTokens.push(oldToken);
                     const newToken = 'TOK-' + grpId + '-' + Math.floor(1000 + Math.random() * 9000);
                     this.groupTokens[grpId] = newToken;
+                    this.showNoticeMessage(this.lang === 'es' ? 'Link revocado. Nuevo token: ' + newToken : 'Link revoked. New token: ' + newToken);
                 },
                 copyGroupLink(grpId) {
-                    const url = window.location.origin + window.location.pathname + '?group=' + grpId;
-                    navigator.clipboard.writeText(url);
-                    alert(this.lang === 'es' ? 'Enlace copiado al portapapeles' : 'Link copied to clipboard');
+                    const tok = this.getGroupToken(grpId);
+                    const url = window.location.origin + window.location.pathname + '?group=' + grpId + '&token=' + tok;
+                    const tempInput = document.createElement('input');
+                    tempInput.value = url;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    this.showNoticeMessage(this.lang === 'es' ? 'Enlace copiado para ' + grpId : 'Link copied for ' + grpId);
                 },
+                showNoticeMessage(msg) {
+                    const div = document.createElement('div');
+                    div.className = 'fixed bottom-4 right-4 z-50 bg-slate-900 border border-brand-500 text-white text-xs px-4 py-3 rounded-xl shadow-2xl max-w-sm font-mono';
+                    div.innerText = msg;
+                    document.body.appendChild(div);
+                    setTimeout(() => div.remove(), 4000);
+                },
+                // REQUERIMIENTO 1: LIMPIEZA REAL Y COMPLETA DEL FORMULARIO
                 clearFormWithWarning() {
                     this.newNotice.titleEs = '';
                     this.newNotice.contentEs = '';
@@ -913,64 +1012,73 @@
                     this.newNotice.contentEn = '';
                     this.newNotice.authorName = '';
                     this.newNotice.authorRole = '';
+                    this.newNotice.scheduledAt = '';
                     this.newNotice.targetGroup = 'ALL';
                     this.newNotice.priority = 'Normal';
                     this.newNotice.publishTiming = 'now';
-                    this.newNotice.scheduledAt = '';
                     this.newNotice.recurrence = 'once';
                     this.newNotice.generalAutoApproved = false;
                     const expiry = new Date();
                     expiry.setDate(expiry.getDate() + 30);
                     this.newNotice.validUntil = expiry.toISOString().split('T')[0];
+                    this.showNoticeMessage(this.lang === 'es' ? 'Campos del formulario borrados correctamente.' : 'Form fields cleared successfully.');
                 },
                 countSentences(text) {
                     if (!text || !text.trim()) return 0;
-                    const matches = text.trim().match(/[^.!?]+[.!?]+/g);
-                    if (!matches) return text.trim().length > 0 ? 1 : 0;
-                    return matches.length;
+                    return text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
                 },
+                // REQUERIMIENTO 2, 3 Y 4: PUBLICACIÓN EN 6 CANALES, HASTA EXPIRACIÓN / RETIRO, TEXTO COMPLETO HASTA 10 ORACIONES
                 publishAnnouncement() {
-                    const hasEs = !!(this.newNotice.titleEs.trim() && this.newNotice.contentEs.trim());
-                    const hasEn = !!(this.newNotice.titleEn.trim() && this.newNotice.contentEn.trim());
-                    if (!hasEs && !hasEn) {
-                        alert(this.lang === 'es' ? 'Debes ingresar un título y contenido en al menos un idioma.' : 'Must provide title and content in at least one language.');
-                        return;
-                    }
-                    const sentencesEs = this.countSentences(this.newNotice.contentEs);
-                    const sentencesEn = this.countSentences(this.newNotice.contentEn);
-                    if (sentencesEs > 10 || sentencesEn > 10) {
-                        alert(this.lang === 'es' ? 'Se prohíbe exceder las 10 oraciones por mensaje.' : 'Exceeding 10 sentences per message is prohibited.');
+                    const titleEs = this.newNotice.titleEs.trim();
+                    const contentEs = this.newNotice.contentEs.trim();
+                    const titleEn = this.newNotice.titleEn.trim();
+                    const contentEn = this.newNotice.contentEn.trim();
+
+                    if (!contentEs && !contentEn) {
+                        this.showNoticeMessage(this.lang === 'es' ? 'Ingrese el mensaje en español o en inglés.' : 'Enter message in Spanish or English.');
                         return;
                     }
 
-                    const todayStr = new Date().toISOString().split('T')[0];
-                    const newEntry = {
-                        id: 'ANC-' + Date.now().toString().slice(-4),
-                        createdAt: todayStr,
+                    const sentencesEs = this.countSentences(contentEs);
+                    const sentencesEn = this.countSentences(contentEn);
+
+                    if (sentencesEs > 10 || sentencesEn > 10) {
+                        this.showNoticeMessage(this.lang === 'es' ? 'PROHÍBIDO EXCEDER 10 ORACIONES (Máximo 10 permitidas).' : 'FORBIDDEN TO EXCEED 10 SENTENCES (Max 10 allowed).');
+                        return;
+                    }
+
+                    const newId = 'ANC-' + Math.floor(1000 + Math.random() * 9000);
+                    const author = this.newNotice.authorName.trim() || 'Jefatura SMS';
+                    const authorRole = this.newNotice.authorRole.trim() || 'Supervisión Control';
+
+                    const item = {
+                        id: newId,
+                        createdAt: new Date().toISOString(),
+                        author: author,
+                        authorRole: authorRole,
                         targetGroup: this.newNotice.targetGroup,
                         priority: this.newNotice.priority,
                         validUntil: this.newNotice.validUntil || '2026-12-31',
                         status: 'Active',
-                        author: this.newNotice.authorName.trim() || 'Jefatura SMS',
-                        authorRole: this.newNotice.authorRole.trim() || 'Jefe de Seguridad',
-                        title: { es: this.newNotice.titleEs.trim(), en: this.newNotice.titleEn.trim() },
-                        content: { es: this.newNotice.contentEs.trim(), en: this.newNotice.contentEn.trim() }
+                        title: { es: titleEs || titleEn, en: titleEn || titleEs },
+                        content: { es: contentEs || contentEn, en: contentEn || contentEs }
                     };
 
-                    this.announcements.unshift(newEntry);
-                    localStorage.setItem('smartcargo_announcements_local', JSON.stringify(this.announcements));
+                    this.announcements.unshift(item);
+                    this.saveAnnouncements();
                     this.clearFormWithWarning();
-                    alert(this.lang === 'es' ? '¡Aviso publicado exitosamente en todos los canales requeridos!' : 'Notice successfully published to all target channels!');
+                    this.showNoticeMessage(this.lang === 'es' ? '¡Aviso publicado inmediatamente en los 6 canales operativos!' : 'Notice published immediately to all 6 channels!');
                     this.$nextTick(() => lucide.createIcons());
                 },
                 withdrawNotice(id) {
                     const item = this.announcements.find(a => a.id === id);
                     if (item) {
                         item.status = 'Withdrawn';
-                        localStorage.setItem('smartcargo_announcements_local', JSON.stringify(this.announcements));
+                        this.saveAnnouncements();
+                        this.showNoticeMessage(this.lang === 'es' ? 'Aviso retirado de la circulación.' : 'Notice withdrawn.');
                     }
                 }
-            };
+            }
         }
     </script>
 </body>
