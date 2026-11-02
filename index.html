@@ -30,7 +30,9 @@
     </style>
 </head>
 <body class="h-full flex flex-col font-sans antialiased bg-slate-950 text-slate-100 selection:bg-brand-500 selection:text-white" x-data="safetyApp()" x-init="initApp()">
-    <header class="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl px-4 py-3">
+
+    <!-- HEADER / NAVEGACIÓN PRINCIPAL -->
+    <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl px-4 py-3">
         <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
             <div class="flex items-center space-x-3">
                 <div class="p-2 bg-gradient-to-tr from-brand-600 via-blue-600 to-amber-500 rounded-xl shadow-lg shadow-brand-500/20 text-white">
@@ -45,6 +47,10 @@
                 </div>
             </div>
             <div class="flex items-center flex-wrap gap-2 sm:gap-3">
+                <button @click="openTechRefModal = true" class="px-3 py-1.5 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-semibold flex items-center gap-1.5 transition-all shadow">
+                    <i data-lucide="book-open-check" class="w-4 h-4"></i>
+                    <span x-text="t('techRefBtn')"></span>
+                </button>
                 <div class="bg-slate-800 p-1 rounded-lg border border-slate-700 flex items-center">
                     <button @click="setLang('es')" :class="lang === 'es' ? 'bg-brand-600 text-white font-bold shadow' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 text-xs rounded-md transition-all">ES</button>
                     <button @click="setLang('en')" :class="lang === 'en' ? 'bg-brand-600 text-white font-bold shadow' : 'text-slate-400 hover:text-white'" class="px-2.5 py-1 text-xs rounded-md transition-all">EN</button>
@@ -78,7 +84,40 @@
     </header>
 
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-8">
-        <div class="bg-gradient-to-r from-amber-950/50 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+        
+        <!-- BASE GENERAL / HIMNO NACIONAL DE LA APLICACIÓN: STOP - THINK - ACT -->
+        <div class="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 rounded-2xl p-0.5 shadow-2xl">
+            <div class="bg-slate-950 rounded-[15px] p-5 md:p-6 space-y-4 relative overflow-hidden">
+                <div class="absolute -right-8 -bottom-8 w-40 h-40 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-amber-500/30 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-amber-500 text-slate-950 rounded-2xl font-black shadow-lg shadow-amber-500/30 flex items-center justify-center shrink-0">
+                            <i data-lucide="shield-alert" class="w-7 h-7"></i>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-black text-amber-400 uppercase tracking-widest font-mono block">BASE GENERAL DE SEGURIDAD OPERATIVA / OPERATIONAL HYMN</span>
+                            <h2 class="text-xl sm:text-2xl font-black text-white tracking-tight uppercase">
+                                STOP – THINK – ACT <span class="text-amber-400">/</span> DETÉNGASE – PIENSE – ACTÚE
+                            </h2>
+                        </div>
+                    </div>
+                    <span class="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/40 text-amber-300 font-mono text-xs font-bold self-start md:self-auto">
+                        MANDATORY SAFETY PRINCIPLE
+                    </span>
+                </div>
+                <div class="bg-slate-900/80 border border-amber-500/20 rounded-xl p-4 text-xs md:text-sm text-slate-200 leading-relaxed font-medium space-y-2">
+                    <p x-show="lang === 'es'" class="text-amber-100">
+                        <strong class="text-amber-400 font-extrabold uppercase">Antes de realizar cualquier operación</strong>, identifique los riesgos, verifique las condiciones de seguridad y siga los procedimientos autorizados. Si detecta una condición insegura, detenga la actividad cuando sea seguro hacerlo e informe al supervisor.
+                    </p>
+                    <p x-show="lang === 'en'" class="text-amber-100">
+                        <strong class="text-amber-400 font-extrabold uppercase">Before performing any operation</strong>, identify hazards, verify safety conditions, and follow authorized procedures. If an unsafe condition is detected, stop the activity when safe to do so and report to the supervisor.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADVERTENCIA DE PRIVACIDAD Y REGLA DE CUMPLIMIENTO -->
+        <div class="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
             <div class="flex items-start gap-3">
                 <div class="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl shrink-0 mt-0.5 border border-amber-500/20">
                     <i data-lucide="shield-ban" class="w-5 h-5"></i>
@@ -198,7 +237,7 @@
                             </div>
                         </section>
 
-                        <!-- SECCIÓN 3: AVISOS ESPECIALES Y COMUNICADOS (TEXTO COMPLETO PROHIBIDO RESUMEN) -->
+                        <!-- SECCIÓN 3: AVISOS ESPECIALES Y COMUNICADOS DE JEFATURA -->
                         <section class="space-y-4">
                             <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                                 <div class="flex items-center gap-2">
@@ -243,7 +282,7 @@
                             </div>
                         </section>
 
-                        <!-- SECCIÓN 4: RESPIRACIÓN OPERATIVA TRABAJADOR (45s CON VOZ) -->
+                        <!-- SECCIÓN 4: EJERCICIO RESPIRATORIO ROTATIVO TRABAJADOR (6+ OPCIONES) -->
                         <section class="bg-gradient-to-br from-slate-900 via-slate-900 to-brand-950/50 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                                 <div>
@@ -269,7 +308,10 @@
                                         <i :data-lucide="getWorkerBreathingTheme().icon" class="w-5 h-5"></i>
                                     </div>
                                     <div>
-                                        <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest font-mono">TEMA DEL DÍA / TODAY'S FOCUS</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest font-mono">EJERCICIO ROTATIVO (1 DE 6+)</span>
+                                            <span class="text-[9px] bg-cyan-500/20 text-cyan-300 px-1.5 py-0.2 rounded font-mono">NUNCA SE REPITE</span>
+                                        </div>
                                         <h4 class="text-sm font-bold text-white" x-text="getWorkerBreathingTheme().title[lang]"></h4>
                                     </div>
                                 </div>
@@ -314,7 +356,7 @@
             </div>
         </template>
 
-        <!-- CENTRO DE MANDO (JEFATURA) -->
+        <!-- VISTA CENTRO DE MANDO (JEFATURA) -->
         <template x-if="viewMode === 'admin'">
             <div class="space-y-8">
                 <template x-if="!adminAuthenticated">
@@ -363,7 +405,7 @@
                             </div>
                         </div>
 
-                        <!-- RESPIRACIÓN JEFATURA (60s CON VOZ) -->
+                        <!-- RESPIRACIÓN JEFATURA (6+ OPCIONES NUNCA REPETIDAS) -->
                         <section class="bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/40 border border-amber-500/30 rounded-2xl p-6 shadow-xl space-y-6">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                                 <div>
@@ -381,7 +423,10 @@
                                         <i :data-lucide="currentLeadershipAnchor.icon" class="w-5 h-5"></i>
                                     </div>
                                     <div>
-                                        <span class="text-[10px] text-amber-400 font-bold uppercase tracking-widest font-mono">ENFOQUE DE LIDERAZGO DEL DÍA / EXECUTIVE ANCHOR</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] text-amber-400 font-bold uppercase tracking-widest font-mono">ENFOQUE DE LIDERAZGO (1 DE 6+)</span>
+                                            <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.2 rounded font-mono">ROTATIVO</span>
+                                        </div>
                                         <h4 class="text-sm font-bold text-white" x-text="currentLeadershipAnchor.title[lang]"></h4>
                                     </div>
                                 </div>
@@ -620,6 +665,55 @@
         </template>
     </main>
 
+    <!-- VENTANA MODAL / PANEL DE RESPALDOS TÉCNICOS -->
+    <div x-show="openTechRefModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div @click.away="openTechRefModal = false" class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-6 relative">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2 text-amber-400">
+                    <i data-lucide="book-open-check" class="w-5 h-5"></i>
+                    <h3 class="text-lg font-black text-white" x-text="t('techRefModalTitle')"></h3>
+                </div>
+                <button @click="openTechRefModal = false" class="text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800 border border-slate-700">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
+                <p class="font-bold text-amber-300" x-text="t('techRefModalIntro')"></p>
+                <ul class="space-y-2 bg-slate-950/80 p-4 rounded-xl border border-slate-800 font-mono text-[11px]">
+                    <li class="flex items-center gap-2 text-slate-200">
+                        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                        <span>OSHA – Warehousing: Hazards and Solutions.</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-slate-200">
+                        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                        <span>FAA – Cargo Safety.</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-slate-200">
+                        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                        <span>FAA – Common Cargo Hazards.</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-slate-200">
+                        <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+                        <span>Miami International Airport – Operational Directives.</span>
+                    </li>
+                </ul>
+                <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-200 italic text-[11px]">
+                    <span class="font-bold not-italic text-amber-400 block mb-1">NOTA LEGAL / DISCLAIMER NOTE:</span>
+                    <p x-show="lang === 'es'">Material educativo general para operaciones de almacén de carga. No sustituye los procedimientos internos de AGI, Avianca Cargo, MIA ni la capacitación obligatoria correspondiente.</p>
+                    <p x-show="lang === 'en'">General educational material for cargo warehouse operations. Does not replace internal procedures of AGI, Avianca Cargo, MIA, or mandatory required training.</p>
+                </div>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button @click="openTechRefModal = false" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider border border-slate-700">
+                    Cerrar / Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
     <footer class="mt-auto border-t border-slate-800/80 bg-slate-900/60 py-4 px-4 text-center text-xs text-slate-500">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
             <p>© 2026 SmartCargo SafetyHub. Operational Safety Portal By MAY ROGA LLC.</p>
@@ -631,7 +725,7 @@
         </div>
     </footer>
 
-    <!-- LÓGICA ALPINE.JS INTEGRADA Y COMPLETA -->
+    <!-- LÓGICA ALPINE.JS COMPLETA Y OPTIMIZADA -->
     <script>
         function safetyApp() {
             return {
@@ -639,6 +733,7 @@
                 viewMode: 'worker',
                 currentGroupId: 'COUNTER',
                 todayDateStr: '',
+                openTechRefModal: false,
                 adminAutoModeActive: false,
                 adminAccessCode: '',
                 adminAuthenticated: false,
@@ -682,7 +777,7 @@
                         { id: 'CNT-F03', title: { es: 'Registra datos exactos', en: 'Record accurate data' }, desc: { es: 'Registra mediciones y discrepancias en el sistema autorizado, sin adivinar valores.', en: 'Record measurements and discrepancies in the authorized system; do not guess values.' } }
                     ],
                     SCALE: [
-                        { id: 'SCL-F01', title: { es: 'Sigue el método aprobado', en: 'Use the approved method' }, desc: { es: 'Usa la báscula según las instrucciones vigentes del equipo y del proceso.', en: 'Use the scale according to current equipment and process instructions.' } },
+                        { id: 'SCL-F01', title: { es: 'Sigue el método approved', en: 'Use the approved method' }, desc: { es: 'Usa la báscula según las instrucciones vigentes del equipo y del proceso.', en: 'Use the scale according to current equipment and process instructions.' } },
                         { id: 'SCL-F02', title: { es: 'Reporta fallos', en: 'Report equipment faults' }, desc: { es: 'No continúes con un equipo dañado o con lecturas anormales; informa al responsable.', en: 'Do not continue with damaged equipment or abnormal readings; inform the responsible person.' } },
                         { id: 'SCL-F03', title: { es: 'Relaciona peso y bulto', en: 'Match weight to package' }, desc: { es: 'Vincula cada medición con el identificador correcto del envío.', en: 'Associate each measurement with the correct shipment identifier.' } }
                     ],
@@ -726,15 +821,27 @@
                     titleEn: '', contentEn: '', publishTiming: 'now', scheduledAt: '', recurrence: 'once',
                     authorName: '', authorRole: '', generalAutoApproved: false
                 },
+
+                // 6 OPCIONES DISTINTAS DE RESPIRACIÓN TRABAJADOR (45s)
                 workerBreathingThemes: [
-                    { icon: 'brain', title: { es: "Atención al entorno", en: "Notice your surroundings" }, subtitle: { es: "Antes de empezar, observa tu espacio de trabajo.", en: "Before starting, observe your work area." } },
-                    { icon: 'brain', title: { es: "Ritmo tranquilo", en: "Steady pace" }, subtitle: { es: "Prepara tu atención sin apresurarte.", en: "Prepare your attention without rushing." } },
-                    { icon: 'brain', title: { es: "Un paso a la vez", en: "One step at a time" }, subtitle: { es: "Concéntrate en la siguiente tarea segura.", en: "Focus on the next safe task." } }
+                    { id: 'w1', icon: 'brain', title: { es: "Atención al entorno", en: "Notice your surroundings" }, subtitle: { es: "Antes de empezar, observa tu espacio de trabajo y verifica peligros.", en: "Before starting, observe your work area and check hazards." } },
+                    { id: 'w2', icon: 'shield-check', title: { es: "Preparación de EPP", en: "PPE & Shield Readiness" }, subtitle: { es: "Asegura tu casco, guantes y calzado protector con respiración serena.", en: "Ensure helmet, gloves, and protective boots with calm breathing." } },
+                    { id: 'w3', icon: 'activity', title: { es: "Ritmo constante y seguro", en: "Steady & Safe Pace" }, subtitle: { es: "Evita la prisa desmedida. La calidad y seguridad van primero.", en: "Avoid unnecessary rush. Quality and safety come first." } },
+                    { id: 'w4', icon: 'zap-off', title: { es: "Desconexión de fatiga", en: "Fatigue Reset" }, subtitle: { es: "Oxigena tu cerebro para mantener máxima alerta en la bodega.", en: "Oxygenate your brain to maintain peak alertness in warehouse." } },
+                    { id: 'w5', icon: 'eye', title: { es: "Enfoque Visual Operativo", en: "Operational Visual Focus" }, subtitle: { es: "Visualiza la ruta libre de obstáculos antes de mover carga.", en: "Visualize clear pathway before moving cargo." } },
+                    { id: 'w6', icon: 'smile', title: { es: "Postura y Salud Corporal", en: "Posture & Body Health" }, subtitle: { es: "Inhala alineando la columna y exhalando la tensión muscular.", en: "Inhale aligning your spine and exhale muscle tension." } }
                 ],
+
+                // 6 OPCIONES DISTINTAS DE ENFOQUE JEFATURA (60s)
                 leadershipAnchorsPool: [
-                    { icon: 'brain', title: { es: "Claridad de prioridades", en: "Priority clarity" }, subtitle: { es: "Dedica este minuto a aclarar tu atención y tus prioridades.", en: "Use this minute to clarify attention and priorities." } },
-                    { icon: 'brain', title: { es: "Escucha antes de decidir", en: "Listen before deciding" }, subtitle: { es: "La supervisión eficaz comienza escuchando y verificando.", en: "Effective supervision begins with listening and verification." } }
+                    { id: 'l1', icon: 'brain-circuit', title: { es: "Claridad de prioridades", en: "Priority clarity" }, subtitle: { es: "Dedica este minuto a aclarar tu atención y prioridades operativas.", en: "Use this minute to clarify attention and operational priorities." } },
+                    { id: 'l2', icon: 'message-square-text', title: { es: "Escucha antes de decidir", en: "Listen before deciding" }, subtitle: { es: "La supervisión eficaz comienza escuchando el reporte del operador.", en: "Effective supervision begins with listening to operator report." } },
+                    { id: 'l3', icon: 'compass', title: { es: "Liderazgo en situaciones críticas", en: "Crisis Leadership" }, subtitle: { es: "Mantén la calma y comunica instrucciones directas y concisas.", en: "Stay calm and communicate direct concise instructions." } },
+                    { id: 'l4', icon: 'layers', title: { es: "Control de Carga Mental", en: "Mental Load Control" }, subtitle: { es: "Organiza las tareas en secuencia sin saturar a los equipos.", en: "Organize tasks sequentially without overloading teams." } },
+                    { id: 'l5', icon: 'check-circle-2', title: { es: "Cultura de Verificación SOP", en: "SOP Verification Culture" }, subtitle: { es: "Promueve la validación de normas sin excepción en plataforma.", en: "Promote strict adherence to procedures on ramp." } },
+                    { id: 'l6', icon: 'heart-handshake', title: { es: "Empatía y Respeto al Operador", en: "Empathy & Operator Respect" }, subtitle: { es: "Un líder protege el bienestar físico y mental de su personal.", en: "A leader protects team's physical and mental well-being." } }
                 ],
+
                 currentLeadershipAnchor: {},
                 currentWorkerExercise: {},
                 victoryAffirmations: [
@@ -743,6 +850,9 @@
                 ],
                 translations: {
                     appSubtitle: { es: 'Portal Operativo de Seguridad, Difusión y Preparación Diaria', en: 'Daily Safety & Operational Readiness Portal' },
+                    techRefBtn: { es: 'Respaldos Técnicos / References', en: 'Tech References / Backup' },
+                    techRefModalTitle: { es: 'Referencias Técnicas y Respaldo Normativo', en: 'Technical References & Compliance Support' },
+                    techRefModalIntro: { es: 'Este portal operativo y sus contenidos están respaldados en guías técnicas internacionales:', en: 'This portal is backed by international technical guidelines:' },
                     workerMode: { es: 'Vista Trabajador', en: 'Worker View' },
                     adminMode: { es: 'Puesto de Mando (Jefatura)', en: 'Command Center' },
                     selectGroupLabel: { es: 'Área Operativa', en: 'Operational Area' },
@@ -808,14 +918,38 @@
                     const expiry = new Date();
                     expiry.setDate(expiry.getDate() + 30);
                     this.newNotice.validUntil = expiry.toISOString().split('T')[0];
-                    this.currentLeadershipAnchor = this.leadershipAnchorsPool[0];
-                    this.currentWorkerExercise = this.workerBreathingThemes[0];
+
+                    // SELECCIÓN Y ROTACIÓN SIN REPETICIONES DE EJERCICIOS
+                    this.rotateWorkerExercise();
+                    this.rotateLeadershipExercise();
+
                     const saved = localStorage.getItem('smartcargo_announcements_db');
                     if (saved) {
                         try { this.announcements = JSON.parse(saved); } catch(e){}
                     }
                     this.$nextTick(() => lucide.createIcons());
                 },
+                
+                // ROTACIÓN NUNCA REPETIDA TRABAJADOR
+                rotateWorkerExercise() {
+                    const lastId = localStorage.getItem('smartcargo_last_worker_ex');
+                    let available = this.workerBreathingThemes.filter(x => x.id !== lastId);
+                    if (available.length === 0) available = this.workerBreathingThemes;
+                    const selected = available[Math.floor(Math.random() * available.length)];
+                    this.currentWorkerExercise = selected;
+                    localStorage.setItem('smartcargo_last_worker_ex', selected.id);
+                },
+
+                // ROTACIÓN NUNCA REPETIDA JEFATURA
+                rotateLeadershipExercise() {
+                    const lastId = localStorage.getItem('smartcargo_last_lead_ex');
+                    let available = this.leadershipAnchorsPool.filter(x => x.id !== lastId);
+                    if (available.length === 0) available = this.leadershipAnchorsPool;
+                    const selected = available[Math.floor(Math.random() * available.length)];
+                    this.currentLeadershipAnchor = selected;
+                    localStorage.setItem('smartcargo_last_lead_ex', selected.id);
+                },
+
                 saveAnnouncements() {
                     localStorage.setItem('smartcargo_announcements_db', JSON.stringify(this.announcements));
                 },
@@ -860,7 +994,8 @@
                     let seed = 0; for (let i = 0; i < this.todayDateStr.length; i++) seed += this.todayDateStr.charCodeAt(i);
                     return this.victoryAffirmations[seed % this.victoryAffirmations.length];
                 },
-                // GUÍA POR VOZ EN RESPIRACIÓN TRABAJADOR
+
+                // CUE GUIDANCE TRABAJADOR CON VOZ
                 getWorkerBreathingCues() {
                     return this.lang === 'es' ? [
                         'Toma aire con suavidad.', 'Suelta el aire sin prisa.', 'Deja que el círculo crezca.', 'Permite que el círculo se cierre.',
@@ -873,6 +1008,7 @@
                     ];
                 },
                 startWorkerBreathing() {
+                    this.rotateWorkerExercise(); // Rotar ejercicio para que nunca se repita
                     clearInterval(this.workerBreathingTimer);
                     this.workerBreathingActive = true;
                     this.workerBreathingTimeLeft = 45;
@@ -907,7 +1043,8 @@
                     const aff = this.getDailyVictoryAffirmation()[this.lang];
                     if (this.voiceEnabled) this.speakVoice(this.lang === 'es' ? '¡Excelente trabajo! ' + aff : 'Great job! ' + aff);
                 },
-                // GUÍA POR VOZ EN RESPIRACIÓN JEFATURA
+
+                // CUE GUIDANCE JEFATURA CON VOZ
                 getLeadershipBreathingCues() {
                     return this.lang === 'es' ? [
                         'Inhala y ordena tus prioridades.', 'Exhala y libera la tensión.', 'Deja que el círculo se expanda.', 'Permite que vuelva suavemente.',
@@ -922,6 +1059,7 @@
                     ];
                 },
                 startLeadershipBreathing() {
+                    this.rotateLeadershipExercise(); // Rotar ejercicio para que nunca se repita
                     clearInterval(this.leadershipTimer);
                     this.leadershipBreathingActive = true;
                     this.leadershipTimeLeft = 60;
@@ -1004,7 +1142,8 @@
                     document.body.appendChild(div);
                     setTimeout(() => div.remove(), 4000);
                 },
-                // REQUERIMIENTO 1: LIMPIEZA REAL Y COMPLETA DEL FORMULARIO
+
+                // BORRADO REAL Y COMPLETO DEL FORMULARIO
                 clearFormWithWarning() {
                     this.newNotice.titleEs = '';
                     this.newNotice.contentEs = '';
@@ -1027,7 +1166,8 @@
                     if (!text || !text.trim()) return 0;
                     return text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
                 },
-                // REQUERIMIENTO 2, 3 Y 4: PUBLICACIÓN EN 6 CANALES, HASTA EXPIRACIÓN / RETIRO, TEXTO COMPLETO HASTA 10 ORACIONES
+
+                // PUBLICACIÓN EN LOS 6 CANALES HASTA EXPIRACIÓN O RETIRO MANUALLY
                 publishAnnouncement() {
                     const titleEs = this.newNotice.titleEs.trim();
                     const contentEs = this.newNotice.contentEs.trim();
