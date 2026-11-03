@@ -1118,110 +1118,147 @@
                 },
 
                 // CUE GUIDANCE TRABAJADOR CON VOZ
-                getWorkerBreathingCues() {
-                    return this.lang === 'es' ? [
-                        'Toma aire con suavidad.', 'Suelta el aire sin prisa.', 'Deja que el círculo crezca.', 'Permite que el círculo se cierre.',
-                        'Inhala y observa tu entorno.', 'Exhala y afloja los hombros.', 'Expande el círculo lentamente.', 'Reduce el círculo con calma.',
-                        'Respira y centra tu atención.', 'Suelta el aire de forma natural.', 'Acompaña la expansión del círculo.', 'Acompaña el cierre sin esfuerzo.'
-                    ] : [
-                        'Breathe in gently.', 'Breathe out without rushing.', 'Let the circle expand.', 'Let the circle contract.',
-                        'Inhale and notice your surroundings.', 'Exhale and relax your shoulders.', 'Expand the circle slowly.', 'Let the circle soften inward.',
-                        'Breathe and focus your attention.', 'Release the air naturally.', 'Follow the circle as it expands.', 'Follow the circle as it contracts.'
-                    ];
-                },
-                startWorkerBreathing() {
-                    this.rotateWorkerExercise(); // Rotar ejercicio para que nunca se repita
-                    clearInterval(this.workerBreathingTimer);
-                    this.workerBreathingActive = true;
-                    this.workerBreathingTimeLeft = 45;
-                    this.showVictoryReward = false;
-                    this.updateWorkerBreathingPhase();
-                    this.workerBreathingTimer = setInterval(() => {
-                        this.workerBreathingTimeLeft--;
-                        const elapsed = 45 - this.workerBreathingTimeLeft;
-                        if (elapsed % 4 === 0) this.updateWorkerBreathingPhase();
-                        if (this.workerBreathingTimeLeft <= 0) this.finishWorkerBreathing();
-                    }, 1000);
-                },
-                updateWorkerBreathingPhase() {
-                    const elapsed = 45 - this.workerBreathingTimeLeft;
-                    const cues = this.getWorkerBreathingCues();
-                    const cueIndex = Math.min(Math.floor(elapsed / 4), cues.length - 1);
-                    const inhale = (elapsed % 8) < 4;
-                    this.workerBreathingPhaseText = inhale ? (this.lang === 'es' ? 'INHALA Y ENFÓCATE' : 'INHALE & FOCUS') : (this.lang === 'es' ? 'EXHALA TENSIONES' : 'EXHALE TENSION');
-                    this.workerBreathingInstruction = cues[cueIndex];
-                    if (this.voiceEnabled) this.speakVoice(this.workerBreathingInstruction);
-                },
-                stopWorkerBreathing() {
-                    this.workerBreathingActive = false;
-                    clearInterval(this.workerBreathingTimer);
-                    this.workerBreathingTimeLeft = 45;
-                    this.workerBreathingPhaseText = 'Pausa';
-                    this.workerBreathingInstruction = this.lang === 'es' ? 'Ejercicio pausado.' : 'Exercise paused.';
-                },
-                finishWorkerBreathing() {
-                    this.stopWorkerBreathing();
-                    this.showVictoryReward = true;
-                    const aff = this.getDailyVictoryAffirmation()[this.lang];
-                    if (this.voiceEnabled) this.speakVoice(this.lang === 'es' ? '¡Excelente trabajo! ' + aff : 'Great job! ' + aff);
-                },
+// 6 EJERCICIOS RESPIRATORIOS DIFERENTES PARA TRABAJADORES
+getWorkerBreathingCues() {
+    const exercises = {
+        w1: {
+            es: ['Toma aire suavemente y observa tu área de trabajo.', 'Suelta el aire e identifica posibles riesgos.', 'Inhala y dirige tu mirada a tu entorno.', 'Exhala y comprueba que tienes espacio libre.', 'Respira con calma y observa el suelo.', 'Suelta el aire y localiza obstáculos.', 'Inhala y revisa mentalmente tu entorno.', 'Exhala y mantén la atención.', 'Toma aire y observa los movimientos cercanos.', 'Suelta el aire y conserva una distancia segura.', 'Inhala con atención.', 'Exhala y vuelve a centrarte.'],
+            en: ['Breathe in gently and observe your work area.', 'Breathe out and identify possible hazards.', 'Inhale and look around your surroundings.', 'Exhale and check that your space is clear.', 'Breathe calmly and observe the floor.', 'Breathe out and notice obstacles.', 'Inhale and mentally check your surroundings.', 'Exhale and stay alert.', 'Breathe in and notice nearby movement.', 'Breathe out and maintain a safe distance.', 'Inhale attentively.', 'Exhale and refocus.']
+        },
+        w2: {
+            es: ['Inhala y comprueba mentalmente tu casco.', 'Exhala y revisa el ajuste de tus guantes.', 'Toma aire y confirma tu calzado de protección.', 'Suelta el aire y verifica tu equipo de protección.', 'Inhala y presta atención a tus manos.', 'Exhala y comprueba que tu visión esté despejada.', 'Respira y revisa tu chaleco de alta visibilidad.', 'Suelta el aire sin apresurarte.', 'Inhala y confirma que llevas el equipo requerido.', 'Exhala y corrige cualquier ajuste.', 'Toma aire con serenidad.', 'Suelta el aire y comienza cuando estés preparado.'],
+            en: ['Inhale and mentally check your helmet.', 'Exhale and check the fit of your gloves.', 'Breathe in and confirm your protective footwear.', 'Breathe out and check your protective equipment.', 'Inhale and focus on your hands.', 'Exhale and check that your vision is clear.', 'Breathe and check your high-visibility vest.', 'Breathe out without rushing.', 'Inhale and confirm you have the required equipment.', 'Exhale and correct any adjustment.', 'Breathe in calmly.', 'Breathe out and begin when you are ready.']
+        },
+        w3: {
+            es: ['Inhala y elige un ritmo de trabajo controlado.', 'Exhala y deja atrás la prisa innecesaria.', 'Toma aire y prioriza hacer cada paso correctamente.', 'Suelta el aire y evita movimientos apresurados.', 'Inhala y mantén un ritmo constante.', 'Exhala y recuerda que la seguridad va primero.', 'Respira y divide la tarea en pasos manejables.', 'Suelta el aire y concéntrate en el paso actual.', 'Inhala antes de cambiar de actividad.', 'Exhala y evita tomar atajos.', 'Toma aire con calma y mantén el control.', 'Suelta el aire y continúa a un ritmo seguro.'],
+            en: ['Inhale and choose a controlled work pace.', 'Exhale and leave unnecessary haste behind.', 'Breathe in and do each step correctly.', 'Breathe out and avoid rushed movements.', 'Inhale and maintain a steady pace.', 'Exhale and remember that safety comes first.', 'Breathe and divide the task into manageable steps.', 'Breathe out and focus on the current step.', 'Inhale before changing activities.', 'Exhale and avoid taking shortcuts.', 'Breathe in calmly and stay in control.', 'Breathe out and continue at a safe pace.']
+        },
+        w4: {
+            es: ['Inhala y reconoce si necesitas una pausa.', 'Exhala y relaja suavemente la mandíbula.', 'Toma aire y afloja los hombros.', 'Suelta el aire sin forzar la respiración.', 'Inhala y observa cómo se siente tu cuerpo.', 'Exhala y libera tensión de las manos.', 'Respira lentamente y relaja tu postura.', 'Suelta el aire y evita tensar el cuello.', 'Inhala y recupera tu atención.', 'Exhala y decide si estás preparado para continuar.', 'Toma aire de forma natural.', 'Suelta el aire y pide apoyo si necesitas descansar.'],
+            en: ['Inhale and notice whether you need a break.', 'Exhale and gently relax your jaw.', 'Breathe in and release your shoulders.', 'Breathe out without forcing your breathing.', 'Inhale and notice how your body feels.', 'Exhale and release tension in your hands.', 'Breathe slowly and relax your posture.', 'Breathe out and avoid tightening your neck.', 'Inhale and regain your attention.', 'Exhale and decide whether you are ready to continue.', 'Breathe in naturally.', 'Breathe out and ask for support if you need rest.']
+        },
+        w5: {
+            es: ['Inhala y visualiza el recorrido que vas a utilizar.', 'Exhala y comprueba si la ruta está libre.', 'Toma aire y localiza cruces o puntos de tránsito.', 'Suelta el aire y anticipa posibles interferencias.', 'Inhala y observa dónde termina tu recorrido.', 'Exhala y confirma que puedes ver con claridad.', 'Respira y presta atención a las señales del área.', 'Suelta el aire y evita distracciones.', 'Inhala antes de mover o trasladar una carga.', 'Exhala y vuelve a revisar el camino.', 'Toma aire y mantén la mirada en la ruta.', 'Suelta el aire y avanza solo cuando sea seguro.'],
+            en: ['Inhale and visualize the route you will use.', 'Exhale and check whether the path is clear.', 'Breathe in and locate crossings or traffic points.', 'Breathe out and anticipate possible interference.', 'Inhale and notice where your route ends.', 'Exhale and confirm that you can see clearly.', 'Breathe and pay attention to area signs.', 'Breathe out and avoid distractions.', 'Inhale before moving or transporting cargo.', 'Exhale and check the path again.', 'Breathe in and keep your eyes on the route.', 'Breathe out and proceed only when it is safe.']
+        },
+        w6: {
+            es: ['Inhala y alinea suavemente la espalda.', 'Exhala y relaja los hombros.', 'Toma aire y distribuye el peso de forma estable.', 'Suelta el aire y evita girar bruscamente el tronco.', 'Inhala y comprueba que tus pies estén bien apoyados.', 'Exhala y libera tensión de la zona lumbar.', 'Respira y mantén una postura cómoda y equilibrada.', 'Suelta el aire sin encorvarte.', 'Inhala antes de levantar o mover algo.', 'Exhala y recuerda utilizar una técnica segura.', 'Toma aire y escucha las señales de tu cuerpo.', 'Suelta el aire y solicita ayuda si la carga lo requiere.'],
+            en: ['Inhale and gently align your back.', 'Exhale and relax your shoulders.', 'Breathe in and distribute your weight steadily.', 'Breathe out and avoid twisting your torso abruptly.', 'Inhale and check that your feet are firmly supported.', 'Exhale and release lower-back tension.', 'Breathe and maintain a comfortable, balanced posture.', 'Breathe out without hunching.', 'Inhale before lifting or moving anything.', 'Exhale and remember to use a safe technique.', 'Breathe in and listen to your body.', 'Breathe out and ask for help if the load requires it.']
+        }
+    };
+    const id = this.getWorkerBreathingTheme().id || 'w1';
+    return (exercises[id] || exercises.w1)[this.lang === 'es' ? 'es' : 'en'];
+},
+startWorkerBreathing() {
+    this.rotateWorkerExercise();
+    clearInterval(this.workerBreathingTimer);
+    this.workerBreathingActive = true;
+    this.workerBreathingTimeLeft = 45;
+    this.showVictoryReward = false;
+    this.updateWorkerBreathingPhase();
+    this.workerBreathingTimer = setInterval(() => {
+        this.workerBreathingTimeLeft--;
+        const elapsed = 45 - this.workerBreathingTimeLeft;
+        if (elapsed % 4 === 0) this.updateWorkerBreathingPhase();
+        if (this.workerBreathingTimeLeft <= 0) this.finishWorkerBreathing();
+    }, 1000);
+},
+updateWorkerBreathingPhase() {
+    const elapsed = 45 - this.workerBreathingTimeLeft;
+    const cues = this.getWorkerBreathingCues();
+    const cueIndex = Math.min(Math.floor(elapsed / 4), cues.length - 1);
+    const inhale = (elapsed % 8) < 4;
+    this.workerBreathingPhaseText = inhale ? (this.lang === 'es' ? 'INHALA Y ENFÓCATE' : 'INHALE & FOCUS') : (this.lang === 'es' ? 'EXHALA TENSIONES' : 'EXHALE TENSION');
+    this.workerBreathingInstruction = cues[cueIndex];
+    if (this.voiceEnabled) this.speakVoice(this.workerBreathingInstruction);
+},
+stopWorkerBreathing() {
+    this.workerBreathingActive = false;
+    clearInterval(this.workerBreathingTimer);
+    this.workerBreathingTimeLeft = 45;
+    this.workerBreathingPhaseText = 'Pausa';
+    this.workerBreathingInstruction = this.lang === 'es' ? 'Ejercicio pausado.' : 'Exercise paused.';
+},
+finishWorkerBreathing() {
+    this.stopWorkerBreathing();
+    this.showVictoryReward = true;
+    const aff = this.getDailyVictoryAffirmation()[this.lang];
+    if (this.voiceEnabled) this.speakVoice(this.lang === 'es' ? '¡Excelente trabajo! ' + aff : 'Great job! ' + aff);
+},
 
-                // CUE GUIDANCE JEFATURA CON VOZ
-                getLeadershipBreathingCues() {
-                    return this.lang === 'es' ? [
-                        'Inhala y ordena tus prioridades.', 'Exhala y libera la tensión.', 'Deja que el círculo se expanda.', 'Permite que vuelva suavemente.',
-                        'Inhala y observa los hechos.', 'Exhala y deja atrás la prisa.', 'Expande el círculo con calma.', 'Cierra el círculo sin esfuerzo.',
-                        'Inhala y escucha con atención.', 'Exhala antes de responder.', 'Acompaña el crecimiento del círculo.', 'Acompaña su regreso con calma.',
-                        'Inhala y enfoca la decisión.', 'Exhala y conserva la perspectiva.', 'Respira y retoma el control sereno.'
-                    ] : [
-                        'Inhale and order your priorities.', 'Exhale and release tension.', 'Let the circle expand.', 'Allow it to return gently.',
-                        'Inhale and observe the facts.', 'Exhale and leave haste behind.', 'Expand the circle calmly.', 'Let the circle close effortlessly.',
-                        'Inhale and listen carefully.', 'Exhale before you respond.', 'Follow the circle as it grows.', 'Follow its return calmly.',
-                        'Inhale and focus on the decision.', 'Exhale and keep perspective.', 'Breathe and regain calm control.'
-                    ];
-                },
-                startLeadershipBreathing() {
-                    this.rotateLeadershipExercise(); // Rotar ejercicio para que nunca se repita
-                    clearInterval(this.leadershipTimer);
-                    this.leadershipBreathingActive = true;
-                    this.leadershipTimeLeft = 60;
-                    this.updateLeadershipBreathingPhase();
-                    this.leadershipTimer = setInterval(() => {
-                        this.leadershipTimeLeft--;
-                        const elapsed = 60 - this.leadershipTimeLeft;
-                        if (elapsed % 4 === 0) this.updateLeadershipBreathingPhase();
-                        if (this.leadershipTimeLeft <= 0) this.finishLeadershipBreathing();
-                    }, 1000);
-                },
-                updateLeadershipBreathingPhase() {
-                    const elapsed = 60 - this.leadershipTimeLeft;
-                    const cues = this.getLeadershipBreathingCues();
-                    const cueIndex = Math.min(Math.floor(elapsed / 4), cues.length - 1);
-                    const inhale = (elapsed % 8) < 4;
-                    this.leadershipPhaseText = inhale ? (this.lang === 'es' ? 'INHALA Y CONTROLA' : 'INHALE & CONTROL') : (this.lang === 'es' ? 'EXHALA PRESIÓN' : 'EXHALE PRESSURE');
-                    this.leadershipInstruction = cues[cueIndex];
-                    if (this.voiceEnabled) this.speakVoice(this.leadershipInstruction);
-                },
-                stopLeadershipBreathing() {
-                    this.leadershipBreathingActive = false;
-                    clearInterval(this.leadershipTimer);
-                    this.leadershipTimeLeft = 60;
-                    this.leadershipPhaseText = 'Pausa';
-                    this.leadershipInstruction = this.lang === 'es' ? 'Sesión finalizada.' : 'Session ended.';
-                },
-                finishLeadershipBreathing() {
-                    this.stopLeadershipBreathing();
-                    this.showNoticeMessage(this.lang === 'es' ? '¡Sesión de Liderazgo completada! Mente despejada para el control operativo.' : 'Leadership session completed! Clear mind for operations.');
-                },
-                speakVoice(text) {
-                    if ('speechSynthesis' in window && this.voiceEnabled) {
-                        window.speechSynthesis.cancel();
-                        const utterance = new SpeechSynthesisUtterance(text);
-                        utterance.lang = this.lang === 'es' ? 'es-ES' : 'en-US';
-                        utterance.rate = 0.95;
-                        window.speechSynthesis.speak(utterance);
-                    }
-                },
+// 6 EJERCICIOS RESPIRATORIOS DIFERENTES PARA JEFATURA
+getLeadershipBreathingCues() {
+    const exercises = {
+        l1: {
+            es: ['Inhala y define la prioridad más importante.', 'Exhala y aparta lo que puede esperar.', 'Toma aire y separa lo urgente de lo importante.', 'Suelta el aire y enfoca el siguiente paso.', 'Inhala y ordena mentalmente las tareas.', 'Exhala y evita resolver todo a la vez.', 'Respira y establece qué debe atenderse primero.', 'Suelta el aire y conserva una visión general.', 'Inhala y confirma el objetivo inmediato.', 'Exhala y elimina distracciones.', 'Toma aire y mantén una prioridad clara.', 'Suelta el aire y prepara una acción concreta.', 'Inhala con serenidad.', 'Exhala y revisa tu plan.', 'Respira y continúa con claridad.'],
+            en: ['Inhale and define the most important priority.', 'Exhale and set aside what can wait.', 'Breathe in and separate urgent from important.', 'Breathe out and focus on the next step.', 'Inhale and mentally organize the tasks.', 'Exhale and avoid solving everything at once.', 'Breathe and establish what needs attention first.', 'Breathe out and keep the overall picture.', 'Inhale and confirm the immediate objective.', 'Exhale and remove distractions.', 'Breathe in and keep one clear priority.', 'Breathe out and prepare a concrete action.', 'Inhale calmly.', 'Exhale and review your plan.', 'Breathe and continue with clarity.']
+        },
+        l2: {
+            es: ['Inhala y escucha sin preparar todavía una respuesta.', 'Exhala y permite que la otra persona termine.', 'Toma aire y distingue hechos de interpretaciones.', 'Suelta el aire y formula una pregunta clara.', 'Inhala y presta atención a lo que no se ha dicho.', 'Exhala y confirma que comprendiste el reporte.', 'Respira y escucha sin interrumpir.', 'Suelta el aire y reconoce la información recibida.', 'Inhala antes de responder.', 'Exhala y comunica con respeto.', 'Toma aire y verifica los datos esenciales.', 'Suelta el aire y acuerda el siguiente paso.', 'Inhala con atención.', 'Exhala sin apresurar la decisión.', 'Respira y responde después de escuchar.'],
+            en: ['Inhale and listen without preparing a reply yet.', 'Exhale and let the other person finish.', 'Breathe in and distinguish facts from interpretations.', 'Breathe out and ask a clear question.', 'Inhale and notice what has not been said.', 'Exhale and confirm you understood the report.', 'Breathe and listen without interrupting.', 'Breathe out and acknowledge the information received.', 'Inhale before responding.', 'Exhale and communicate respectfully.', 'Breathe in and verify the essential facts.', 'Breathe out and agree on the next step.', 'Inhale attentively.', 'Exhale without rushing the decision.', 'Breathe and respond after listening.']
+        },
+        l3: {
+            es: ['Inhala y observa la situación antes de actuar.', 'Exhala y evita transmitir alarma.', 'Toma aire y confirma qué se sabe con certeza.', 'Suelta el aire y comunica una instrucción breve.', 'Inhala y determina si hace falta detener la actividad.', 'Exhala y solicita apoyo por el canal correspondiente.', 'Respira y mantén un tono firme y sereno.', 'Suelta el aire y evita suposiciones.', 'Inhala y verifica que el equipo entendió.', 'Exhala y confirma quién ejecuta el siguiente paso.', 'Toma aire y conserva el control de la comunicación.', 'Suelta el aire y vuelve a evaluar la situación.', 'Inhala con calma.', 'Exhala y actúa conforme al procedimiento vigente.', 'Respira y mantén la atención en la seguridad.'],
+            en: ['Inhale and observe the situation before acting.', 'Exhale and avoid spreading alarm.', 'Breathe in and confirm what is known for certain.', 'Breathe out and give a brief instruction.', 'Inhale and determine whether the activity must stop.', 'Exhale and request support through the proper channel.', 'Breathe and keep your tone firm and calm.', 'Breathe out and avoid assumptions.', 'Inhale and verify that the team understood.', 'Exhale and confirm who handles the next step.', 'Breathe in and maintain control of communication.', 'Breathe out and reassess the situation.', 'Inhale calmly.', 'Exhale and act according to the current procedure.', 'Breathe and keep safety in focus.']
+        },
+        l4: {
+            es: ['Inhala y divide la carga de trabajo en etapas.', 'Exhala y evita acumular tareas sin asignación.', 'Toma aire y revisa la capacidad del equipo.', 'Suelta el aire y distribuye responsabilidades con claridad.', 'Inhala y establece un orden de ejecución.', 'Exhala y elimina pasos innecesarios.', 'Respira y deja espacio para imprevistos.', 'Suelta el aire y revisa los recursos disponibles.', 'Inhala y confirma tiempos realistas.', 'Exhala y ajusta la secuencia si hace falta.', 'Toma aire y comunica quién hace qué.', 'Suelta el aire y verifica el avance.', 'Inhala con serenidad.', 'Exhala y mantén una carga de trabajo razonable.', 'Respira y continúa paso a paso.'],
+            en: ['Inhale and divide the workload into stages.', 'Exhale and avoid leaving tasks unassigned.', 'Breathe in and review the team capacity.', 'Breathe out and assign responsibilities clearly.', 'Inhale and establish an order of execution.', 'Exhale and remove unnecessary steps.', 'Breathe and leave room for unexpected events.', 'Breathe out and review available resources.', 'Inhale and confirm realistic timing.', 'Exhale and adjust the sequence if needed.', 'Breathe in and communicate who does what.', 'Breathe out and verify progress.', 'Inhale calmly.', 'Exhale and keep the workload reasonable.', 'Breathe and continue step by step.']
+        },
+        l5: {
+            es: ['Inhala y recuerda verificar el procedimiento aplicable.', 'Exhala y evita dar algo por supuesto.', 'Toma aire y confirma que la versión consultada está vigente.', 'Suelta el aire y comprueba los puntos críticos.', 'Inhala y verifica que los controles estén presentes.', 'Exhala y registra cualquier desviación por el canal establecido.', 'Respira y aplica el mismo estándar a cada turno.', 'Suelta el aire y solicita aclaración si hay dudas.', 'Inhala y confirma que la instrucción fue comprendida.', 'Exhala y comprueba el resultado.', 'Toma aire y prioriza la prevención.', 'Suelta el aire y corrige de acuerdo con el procedimiento.', 'Inhala con atención.', 'Exhala y evita sustituir normas por costumbres.', 'Respira y promueve la verificación constante.'],
+            en: ['Inhale and verify the applicable procedure.', 'Exhale and avoid making assumptions.', 'Breathe in and confirm the version is current.', 'Breathe out and check the critical points.', 'Inhale and verify that controls are in place.', 'Exhale and report deviations through the established channel.', 'Breathe and apply the same standard on every shift.', 'Breathe out and ask for clarification if unsure.', 'Inhale and confirm the instruction was understood.', 'Exhale and check the result.', 'Breathe in and prioritize prevention.', 'Breathe out and correct according to procedure.', 'Inhale attentively.', 'Exhale and do not replace rules with habits.', 'Breathe and promote consistent verification.']
+        },
+        l6: {
+            es: ['Inhala y recuerda que cada operador merece respeto.', 'Exhala y escucha sus preocupaciones.', 'Toma aire y observa señales de cansancio o dificultad.', 'Suelta el aire y pregunta cómo puedes apoyar.', 'Inhala y reconoce el esfuerzo del equipo.', 'Exhala y comunica una corrección sin humillar.', 'Respira y considera el impacto de tus decisiones.', 'Suelta el aire y mantén un trato justo.', 'Inhala y ofrece instrucciones comprensibles.', 'Exhala y confirma que la persona cuenta con apoyo.', 'Toma aire y reconoce cuándo hace falta una pausa.', 'Suelta el aire y protege la dignidad de todos.', 'Inhala con empatía.', 'Exhala y actúa con equilibrio.', 'Respira y lidera con respeto.'],
+            en: ['Inhale and remember every operator deserves respect.', 'Exhale and listen to their concerns.', 'Breathe in and notice signs of fatigue or difficulty.', 'Breathe out and ask how you can support.', 'Inhale and recognize the team effort.', 'Exhale and correct without humiliation.', 'Breathe and consider the impact of your decisions.', 'Breathe out and maintain fair treatment.', 'Inhale and offer clear instructions.', 'Exhale and confirm the person has support.', 'Breathe in and recognize when a break is needed.', 'Breathe out and protect everyone’s dignity.', 'Inhale with empathy.', 'Exhale and act with balance.', 'Breathe and lead with respect.']
+        }
+    };
+    const id = this.currentLeadershipAnchor.id || 'l1';
+    return (exercises[id] || exercises.l1)[this.lang === 'es' ? 'es' : 'en'];
+},
+startLeadershipBreathing() {
+    this.rotateLeadershipExercise();
+    clearInterval(this.leadershipTimer);
+    this.leadershipBreathingActive = true;
+    this.leadershipTimeLeft = 60;
+    this.updateLeadershipBreathingPhase();
+    this.leadershipTimer = setInterval(() => {
+        this.leadershipTimeLeft--;
+        const elapsed = 60 - this.leadershipTimeLeft;
+        if (elapsed % 4 === 0) this.updateLeadershipBreathingPhase();
+        if (this.leadershipTimeLeft <= 0) this.finishLeadershipBreathing();
+    }, 1000);
+},
+updateLeadershipBreathingPhase() {
+    const elapsed = 60 - this.leadershipTimeLeft;
+    const cues = this.getLeadershipBreathingCues();
+    const cueIndex = Math.min(Math.floor(elapsed / 4), cues.length - 1);
+    const inhale = (elapsed % 8) < 4;
+    this.leadershipPhaseText = inhale ? (this.lang === 'es' ? 'INHALA Y CONTROLA' : 'INHALE & CONTROL') : (this.lang === 'es' ? 'EXHALA PRESIÓN' : 'EXHALE PRESSURE');
+    this.leadershipInstruction = cues[cueIndex];
+    if (this.voiceEnabled) this.speakVoice(this.leadershipInstruction);
+},
+stopLeadershipBreathing() {
+    this.leadershipBreathingActive = false;
+    clearInterval(this.leadershipTimer);
+    this.leadershipTimeLeft = 60;
+    this.leadershipPhaseText = 'Pausa';
+    this.leadershipInstruction = this.lang === 'es' ? 'Sesión finalizada.' : 'Session ended.';
+},
+finishLeadershipBreathing() {
+    this.stopLeadershipBreathing();
+    this.showNoticeMessage(this.lang === 'es' ? '¡Sesión de Liderazgo completada! Mente despejada para el control operativo.' : 'Leadership session completed! Clear mind for operational control.');
+},
+speakVoice(text) {
+    if ('speechSynthesis' in window && this.voiceEnabled) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = this.lang === 'es' ? 'es-ES' : 'en-US';
+        utterance.rate = 0.95;
+        window.speechSynthesis.speak(utterance);
+    }
+},
                 toggleAdminView() {
                     this.viewMode = 'admin';
                     this.$nextTick(() => lucide.createIcons());
