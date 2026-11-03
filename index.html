@@ -24,6 +24,7 @@
     <style>
         @keyframes breathePulse { 0%, 100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.35); opacity: 1; } }
         .animate-breathe { animation: breathePulse 8s ease-in-out infinite; }
+        [x-cloak] { display: none !important; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -665,6 +666,56 @@
         </template>
     </main>
 
+    <!-- LIMPIEZA OBLIGATORIA LOCAL CADA 72 HORAS -->
+    <div x-show="cleanupRequired" x-cloak
+         style="display:none;"
+         class="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4"
+         role="dialog" aria-modal="true" aria-labelledby="cleanupTitle">
+        <div class="w-full max-w-lg bg-slate-900 border-2 border-amber-500/60 rounded-2xl p-6 shadow-2xl space-y-5">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                    <i data-lucide="database-zap" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h2 id="cleanupTitle" class="text-lg font-black text-white"
+                        x-text="lang === 'es' ? 'LIMPIEZA OBLIGATORIA' : 'MANDATORY CLEANUP'"></h2>
+                    <p class="text-xs text-amber-300 font-semibold"
+                       x-text="lang === 'es' ? 'Han transcurrido 72 horas en este dispositivo.' : 'The 72-hour period has elapsed on this device.'"></p>
+                </div>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2 text-sm text-slate-300">
+                <p x-show="lang === 'es'">
+                    Para continuar, debe completar la limpieza de los comunicados retirados. Puede descargar primero una copia de respaldo.
+                </p>
+                <p x-show="lang === 'en'">
+                    To continue, you must complete cleanup of withdrawn announcements. You can download a backup first.
+                </p>
+                <div class="flex items-center justify-between border-t border-slate-800 pt-3 text-xs">
+                    <span x-text="lang === 'es' ? 'Comunicados retirados pendientes' : 'Withdrawn announcements pending'"></span>
+                    <strong class="text-amber-300 font-mono" x-text="getWithdrawnAnnouncements().length"></strong>
+                </div>
+                <p class="text-[11px] text-slate-500"
+                   x-text="lang === 'es' ? 'Los avisos activos y programados no serán eliminados. Esta limpieza afecta únicamente a este navegador o dispositivo.' : 'Active and scheduled notices will not be deleted. This cleanup affects only this browser or device.'"></p>
+            </div>
+
+            <button type="button" @click="downloadCleanupBackup()"
+                    :disabled="getWithdrawnAnnouncements().length === 0"
+                    class="w-full px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-700 text-white font-bold text-xs flex items-center justify-center gap-2">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span x-text="lang === 'es' ? (cleanupBackupDownloaded ? 'RESPALDO DESCARGADO' : 'DESCARGAR RESPALDO JSON') : (cleanupBackupDownloaded ? 'BACKUP DOWNLOADED' : 'DOWNLOAD JSON BACKUP')"></span>
+            </button>
+
+            <button type="button" @click="performMandatoryCleanup()"
+                    :disabled="getWithdrawnAnnouncements().length > 0 && !cleanupBackupDownloaded"
+                    class="w-full px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-xs tracking-wider">
+                <span x-text="lang === 'es' ? 'CLEANUP NOW — LIMPIAR AHORA' : 'CLEANUP NOW'"></span>
+            </button>
+            <p class="text-[10px] text-center text-slate-500"
+               x-text="lang === 'es' ? 'No se puede continuar en la aplicación hasta completar esta limpieza.' : 'You cannot continue using the application until this cleanup is completed.'"></p>
+        </div>
+    </div>
+
     <!-- VENTANA MODAL / PANEL DE RESPALDOS TÉCNICOS -->
     <div x-show="openTechRefModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div @click.away="openTechRefModal = false" class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-6 relative">
@@ -739,6 +790,11 @@
                 adminAuthenticated: false,
                 adminPasscode: '',
                 adminError: '',
+                cleanupRequired: false,
+                cleanupBackupDownloaded: false,
+                cleanupTimer: null,
+                cleanupStorageKey: 'smartcargo_cleanup_last_at',
+                cleanupIntervalMs: 72 * 60 * 60 * 1000,
                 currentAdminUser: { name: 'Jefatura SMS / Cargo', role: 'Chief Operational Safety' },
                 groupTokens: {
                     COUNTER: 'TOK-CNT-2026', SCALE: 'TOK-SCL-2026', CARGO: 'TOK-CRG-2026',
@@ -927,6 +983,12 @@
                     if (saved) {
                         try { this.announcements = JSON.parse(saved); } catch(e){}
                     }
+
+                    // LIMPIEZA OBLIGATORIA CADA 72 HORAS EN ESTE DISPOSITIVO
+                    this.checkCleanupDeadline();
+                    if (this.cleanupTimer) clearInterval(this.cleanupTimer);
+                    this.cleanupTimer = setInterval(() => this.checkCleanupDeadline(), 60000);
+
                     this.$nextTick(() => lucide.createIcons());
                 },
                 
@@ -952,6 +1014,66 @@
 
                 saveAnnouncements() {
                     localStorage.setItem('smartcargo_announcements_db', JSON.stringify(this.announcements));
+                },
+                // CONTROL LOCAL DE LIMPIEZA OBLIGATORIA CADA 72 HORAS
+                checkCleanupDeadline() {
+                    const now = Date.now();
+                    let lastCleanup = Number(localStorage.getItem(this.cleanupStorageKey));
+
+                    // En la primera ejecución se inicia el contador de 72 horas.
+                    if (!Number.isFinite(lastCleanup) || lastCleanup <= 0) {
+                        lastCleanup = now;
+                        localStorage.setItem(this.cleanupStorageKey, String(lastCleanup));
+                    }
+
+                    this.cleanupRequired = (now - lastCleanup) >= this.cleanupIntervalMs;
+                },
+                getWithdrawnAnnouncements() {
+                    return this.announcements.filter(item => item.status === 'Withdrawn');
+                },
+                downloadCleanupBackup() {
+                    const records = this.getWithdrawnAnnouncements();
+                    const backup = {
+                        application: 'SmartCargo SafetyHub',
+                        exportedAt: new Date().toISOString(),
+                        retentionPolicy: 'Local device cleanup every 72 hours',
+                        records: records
+                    };
+                    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'SmartCargo-Withdrawn-Announcements-Backup-' +
+                        new Date().toISOString().replace(/[:.]/g, '-') + '.json';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    this.cleanupBackupDownloaded = true;
+                },
+                performMandatoryCleanup() {
+                    const withdrawnCount = this.getWithdrawnAnnouncements().length;
+
+                    // Si hay registros retirados, exige descargar primero el respaldo.
+                    if (withdrawnCount > 0 && !this.cleanupBackupDownloaded) {
+                        this.showNoticeMessage(this.lang === 'es'
+                            ? 'Descargue primero la copia de respaldo de los comunicados retirados.'
+                            : 'Download the backup of withdrawn announcements first.');
+                        return;
+                    }
+
+                    // Solo elimina comunicados retirados. Activos y programados se conservan.
+                    this.announcements = this.announcements.filter(item => item.status !== 'Withdrawn');
+                    this.saveAnnouncements();
+
+                    const now = Date.now();
+                    localStorage.setItem(this.cleanupStorageKey, String(now));
+                    this.cleanupRequired = false;
+                    this.cleanupBackupDownloaded = false;
+
+                    this.showNoticeMessage(this.lang === 'es'
+                        ? 'Limpieza completada. El próximo ciclo comenzará ahora y vencerá en 72 horas.'
+                        : 'Cleanup completed. The next 72-hour cycle starts now.');
                 },
                 toggleAdminAutoMode() {
                     this.adminAutoModeActive = !this.adminAutoModeActive;
