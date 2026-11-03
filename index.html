@@ -24,6 +24,12 @@
     <style>
         @keyframes breathePulse { 0%, 100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.35); opacity: 1; } }
         .animate-breathe { animation: breathePulse 8s ease-in-out infinite; }
+        .animate-breathe-1 { animation: breathePulse 6s ease-in-out infinite; }
+        .animate-breathe-2 { animation: breathePulse 7s ease-in-out infinite; }
+        .animate-breathe-3 { animation: breathePulse 8s ease-in-out infinite; }
+        .animate-breathe-4 { animation: breathePulse 9s ease-in-out infinite; }
+        .animate-breathe-5 { animation: breathePulse 10s ease-in-out infinite; }
+        .animate-breathe-6 { animation: breathePulse 11s ease-in-out infinite; }
         [x-cloak] { display: none !important; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
@@ -320,7 +326,7 @@
                             </div>
                             <div class="flex flex-col items-center justify-center py-4 space-y-6">
                                 <div class="relative flex items-center justify-center w-48 h-48">
-                                    <div :class="{ 'animate-breathe bg-cyan-500/20 border-cyan-400/50': workerBreathingActive, 'bg-slate-800/30 border-slate-700': !workerBreathingActive }" class="absolute inset-0 rounded-full border-2 transition-all duration-1000"></div>
+                                    <div :class="workerBreathingActive ? ['animate-breathe-' + (getWorkerBreathingTheme().id || 'w1').slice(1), 'bg-cyan-500/20', 'border-cyan-400/50'] : ['bg-slate-800/30', 'border-slate-700']" class="absolute inset-0 rounded-full border-2 transition-all duration-1000"></div>
                                     <div class="z-10 text-center space-y-1">
                                         <span class="text-4xl font-black font-mono text-white tracking-tight" x-text="workerBreathingTimeLeft + 's'"></span>
                                         <p class="text-xs font-extrabold uppercase tracking-widest text-cyan-300" x-text="workerBreathingPhaseText"></p>
@@ -435,7 +441,7 @@
                             </div>
                             <div class="flex flex-col items-center justify-center py-4 space-y-6">
                                 <div class="relative flex items-center justify-center w-48 h-48">
-                                    <div :class="{ 'animate-breathe bg-amber-500/20 border-amber-400/50': leadershipBreathingActive, 'bg-slate-800/30 border-slate-700': !leadershipBreathingActive }" class="absolute inset-0 rounded-full border-2 transition-all duration-1000"></div>
+                                    <div :class="leadershipBreathingActive ? ['animate-breathe-' + (currentLeadershipAnchor.id || 'l1').slice(1), 'bg-amber-500/20', 'border-amber-400/50'] : ['bg-slate-800/30', 'border-slate-700']" class="absolute inset-0 rounded-full border-2 transition-all duration-1000"></div>
                                     <div class="z-10 text-center space-y-1">
                                         <span class="text-4xl font-black font-mono text-amber-400 tracking-tight" x-text="leadershipTimeLeft + 's'"></span>
                                         <p class="text-xs font-extrabold uppercase tracking-widest text-slate-200" x-text="leadershipPhaseText"></p>
@@ -975,9 +981,7 @@
                     expiry.setDate(expiry.getDate() + 30);
                     this.newNotice.validUntil = expiry.toISOString().split('T')[0];
 
-                    // SELECCIÓN Y ROTACIÓN SIN REPETICIONES DE EJERCICIOS
-                    this.rotateWorkerExercise();
-                    this.rotateLeadershipExercise();
+                    // La secuencia comienza al pulsar Iniciar: 1, 2, 3, 4, 5, 6.
 
                     const saved = localStorage.getItem('smartcargo_announcements_db');
                     if (saved) {
@@ -992,24 +996,20 @@
                     this.$nextTick(() => lucide.createIcons());
                 },
                 
-                // ROTACIÓN NUNCA REPETIDA TRABAJADOR
+                // ROTACIÓN SECUENCIAL TRABAJADOR: 1 → 2 → 3 → 4 → 5 → 6 → 1.
                 rotateWorkerExercise() {
-                    const lastId = localStorage.getItem('smartcargo_last_worker_ex');
-                    let available = this.workerBreathingThemes.filter(x => x.id !== lastId);
-                    if (available.length === 0) available = this.workerBreathingThemes;
-                    const selected = available[Math.floor(Math.random() * available.length)];
-                    this.currentWorkerExercise = selected;
-                    localStorage.setItem('smartcargo_last_worker_ex', selected.id);
+                    let next = Number(localStorage.getItem('smartcargo_worker_next_ex') || 1);
+                    if (!Number.isInteger(next) || next < 1 || next > 6) next = 1;
+                    this.currentWorkerExercise = this.workerBreathingThemes[next - 1];
+                    localStorage.setItem('smartcargo_worker_next_ex', String(next === 6 ? 1 : next + 1));
                 },
 
-                // ROTACIÓN NUNCA REPETIDA JEFATURA
+                // ROTACIÓN SECUENCIAL JEFATURA: 1 → 2 → 3 → 4 → 5 → 6 → 1.
                 rotateLeadershipExercise() {
-                    const lastId = localStorage.getItem('smartcargo_last_lead_ex');
-                    let available = this.leadershipAnchorsPool.filter(x => x.id !== lastId);
-                    if (available.length === 0) available = this.leadershipAnchorsPool;
-                    const selected = available[Math.floor(Math.random() * available.length)];
-                    this.currentLeadershipAnchor = selected;
-                    localStorage.setItem('smartcargo_last_lead_ex', selected.id);
+                    let next = Number(localStorage.getItem('smartcargo_lead_next_ex') || 1);
+                    if (!Number.isInteger(next) || next < 1 || next > 6) next = 1;
+                    this.currentLeadershipAnchor = this.leadershipAnchorsPool[next - 1];
+                    localStorage.setItem('smartcargo_lead_next_ex', String(next === 6 ? 1 : next + 1));
                 },
 
                 saveAnnouncements() {
