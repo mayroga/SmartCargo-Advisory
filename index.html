@@ -37,7 +37,6 @@
     </style>
 </head>
 <body class="h-full flex flex-col font-sans antialiased bg-slate-950 text-slate-100 selection:bg-brand-500 selection:text-white" x-data="safetyApp()" x-init="initApp()">
-
     <!-- HEADER / NAVEGACIÓN PRINCIPAL -->
     <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-xl px-4 py-3">
         <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
@@ -89,9 +88,7 @@
             </div>
         </template>
     </header>
-
     <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-8">
-        
         <!-- BASE GENERAL / HIMNO NACIONAL DE LA APLICACIÓN: STOP - THINK - ACT -->
         <div class="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 rounded-2xl p-0.5 shadow-2xl">
             <div class="bg-slate-950 rounded-[15px] p-5 md:p-6 space-y-4 relative overflow-hidden">
@@ -122,7 +119,6 @@
                 </div>
             </div>
         </div>
-
         <!-- ADVERTENCIA DE PRIVACIDAD Y REGLA DE CUMPLIMIENTO -->
         <div class="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
             <div class="flex items-start gap-3">
@@ -145,7 +141,6 @@
                 </span>
             </div>
         </div>
-
         <!-- VISTA TRABAJADOR -->
         <template x-if="viewMode === 'worker'">
             <div class="space-y-8">
@@ -161,7 +156,6 @@
                         </div>
                     </div>
                 </template>
-
                 <template x-if="!isCurrentLinkRevoked()">
                     <div class="space-y-8">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden">
@@ -183,7 +177,6 @@
                                 <span x-text="t('activeBriefingSession')"></span>
                             </div>
                         </div>
-
                         <!-- SECCIÓN 1: PILARES PERMANENTES -->
                         <section class="space-y-4">
                             <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -211,7 +204,6 @@
                                 </div>
                             </div>
                         </section>
-
                         <!-- SECCIÓN 2: RECORDATORIOS DIARIOS -->
                         <section class="space-y-4">
                             <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -243,7 +235,6 @@
                                 </template>
                             </div>
                         </section>
-
                         <!-- SECCIÓN 3: AVISOS ESPECIALES Y COMUNICADOS DE JEFATURA -->
                         <section class="space-y-4">
                             <div class="flex items-center justify-between border-b border-slate-800 pb-2">
@@ -288,7 +279,6 @@
                                 </template>
                             </div>
                         </section>
-
                         <!-- SECCIÓN 4: EJERCICIO RESPIRATORIO ROTATIVO TRABAJADOR (6+ OPCIONES) -->
                         <section class="bg-gradient-to-br from-slate-900 via-slate-900 to-brand-950/50 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
@@ -362,7 +352,6 @@
                 </template>
             </div>
         </template>
-
         <!-- VISTA CENTRO DE MANDO (JEFATURA) -->
         <template x-if="viewMode === 'admin'">
             <div class="space-y-8">
@@ -389,7 +378,6 @@
                         </form>
                     </div>
                 </template>
-
                 <template x-if="adminAuthenticated">
                     <div class="space-y-8">
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
@@ -411,7 +399,6 @@
                                 </button>
                             </div>
                         </div>
-
                         <!-- RESPIRACIÓN JEFATURA (6+ OPCIONES NUNCA REPETIDAS) -->
                         <section class="bg-gradient-to-br from-slate-900 via-slate-900 to-amber-950/40 border border-amber-500/30 rounded-2xl p-6 shadow-xl space-y-6">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
@@ -464,7 +451,6 @@
                                 </div>
                             </div>
                         </section>
-
                         <!-- ENLACES DINÁMICOS -->
                         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                             <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -507,7 +493,6 @@
                                 </template>
                             </div>
                         </section>
-
                         <!-- FORMULARIO DE PUBLICACIÓN DE AVISOS -->
                         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
                             <div class="border-b border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
@@ -612,7 +597,6 @@
                                 </div>
                             </form>
                         </section>
-
                         <!-- LOG DE AUDITORÍA Y REGISTRO -->
                         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                             <div class="border-b border-slate-800 pb-3">
@@ -671,57 +655,7 @@
             </div>
         </template>
     </main>
-
-    <!-- LIMPIEZA OBLIGATORIA LOCAL CADA 72 HORAS -->
-    <div x-show="cleanupRequired" x-cloak
-         style="display:none;"
-         class="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4"
-         role="dialog" aria-modal="true" aria-labelledby="cleanupTitle">
-        <div class="w-full max-w-lg bg-slate-900 border-2 border-amber-500/60 rounded-2xl p-6 shadow-2xl space-y-5">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
-                    <i data-lucide="database-zap" class="w-6 h-6"></i>
-                </div>
-                <div>
-                    <h2 id="cleanupTitle" class="text-lg font-black text-white"
-                        x-text="lang === 'es' ? 'LIMPIEZA OBLIGATORIA' : 'MANDATORY CLEANUP'"></h2>
-                    <p class="text-xs text-amber-300 font-semibold"
-                       x-text="lang === 'es' ? 'Han transcurrido 72 horas en este dispositivo.' : 'The 72-hour period has elapsed on this device.'"></p>
-                </div>
-            </div>
-
-            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2 text-sm text-slate-300">
-                <p x-show="lang === 'es'">
-                    Para continuar, debe completar la limpieza de los comunicados retirados. Puede descargar primero una copia de respaldo.
-                </p>
-                <p x-show="lang === 'en'">
-                    To continue, you must complete cleanup of withdrawn announcements. You can download a backup first.
-                </p>
-                <div class="flex items-center justify-between border-t border-slate-800 pt-3 text-xs">
-                    <span x-text="lang === 'es' ? 'Comunicados retirados pendientes' : 'Withdrawn announcements pending'"></span>
-                    <strong class="text-amber-300 font-mono" x-text="getWithdrawnAnnouncements().length"></strong>
-                </div>
-                <p class="text-[11px] text-slate-500"
-                   x-text="lang === 'es' ? 'Los avisos activos y programados no serán eliminados. Esta limpieza afecta únicamente a este navegador o dispositivo.' : 'Active and scheduled notices will not be deleted. This cleanup affects only this browser or device.'"></p>
-            </div>
-
-            <button type="button" @click="downloadCleanupBackup()"
-                    :disabled="getWithdrawnAnnouncements().length === 0"
-                    class="w-full px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed border border-slate-700 text-white font-bold text-xs flex items-center justify-center gap-2">
-                <i data-lucide="download" class="w-4 h-4"></i>
-                <span x-text="lang === 'es' ? (cleanupBackupDownloaded ? 'RESPALDO DESCARGADO' : 'DESCARGAR RESPALDO JSON') : (cleanupBackupDownloaded ? 'BACKUP DOWNLOADED' : 'DOWNLOAD JSON BACKUP')"></span>
-            </button>
-
-            <button type="button" @click="performMandatoryCleanup()"
-                    :disabled="getWithdrawnAnnouncements().length > 0 && !cleanupBackupDownloaded"
-                    class="w-full px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 disabled:cursor-not-allowed text-slate-950 font-black text-xs tracking-wider">
-                <span x-text="lang === 'es' ? 'CLEANUP NOW — LIMPIAR AHORA' : 'CLEANUP NOW'"></span>
-            </button>
-            <p class="text-[10px] text-center text-slate-500"
-               x-text="lang === 'es' ? 'No se puede continuar en la aplicación hasta completar esta limpieza.' : 'You cannot continue using the application until this cleanup is completed.'"></p>
-        </div>
-    </div>
-
+    <!-- Los comunicados retirados se eliminan automáticamente tras 24 horas. -->
     <!-- VENTANA MODAL / PANEL DE RESPALDOS TÉCNICOS -->
     <div x-show="openTechRefModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
         <div @click.away="openTechRefModal = false" class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-6 relative">
@@ -734,7 +668,6 @@
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            
             <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
                 <p class="font-bold text-amber-300" x-text="t('techRefModalIntro')"></p>
                 <ul class="space-y-2 bg-slate-950/80 p-4 rounded-xl border border-slate-800 font-mono text-[11px]">
@@ -761,7 +694,6 @@
                     <p x-show="lang === 'en'">General educational material for cargo warehouse operations. Does not replace internal procedures of AGI, Avianca Cargo, MIA, or mandatory required training.</p>
                 </div>
             </div>
-
             <div class="pt-2 flex justify-end">
                 <button @click="openTechRefModal = false" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider border border-slate-700">
                     Cerrar / Close
@@ -769,7 +701,6 @@
             </div>
         </div>
     </div>
-
     <!-- FOOTER -->
     <footer class="mt-auto border-t border-slate-800/80 bg-slate-900/60 py-4 px-4 text-center text-xs text-slate-500">
         <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
@@ -781,7 +712,6 @@
             </div>
         </div>
     </footer>
-
     <!-- LÓGICA ALPINE.JS COMPLETA Y OPTIMIZADA -->
     <script>
         function safetyApp() {
@@ -796,11 +726,8 @@
                 adminAuthenticated: false,
                 adminPasscode: '',
                 adminError: '',
-                cleanupRequired: false,
-                cleanupBackupDownloaded: false,
                 cleanupTimer: null,
-                cleanupStorageKey: 'smartcargo_cleanup_last_at',
-                cleanupIntervalMs: 72 * 60 * 60 * 1000,
+                withdrawnRetentionMs: 24 * 60 * 60 * 1000,
                 currentAdminUser: { name: 'Jefatura SMS / Cargo', role: 'Chief Operational Safety' },
                 groupTokens: {
                     COUNTER: 'TOK-CNT-2026', SCALE: 'TOK-SCL-2026', CARGO: 'TOK-CRG-2026',
@@ -883,7 +810,6 @@
                     titleEn: '', contentEn: '', publishTiming: 'now', scheduledAt: '', recurrence: 'once',
                     authorName: '', authorRole: '', generalAutoApproved: false
                 },
-
                 // 6 OPCIONES DISTINTAS DE RESPIRACIÓN TRABAJADOR (45s)
                 workerBreathingThemes: [
                     { id: 'w1', icon: 'brain', title: { es: "Atención al entorno", en: "Notice your surroundings" }, subtitle: { es: "Antes de empezar, observa tu espacio de trabajo y verifica peligros.", en: "Before starting, observe your work area and check hazards." } },
@@ -893,7 +819,6 @@
                     { id: 'w5', icon: 'eye', title: { es: "Enfoque Visual Operativo", en: "Operational Visual Focus" }, subtitle: { es: "Visualiza la ruta libre de obstáculos antes de mover carga.", en: "Visualize clear pathway before moving cargo." } },
                     { id: 'w6', icon: 'smile', title: { es: "Postura y Salud Corporal", en: "Posture & Body Health" }, subtitle: { es: "Inhala alineando la columna y exhalando la tensión muscular.", en: "Inhale aligning your spine and exhale muscle tension." } }
                 ],
-
                 // 6 OPCIONES DISTINTAS DE ENFOQUE JEFATURA (60s)
                 leadershipAnchorsPool: [
                     { id: 'l1', icon: 'brain-circuit', title: { es: "Claridad de prioridades", en: "Priority clarity" }, subtitle: { es: "Dedica este minuto a aclarar tu atención y prioridades operativas.", en: "Use this minute to clarify attention and operational priorities." } },
@@ -903,7 +828,6 @@
                     { id: 'l5', icon: 'check-circle-2', title: { es: "Cultura de Verificación SOP", en: "SOP Verification Culture" }, subtitle: { es: "Promueve la validación de normas sin excepción en plataforma.", en: "Promote strict adherence to procedures on ramp." } },
                     { id: 'l6', icon: 'heart-handshake', title: { es: "Empatía y Respeto al Operador", en: "Empathy & Operator Respect" }, subtitle: { es: "Un líder protege el bienestar físico y mental de su personal.", en: "A leader protects team's physical and mental well-being." } }
                 ],
-
                 currentLeadershipAnchor: {},
                 currentWorkerExercise: {},
                 victoryAffirmations: [
@@ -962,7 +886,7 @@
                     validityLabel: { es: 'Fecha de Expiración', en: 'Expiration Date' },
                     publishNow: { es: 'Publicar Aviso', en: 'Publish Notice' },
                     auditLogTitle: { es: 'Trazabilidad y Auditoría de Comunicados', en: 'Announcement Audit Log' },
-                    auditLogSub: { es: 'Historial inalterable con autor, fecha, estado y retiradas.', en: 'Immutable history with author, date, status, and withdrawals.' },
+                    auditLogSub: { es: 'Registro local de autor, fecha, estado y retiradas. Los comunicados retirados se eliminan automáticamente después de 24 horas.', en: 'Local record of author, date, status, and withdrawals. Withdrawn announcements are automatically deleted after 24 hours.' },
                     withdrawBtn: { es: 'Retirar', en: 'Withdraw' },
                     archivedInLog: { es: 'Retirado (Auditado)', en: 'Withdrawn (Audited)' },
                     linkRevokedTitle: { es: 'ENLACE INACTIVADO / CADUCADO', en: 'LINK REVOKED / EXPIRED' },
@@ -980,22 +904,32 @@
                     const expiry = new Date();
                     expiry.setDate(expiry.getDate() + 30);
                     this.newNotice.validUntil = expiry.toISOString().split('T')[0];
-
                     // La secuencia comienza al pulsar Iniciar: 1, 2, 3, 4, 5, 6.
-
                     const saved = localStorage.getItem('smartcargo_announcements_db');
                     if (saved) {
-                        try { this.announcements = JSON.parse(saved); } catch(e){}
+                        try {
+                            const parsed = JSON.parse(saved);
+                            if (Array.isArray(parsed)) this.announcements = parsed;
+                        } catch(e) {
+                            console.warn('No se pudieron leer los comunicados guardados:', e);
+                        }
                     }
-
-                    // LIMPIEZA OBLIGATORIA CADA 72 HORAS EN ESTE DISPOSITIVO
-                    this.checkCleanupDeadline();
+                    // Retención local: cada comunicado retirado se conserva 24 horas desde su retirada.
+                    // Los registros antiguos sin fecha reciben 24 horas de gracia desde esta primera carga.
+                    let migrated = false;
+                    const migrationTime = new Date().toISOString();
+                    this.announcements.forEach(item => {
+                        if (item && item.status === 'Withdrawn' && !item.withdrawnAt) {
+                            item.withdrawnAt = migrationTime;
+                            migrated = true;
+                        }
+                    });
+                    this.cleanupExpiredWithdrawnAnnouncements();
+                    if (migrated) this.saveAnnouncements();
                     if (this.cleanupTimer) clearInterval(this.cleanupTimer);
-                    this.cleanupTimer = setInterval(() => this.checkCleanupDeadline(), 60000);
-
+                    this.cleanupTimer = setInterval(() => this.cleanupExpiredWithdrawnAnnouncements(), 60000);
                     this.$nextTick(() => lucide.createIcons());
                 },
-                
                 // ROTACIÓN SECUENCIAL TRABAJADOR: 1 → 2 → 3 → 4 → 5 → 6 → 1.
                 rotateWorkerExercise() {
                     let next = Number(localStorage.getItem('smartcargo_worker_next_ex') || 1);
@@ -1003,7 +937,6 @@
                     this.currentWorkerExercise = this.workerBreathingThemes[next - 1];
                     localStorage.setItem('smartcargo_worker_next_ex', String(next === 6 ? 1 : next + 1));
                 },
-
                 // ROTACIÓN SECUENCIAL JEFATURA: 1 → 2 → 3 → 4 → 5 → 6 → 1.
                 rotateLeadershipExercise() {
                     let next = Number(localStorage.getItem('smartcargo_lead_next_ex') || 1);
@@ -1011,69 +944,27 @@
                     this.currentLeadershipAnchor = this.leadershipAnchorsPool[next - 1];
                     localStorage.setItem('smartcargo_lead_next_ex', String(next === 6 ? 1 : next + 1));
                 },
-
                 saveAnnouncements() {
                     localStorage.setItem('smartcargo_announcements_db', JSON.stringify(this.announcements));
                 },
-                // CONTROL LOCAL DE LIMPIEZA OBLIGATORIA CADA 72 HORAS
-                checkCleanupDeadline() {
-                    const now = Date.now();
-                    let lastCleanup = Number(localStorage.getItem(this.cleanupStorageKey));
-
-                    // En la primera ejecución se inicia el contador de 72 horas.
-                    if (!Number.isFinite(lastCleanup) || lastCleanup <= 0) {
-                        lastCleanup = now;
-                        localStorage.setItem(this.cleanupStorageKey, String(lastCleanup));
-                    }
-
-                    this.cleanupRequired = (now - lastCleanup) >= this.cleanupIntervalMs;
-                },
+                // ELIMINACIÓN AUTOMÁTICA DE COMUNICADOS RETIRADOS DESPUÉS DE 24 HORAS
                 getWithdrawnAnnouncements() {
                     return this.announcements.filter(item => item.status === 'Withdrawn');
                 },
-                downloadCleanupBackup() {
-                    const records = this.getWithdrawnAnnouncements();
-                    const backup = {
-                        application: 'SmartCargo SafetyHub',
-                        exportedAt: new Date().toISOString(),
-                        retentionPolicy: 'Local device cleanup every 72 hours',
-                        records: records
-                    };
-                    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = 'SmartCargo-Withdrawn-Announcements-Backup-' +
-                        new Date().toISOString().replace(/[:.]/g, '-') + '.json';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                    this.cleanupBackupDownloaded = true;
-                },
-                performMandatoryCleanup() {
-                    const withdrawnCount = this.getWithdrawnAnnouncements().length;
-
-                    // Si hay registros retirados, exige descargar primero el respaldo.
-                    if (withdrawnCount > 0 && !this.cleanupBackupDownloaded) {
-                        this.showNoticeMessage(this.lang === 'es'
-                            ? 'Descargue primero la copia de respaldo de los comunicados retirados.'
-                            : 'Download the backup of withdrawn announcements first.');
-                        return;
-                    }
-
-                    // Solo elimina comunicados retirados. Activos y programados se conservan.
-                    this.announcements = this.announcements.filter(item => item.status !== 'Withdrawn');
-                    this.saveAnnouncements();
-
+                cleanupExpiredWithdrawnAnnouncements() {
                     const now = Date.now();
-                    localStorage.setItem(this.cleanupStorageKey, String(now));
-                    this.cleanupRequired = false;
-                    this.cleanupBackupDownloaded = false;
-
-                    this.showNoticeMessage(this.lang === 'es'
-                        ? 'Limpieza completada. El próximo ciclo comenzará ahora y vencerá en 72 horas.'
-                        : 'Cleanup completed. The next 72-hour cycle starts now.');
+                    const before = this.announcements.length;
+                    this.announcements = this.announcements.filter(item => {
+                        if (!item || item.status !== 'Withdrawn') return true;
+                        const withdrawnTime = Date.parse(item.withdrawnAt || '');
+                        // Si falta una fecha válida, se inicia una retención segura de 24 horas.
+                        if (!Number.isFinite(withdrawnTime)) {
+                            item.withdrawnAt = new Date(now).toISOString();
+                            return true;
+                        }
+                        return (now - withdrawnTime) < this.withdrawnRetentionMs;
+                    });
+                    if (this.announcements.length !== before) this.saveAnnouncements();
                 },
                 toggleAdminAutoMode() {
                     this.adminAutoModeActive = !this.adminAutoModeActive;
@@ -1116,7 +1007,6 @@
                     let seed = 0; for (let i = 0; i < this.todayDateStr.length; i++) seed += this.todayDateStr.charCodeAt(i);
                     return this.victoryAffirmations[seed % this.victoryAffirmations.length];
                 },
-
                 // CUE GUIDANCE TRABAJADOR CON VOZ
 // 6 EJERCICIOS RESPIRATORIOS DIFERENTES PARA TRABAJADORES
 getWorkerBreathingCues() {
@@ -1185,7 +1075,6 @@ finishWorkerBreathing() {
     const aff = this.getDailyVictoryAffirmation()[this.lang];
     if (this.voiceEnabled) this.speakVoice(this.lang === 'es' ? '¡Excelente trabajo! ' + aff : 'Great job! ' + aff);
 },
-
 // 6 EJERCICIOS RESPIRATORIOS DIFERENTES PARA JEFATURA
 getLeadershipBreathingCues() {
     const exercises = {
@@ -1301,7 +1190,6 @@ speakVoice(text) {
                     document.body.appendChild(div);
                     setTimeout(() => div.remove(), 4000);
                 },
-
                 // BORRADO REAL Y COMPLETO DEL FORMULARIO
                 clearFormWithWarning() {
                     this.newNotice.titleEs = '';
@@ -1325,31 +1213,25 @@ speakVoice(text) {
                     if (!text || !text.trim()) return 0;
                     return text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
                 },
-
                 // PUBLICACIÓN EN LOS 6 CANALES HASTA EXPIRACIÓN O RETIRO MANUALLY
                 publishAnnouncement() {
                     const titleEs = this.newNotice.titleEs.trim();
                     const contentEs = this.newNotice.contentEs.trim();
                     const titleEn = this.newNotice.titleEn.trim();
                     const contentEn = this.newNotice.contentEn.trim();
-
                     if (!contentEs && !contentEn) {
                         this.showNoticeMessage(this.lang === 'es' ? 'Ingrese el mensaje en español o en inglés.' : 'Enter message in Spanish or English.');
                         return;
                     }
-
                     const sentencesEs = this.countSentences(contentEs);
                     const sentencesEn = this.countSentences(contentEn);
-
                     if (sentencesEs > 10 || sentencesEn > 10) {
                         this.showNoticeMessage(this.lang === 'es' ? 'PROHÍBIDO EXCEDER 10 ORACIONES (Máximo 10 permitidas).' : 'FORBIDDEN TO EXCEED 10 SENTENCES (Max 10 allowed).');
                         return;
                     }
-
                     const newId = 'ANC-' + Math.floor(1000 + Math.random() * 9000);
                     const author = this.newNotice.authorName.trim() || 'Jefatura SMS';
                     const authorRole = this.newNotice.authorRole.trim() || 'Supervisión Control';
-
                     const item = {
                         id: newId,
                         createdAt: new Date().toISOString(),
@@ -1362,7 +1244,6 @@ speakVoice(text) {
                         title: { es: titleEs || titleEn, en: titleEn || titleEs },
                         content: { es: contentEs || contentEn, en: contentEn || contentEs }
                     };
-
                     this.announcements.unshift(item);
                     this.saveAnnouncements();
                     this.clearFormWithWarning();
@@ -1371,10 +1252,12 @@ speakVoice(text) {
                 },
                 withdrawNotice(id) {
                     const item = this.announcements.find(a => a.id === id);
-                    if (item) {
+                    if (item && item.status !== 'Withdrawn') {
                         item.status = 'Withdrawn';
+                        item.withdrawnAt = new Date().toISOString();
                         this.saveAnnouncements();
-                        this.showNoticeMessage(this.lang === 'es' ? 'Aviso retirado de la circulación.' : 'Notice withdrawn.');
+                        this.cleanupExpiredWithdrawnAnnouncements();
+                        this.showNoticeMessage(this.lang === 'es' ? 'Aviso retirado. Se eliminará automáticamente del historial en 24 horas.' : 'Notice withdrawn. It will be automatically removed from the log in 24 hours.');
                     }
                 }
             }
